@@ -18,7 +18,6 @@ use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
-use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\BulkAction;
@@ -30,7 +29,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
-class UserResource extends Resource
+class UserResource extends BaseResource
 {
     protected static ?string $model = User::class;
 
@@ -39,6 +38,10 @@ class UserResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-users';
 
     protected static ?int $navigationSort = 1;
+
+    protected static array $defaultEagerLoad = ['bairro', 'roles'];
+
+    protected static array $defaultWithCount = ['activeRestrictions as active_restrictions_count'];
 
     public static function form(Forms\Form $form): Forms\Form
     {
@@ -117,11 +120,7 @@ class UserResource extends Resource
                     ->badge()
                     ->formatStateUsing(fn (int $state): string => $state > 0 ? 'Suspenso' : 'Ativo')
                     ->color(fn (int $state): string => $state > 0 ? 'danger' : 'success'),
-                TextColumn::make('created_at')
-                    ->label('Criado em')
-                    ->dateTime('d/m/Y H:i')
-                    ->sortable()
-                    ->toggleable(),
+                ...static::baseTableColumns(),
             ])
             ->filters([
                 SelectFilter::make('role')
@@ -145,6 +144,7 @@ class UserResource extends Resource
                             ->when($data['from'] ?? null, fn (Builder $q, $date) => $q->where('created_at', '>=', $date))
                             ->when($data['until'] ?? null, fn (Builder $q, $date) => $q->where('created_at', '<=', $date));
                     }),
+                ...static::baseTableFilters(),
             ])
             ->actions([
                 EditAction::make(),
@@ -209,6 +209,7 @@ class UserResource extends Resource
                     })
                     ->visible(fn (User $record): bool => ($record->active_restrictions_count ?? 0) > 0),
                 DeleteAction::make()
+                    ->requiresConfirmation()
                     ->visible(fn () => auth()->user()?->hasRole('admin') ?? false),
             ])
             ->bulkActions([
@@ -227,13 +228,6 @@ class UserResource extends Resource
                     })
                     ->visible(fn () => auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false),
             ]);
-    }
-
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()
-            ->with(['bairro', 'roles'])
-            ->withCount(['activeRestrictions as active_restrictions_count']);
     }
 
     public static function getRelations(): array

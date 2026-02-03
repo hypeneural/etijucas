@@ -42,6 +42,7 @@ import type { ReportStatus, ReportCategory } from '@/types/report';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { BottomTabBar } from '@/components/layout/BottomTabBar';
 
 // Icon mapping for categories (duplicated for now, could be shared)
 const categoryConfig: Record<string, { label: string; icon: React.ElementType; color: string }> = {
@@ -87,227 +88,241 @@ export default function ReportScreen({ scrollRef }: ReportScreenProps) {
     navigate(`/denuncia/${id}`);
   };
 
+  const handleTabChange = (tab: string) => {
+    navigate(`/?tab=${tab}`);
+  };
+
   return (
-    <div ref={scrollRef} className="h-full overflow-y-auto bg-slate-50 dark:bg-slate-950 pb-24">
-      {/* Header & KPIs */}
-      <div className="bg-white dark:bg-slate-900 border-b pb-6 rounded-b-[2rem] shadow-sm relative z-10">
-        <div className="px-4 pt-4 pb-2">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            Fiscaliza Tijucas
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Acompanhe as melhorias na cidade
-          </p>
-        </div>
+    <div ref={scrollRef} className="relative min-h-screen bg-slate-50 dark:bg-slate-950">
+      <div className="pb-32">
+        {/* Header & KPIs */}
+        <div className="bg-white dark:bg-slate-900 border-b pb-6 rounded-b-[2rem] shadow-sm relative z-10">
+          <div className="px-4 pt-4 pb-2">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+              Fiscaliza Tijucas
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Acompanhe as melhorias na cidade
+            </p>
+          </div>
 
-        {/* KPIs Grid */}
-        <div className="grid grid-cols-2 gap-3 px-4 mt-2">
-          <Card className="p-3 bg-gradient-to-br from-blue-50 to-white border-blue-100 dark:from-blue-950/30 dark:to-slate-900 dark:border-blue-900 shadow-sm relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
-              <FileText className="w-12 h-12 text-blue-600" />
-            </div>
-            <p className="text-xs text-blue-600 dark:text-blue-400 font-medium uppercase tracking-wider">Total</p>
-            <div className="flex items-end gap-2 mt-1">
-              <span className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                {statsLoading ? '...' : stats.total}
+          {/* KPIs Grid */}
+          <div className="grid grid-cols-2 gap-3 px-4 mt-2">
+            <Card className="p-3 bg-gradient-to-br from-blue-50 to-white border-blue-100 dark:from-blue-950/30 dark:to-slate-900 dark:border-blue-900 shadow-sm relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
+                <FileText className="w-12 h-12 text-blue-600" />
+              </div>
+              <p className="text-xs text-blue-600 dark:text-blue-400 font-medium uppercase tracking-wider">Total</p>
+              <div className="flex items-end gap-2 mt-1">
+                <span className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                  {statsLoading ? '...' : stats.total}
+                </span>
+                <span className="text-[10px] text-blue-600/80 mb-1 font-medium">denúncias</span>
+              </div>
+            </Card>
+
+            <Card className="p-3 bg-gradient-to-br from-green-50 to-white border-green-100 dark:from-green-950/30 dark:to-slate-900 dark:border-green-900 shadow-sm relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
+                <CheckCircle2 className="w-12 h-12 text-green-600" />
+              </div>
+              <p className="text-xs text-green-600 dark:text-green-400 font-medium uppercase tracking-wider">Resolvidas</p>
+              <div className="flex items-end gap-2 mt-1">
+                <span className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                  {statsLoading ? '...' : stats.byStatus.resolvido}
+                </span>
+                <span className="text-[10px] text-green-600/80 mb-1 font-medium">casos</span>
+              </div>
+            </Card>
+          </div>
+
+          {/* Interactive KPI Filter Bar */}
+          <div className="flex gap-2 px-4 mt-4 overflow-x-auto pb-2 scrollbar-none">
+            <button
+              onClick={() => setFilterStatus('em_analise')}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all whitespace-nowrap",
+                filterStatus === 'em_analise'
+                  ? "bg-amber-100 border-amber-200 text-amber-700"
+                  : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+              )}
+            >
+              <div className="w-2 h-2 rounded-full bg-amber-500" />
+              Em Análise ({statsLoading ? '-' : stats.byStatus.em_analise})
+            </button>
+
+            <button
+              onClick={() => setFilterStatus('rejeitado')}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all whitespace-nowrap",
+                filterStatus === 'rejeitado'
+                  ? "bg-red-100 border-red-200 text-red-700"
+                  : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+              )}
+            >
+              <div className="w-2 h-2 rounded-full bg-red-500" />
+              Rejeitado ({statsLoading ? '-' : stats.byStatus.rejeitado})
+            </button>
+
+            <button
+              onClick={() => setFilterStatus('recebido')}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all whitespace-nowrap",
+                filterStatus === 'recebido'
+                  ? "bg-blue-100 border-blue-200 text-blue-700"
+                  : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+              )}
+            >
+              <div className="w-2 h-2 rounded-full bg-blue-500" />
+              Recebidos ({statsLoading ? '-' : stats.byStatus.recebido})
+            </button>
+          </div>
+
+          {/* Big Action Button */}
+          <div className="px-4 mt-4">
+            <Button
+              size="lg"
+              className="w-full h-14 text-lg font-semibold shadow-lg shadow-primary/20 rounded-xl flex items-center justify-between px-6 transition-transform active:scale-[0.98]"
+              onClick={handleCreateReport}
+            >
+              <span className="flex items-center gap-2">
+                <Plus className="w-6 h-6" />
+                Nova Denúncia
               </span>
-              <span className="text-[10px] text-blue-600/80 mb-1 font-medium">denúncias</span>
-            </div>
-          </Card>
-
-          <Card className="p-3 bg-gradient-to-br from-green-50 to-white border-green-100 dark:from-green-950/30 dark:to-slate-900 dark:border-green-900 shadow-sm relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
-              <CheckCircle2 className="w-12 h-12 text-green-600" />
-            </div>
-            <p className="text-xs text-green-600 dark:text-green-400 font-medium uppercase tracking-wider">Resolvidas</p>
-            <div className="flex items-end gap-2 mt-1">
-              <span className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                {statsLoading ? '...' : stats.byStatus.resolvido}
-              </span>
-              <span className="text-[10px] text-green-600/80 mb-1 font-medium">casos</span>
-            </div>
-          </Card>
+              <div className="bg-white/20 p-1.5 rounded-lg">
+                <ChevronRight className="w-5 h-5" />
+              </div>
+            </Button>
+          </div>
         </div>
 
-        {/* Interactive KPI Filter Bar */}
-        <div className="flex gap-2 px-4 mt-4 overflow-x-auto pb-2 scrollbar-none">
-          <button
-            onClick={() => setFilterStatus('em_analise')}
-            className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all whitespace-nowrap",
-              filterStatus === 'em_analise'
-                ? "bg-amber-100 border-amber-200 text-amber-700"
-                : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
-            )}
-          >
-            <div className="w-2 h-2 rounded-full bg-amber-500" />
-            Em Análise ({statsLoading ? '-' : stats.byStatus.em_analise})
-          </button>
+        {/* Reports List Section */}
+        <div className="px-4 py-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-lg flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-primary" />
+              Últimas Atualizações
+            </h2>
 
-          <button
-            onClick={() => setFilterStatus('rejeitado')}
-            className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all whitespace-nowrap",
-              filterStatus === 'rejeitado'
-                ? "bg-red-100 border-red-200 text-red-700"
-                : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+            {filterStatus !== 'all' && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setFilterStatus('all')}
+                className="text-xs h-8 text-muted-foreground hover:text-foreground"
+              >
+                Limpar Filtros
+              </Button>
             )}
-          >
-            <div className="w-2 h-2 rounded-full bg-red-500" />
-            Rejeitado ({statsLoading ? '-' : stats.byStatus.rejeitado})
-          </button>
+          </div>
 
-          <button
-            onClick={() => setFilterStatus('recebido')}
-            className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all whitespace-nowrap",
-              filterStatus === 'recebido'
-                ? "bg-blue-100 border-blue-200 text-blue-700"
-                : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
-            )}
-          >
-            <div className="w-2 h-2 rounded-full bg-blue-500" />
-            Recebidos ({statsLoading ? '-' : stats.byStatus.recebido})
-          </button>
-        </div>
+          {/* Search */}
+          <div className="mb-4 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por protocolo, bairro ou título..."
+              className="pl-9 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
 
-        {/* Big Action Button */}
-        <div className="px-4 mt-4">
-          <Button
-            size="lg"
-            className="w-full h-14 text-lg font-semibold shadow-lg shadow-primary/20 rounded-xl flex items-center justify-between px-6 transition-transform active:scale-[0.98]"
-            onClick={handleCreateReport}
-          >
-            <span className="flex items-center gap-2">
-              <Plus className="w-6 h-6" />
-              Nova Denúncia
-            </span>
-            <div className="bg-white/20 p-1.5 rounded-lg">
-              <ChevronRight className="w-5 h-5" />
+          {/* Loading State */}
+          {reportsLoading && (
+            <div className="flex flex-col items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 text-primary animate-spin mb-3" />
+              <p className="text-sm text-muted-foreground">Carregando denúncias...</p>
             </div>
-          </Button>
+          )}
+
+          {/* Empty State */}
+          {!reportsLoading && reports.length === 0 && (
+            <div className="text-center py-12 px-4">
+              <div className="w-16 h-16 bg-slate-100 dark:bg-slate-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Search className="w-8 h-8 text-slate-400" />
+              </div>
+              <h3 className="text-base font-medium text-slate-900 dark:text-slate-100">
+                Nenhuma denúncia encontrada
+              </h3>
+              <p className="text-sm text-slate-500 mt-1">
+                Tente mudar os filtros ou faça uma nova denúncia.
+              </p>
+            </div>
+          )}
+
+          {/* List */}
+          <div className="space-y-4">
+            {reports.map((report) => {
+              const category = categoryConfig[report.category?.slug || 'outros'] || categoryConfig.outros;
+              const status = statusConfig[report.status] || statusConfig.recebido;
+              const StatusIcon = status.icon;
+
+              return (
+                <motion.div
+                  key={report.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => handleReportClick(report.id)}
+                >
+                  <Card className="overflow-hidden border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow cursor-pointer bg-white dark:bg-slate-900">
+                    {/* Header with Category and Date */}
+                    <div className="p-3 flex items-start justify-between border-b border-slate-50 dark:border-slate-800">
+                      <div className="flex items-center gap-2">
+                        <div className={cn("p-1.5 rounded-lg", category.color)}>
+                          <category.icon className="w-4 h-4" />
+                        </div>
+                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                          {report.category?.name || category.label}
+                        </span>
+                      </div>
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {formatDistanceToNow(new Date(report.createdAt), {
+                          addSuffix: true,
+                          locale: ptBR,
+                        })}
+                      </span>
+                    </div>
+
+                    {/* Content */}
+                    <div className="p-3">
+                      <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-1 line-clamp-1">
+                        {report.title}
+                      </h3>
+
+                      {/* Location Badge */}
+                      {report.addressText && (
+                        <div className="flex items-center gap-1 text-xs text-slate-500 mb-3">
+                          <MapPin className="w-3 h-3 text-slate-400" />
+                          <span className="line-clamp-1">{report.addressText}</span>
+                        </div>
+                      )}
+
+                      {/* Status and Protocol */}
+                      <div className="flex items-center justify-between mt-2">
+                        <Badge variant="secondary" className={cn("text-[10px] px-2 h-5 font-normal", status.color)}>
+                          <StatusIcon className="w-3 h-3 mr-1" />
+                          {status.label}
+                        </Badge>
+                        <span className="text-[10px] font-mono text-slate-400">
+                          #{report.protocol}
+                        </span>
+                      </div>
+                    </div>
+                  </Card>
+                </motion.div>
+              );
+            })}
+          </div>
         </div>
       </div>
 
-      {/* Reports List Section */}
-      <div className="px-4 py-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold text-lg flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-primary" />
-            Últimas Atualizações
-          </h2>
-
-          {filterStatus !== 'all' && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setFilterStatus('all')}
-              className="text-xs h-8 text-muted-foreground hover:text-foreground"
-            >
-              Limpar Filtros
-            </Button>
-          )}
-        </div>
-
-        {/* Search */}
-        <div className="mb-4 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por protocolo, bairro ou título..."
-            className="pl-9 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-
-        {/* Loading State */}
-        {reportsLoading && (
-          <div className="flex flex-col items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 text-primary animate-spin mb-3" />
-            <p className="text-sm text-muted-foreground">Carregando denúncias...</p>
-          </div>
-        )}
-
-        {/* Empty State */}
-        {!reportsLoading && reports.length === 0 && (
-          <div className="text-center py-12 px-4">
-            <div className="w-16 h-16 bg-slate-100 dark:bg-slate-900 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Search className="w-8 h-8 text-slate-400" />
-            </div>
-            <h3 className="text-base font-medium text-slate-900 dark:text-slate-100">
-              Nenhuma denúncia encontrada
-            </h3>
-            <p className="text-sm text-slate-500 mt-1">
-              Tente mudar os filtros ou faça uma nova denúncia.
-            </p>
-          </div>
-        )}
-
-        {/* List */}
-        <div className="space-y-4">
-          {reports.map((report) => {
-            const category = categoryConfig[report.category?.slug || 'outros'] || categoryConfig.outros;
-            const status = statusConfig[report.status] || statusConfig.recebido;
-            const StatusIcon = status.icon;
-
-            return (
-              <motion.div
-                key={report.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => handleReportClick(report.id)}
-              >
-                <Card className="overflow-hidden border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow cursor-pointer bg-white dark:bg-slate-900">
-                  {/* Header with Category and Date */}
-                  <div className="p-3 flex items-start justify-between border-b border-slate-50 dark:border-slate-800">
-                    <div className="flex items-center gap-2">
-                      <div className={cn("p-1.5 rounded-lg", category.color)}>
-                        <category.icon className="w-4 h-4" />
-                      </div>
-                      <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                        {report.category?.name || category.label}
-                      </span>
-                    </div>
-                    <span className="text-xs text-muted-foreground flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      {formatDistanceToNow(new Date(report.createdAt), {
-                        addSuffix: true,
-                        locale: ptBR,
-                      })}
-                    </span>
-                  </div>
-
-                  {/* Content */}
-                  <div className="p-3">
-                    <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-1 line-clamp-1">
-                      {report.title}
-                    </h3>
-
-                    {/* Location Badge */}
-                    {report.addressText && (
-                      <div className="flex items-center gap-1 text-xs text-slate-500 mb-3">
-                        <MapPin className="w-3 h-3 text-slate-400" />
-                        <span className="line-clamp-1">{report.addressText}</span>
-                      </div>
-                    )}
-
-                    {/* Status and Protocol */}
-                    <div className="flex items-center justify-between mt-2">
-                      <Badge variant="secondary" className={cn("text-[10px] px-2 h-5 font-normal", status.color)}>
-                        <StatusIcon className="w-3 h-3 mr-1" />
-                        {status.label}
-                      </Badge>
-                      <span className="text-[10px] font-mono text-slate-400">
-                        #{report.protocol}
-                      </span>
-                    </div>
-                  </div>
-                </Card>
-              </motion.div>
-            );
-          })}
-        </div>
+      {/* Bottom Tab Bar (Fixed) */}
+      <div className="fixed bottom-0 left-0 right-0 z-50">
+        <BottomTabBar
+          activeTab="reportar"
+          onTabChange={handleTabChange}
+        />
       </div>
     </div>
   );

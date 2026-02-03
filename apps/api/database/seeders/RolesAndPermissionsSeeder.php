@@ -34,6 +34,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'reports.status.update',
             // Admin Content
             'events.manage',
+            'tourism.manage',
             'phones.manage',
             'trash.manage',
             'masses.manage',
@@ -118,6 +119,40 @@ class RolesAndPermissionsSeeder extends Seeder
             $availableFilamentPermissions
         )));
 
+        // Operator Role - Content operations
+        $operatorRole = Role::firstOrCreate(['name' => 'operator']);
+        $operatorBasePermissions = [
+            'events.manage',
+            'tourism.manage',
+            'phones.manage',
+            'bairros.manage',
+        ];
+
+        $operatorFilamentPermissions = [
+            // Bairros
+            'view_any_bairro',
+            'view_bairro',
+            'create_bairro',
+            'update_bairro',
+            'delete_bairro',
+            // Phones
+            'view_any_phone',
+            'view_phone',
+            'create_phone',
+            'update_phone',
+            'delete_phone',
+        ];
+
+        $availableOperatorFilamentPermissions = Permission::query()
+            ->whereIn('name', $operatorFilamentPermissions)
+            ->pluck('name')
+            ->all();
+
+        $operatorRole->syncPermissions(array_unique(array_merge(
+            $operatorBasePermissions,
+            $availableOperatorFilamentPermissions
+        )));
+
         // Admin Role - All permissions
         $adminRole = Role::firstOrCreate(['name' => 'admin']);
         $adminRole->syncPermissions(Permission::all());
@@ -128,6 +163,7 @@ class RolesAndPermissionsSeeder extends Seeder
             [
                 ['user', $userRole->permissions->pluck('name')->join(', ')],
                 ['moderator', $moderatorRole->permissions->pluck('name')->join(', ')],
+                ['operator', $operatorRole->permissions->pluck('name')->join(', ')],
                 ['admin', 'All permissions'],
             ]
         );

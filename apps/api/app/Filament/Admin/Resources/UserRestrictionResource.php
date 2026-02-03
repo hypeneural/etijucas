@@ -13,7 +13,6 @@ use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
-use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\EditAction;
@@ -22,7 +21,7 @@ use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 
-class UserRestrictionResource extends Resource
+class UserRestrictionResource extends BaseResource
 {
     protected static ?string $model = UserRestriction::class;
 
@@ -33,6 +32,8 @@ class UserRestrictionResource extends Resource
     protected static ?int $navigationSort = 10;
 
     protected static ?string $navigationLabel = 'Restricoes';
+
+    protected static array $defaultEagerLoad = ['user'];
 
     public static function form(Forms\Form $form): Forms\Form
     {
@@ -121,6 +122,7 @@ class UserRestrictionResource extends Resource
                         }
                         return 'danger';
                     }),
+                ...static::baseTableColumns(),
             ])
             ->filters([
                 SelectFilter::make('type')
@@ -136,6 +138,7 @@ class UserRestrictionResource extends Resource
                 Filter::make('active')
                     ->label('Ativas')
                     ->query(fn (Builder $query): Builder => $query->active()),
+                ...static::baseTableFilters(),
             ])
             ->actions([
                 EditAction::make(),
@@ -160,8 +163,4 @@ class UserRestrictionResource extends Resource
         ];
     }
 
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()->with('user');
-    }
 }

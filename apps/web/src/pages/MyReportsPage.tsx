@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils';
 import { useMyReports } from '@/hooks/useMyReports';
 import { useAuthStore } from '@/store/useAuthStore';
 import { LoginRequired } from '@/components/auth/LoginRequired';
+import { BottomTabBar } from '@/components/layout/BottomTabBar';
 import type { CitizenReport } from '@/types/report';
 
 const statusConfig: Record<string, { icon: React.ComponentType<{ className?: string }>, color: string, label: string }> = {
@@ -269,20 +270,13 @@ export default function MyReportsPage() {
                         </Button>
                     </div>
                 )}
+                <div className="fixed bottom-0 left-0 right-0 z-50">
+                    <BottomTabBar
+                        activeTab="reportar"
+                        onTabChange={(tab) => navigate(`/?tab=${tab}`)}
+                    />
+                </div>
             </main>
-
-            {/* FAB - New Report */}
-            <div className="fixed bottom-24 right-4 z-50">
-                <motion.div whileTap={{ scale: 0.95 }}>
-                    <Button
-                        size="lg"
-                        className="h-14 w-14 rounded-full shadow-lg"
-                        onClick={() => navigate('/report')}
-                    >
-                        <Plus className="h-6 w-6" />
-                    </Button>
-                </motion.div>
-            </div>
         </div>
     );
 }

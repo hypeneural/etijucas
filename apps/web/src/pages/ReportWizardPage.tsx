@@ -14,6 +14,7 @@ import { useCreateReport } from '@/hooks/useMyReports';
 import { useReportDraft } from '@/hooks/useReportDraft';
 import { useAuthStore } from '@/store/useAuthStore';
 import { toast } from 'sonner';
+import { BottomTabBar } from '@/components/layout/BottomTabBar';
 import type { CreateReportPayload } from '@/types/report';
 
 const STEP_LABELS = [
@@ -218,7 +219,7 @@ export default function ReportWizardPage() {
                             x: { type: 'spring', stiffness: 300, damping: 30 },
                             opacity: { duration: 0.2 },
                         }}
-                        className="h-full overflow-y-auto px-4 pt-4"
+                        className="h-full overflow-y-auto px-4 pt-4 pb-32"
                     >
                         {draft.currentStep === 1 && (
                             <StepCategory
@@ -255,6 +256,14 @@ export default function ReportWizardPage() {
                     </motion.div>
                 </AnimatePresence>
             </main>
-        </div>
+
+            {/* Bottom Tab Bar (Fixed) */}
+            <div className="fixed bottom-0 left-0 right-0 z-[60]">
+                <BottomTabBar
+                    activeTab="reportar"
+                    onTabChange={(tab: string) => navigate(`/?tab=${tab}`)}
+                />
+            </div>
+        </div >
     );
 }

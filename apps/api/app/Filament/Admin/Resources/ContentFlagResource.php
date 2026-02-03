@@ -19,14 +19,12 @@ use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Get;
-use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
-use Illuminate\Database\Eloquent\Builder;
 
-class ContentFlagResource extends Resource
+class ContentFlagResource extends BaseResource
 {
     protected static ?string $model = ContentFlag::class;
 
@@ -37,6 +35,8 @@ class ContentFlagResource extends Resource
     protected static ?int $navigationSort = 20;
 
     protected static ?string $navigationLabel = 'Denuncias';
+
+    protected static array $defaultEagerLoad = ['reportedBy', 'handledBy'];
 
     public static function form(Forms\Form $form): Forms\Form
     {
@@ -119,10 +119,7 @@ class ContentFlagResource extends Resource
                 TextColumn::make('handledBy.nome')
                     ->label('Responsavel')
                     ->toggleable(),
-                TextColumn::make('created_at')
-                    ->label('Criado em')
-                    ->dateTime('d/m/Y H:i')
-                    ->sortable(),
+                ...static::baseTableColumns(),
             ])
             ->filters([
                 SelectFilter::make('status')
@@ -140,6 +137,7 @@ class ContentFlagResource extends Resource
                     ->options(collect(FlagContentType::cases())
                         ->mapWithKeys(fn (FlagContentType $type) => [$type->value => $type->label()])
                         ->toArray()),
+                ...static::baseTableFilters(),
             ])
             ->actions([
                 Action::make('markReviewing')
@@ -241,12 +239,5 @@ class ContentFlagResource extends Resource
     public static function canCreate(): bool
     {
         return false;
-    }
-
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()
-            ->with(['reportedBy', 'handledBy'])
-            ->latest();
     }
 }

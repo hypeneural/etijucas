@@ -13,15 +13,13 @@ use Filament\Forms;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
-use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
-use Illuminate\Database\Eloquent\Builder;
 
-class TopicReportResource extends Resource
+class TopicReportResource extends BaseResource
 {
     protected static ?string $model = TopicReport::class;
 
@@ -36,6 +34,8 @@ class TopicReportResource extends Resource
     protected static ?string $pluralModelLabel = 'Denúncias de Tópicos';
 
     protected static ?int $navigationSort = 3;
+
+    protected static array $defaultEagerLoad = ['topic', 'user'];
 
     public static function form(Forms\Form $form): Forms\Form
     {
@@ -105,10 +105,7 @@ class TopicReportResource extends Resource
                         ReportStatus::Dismissed => 'gray',
                         ReportStatus::ActionTaken => 'success',
                     }),
-                TextColumn::make('created_at')
-                    ->label('Data')
-                    ->dateTime('d/m/Y H:i')
-                    ->sortable(),
+                ...static::baseTableColumns(),
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
@@ -123,6 +120,7 @@ class TopicReportResource extends Resource
                     ->options(collect(ReportMotivo::cases())
                         ->mapWithKeys(fn(ReportMotivo $m) => [$m->value => $m->label()])
                         ->toArray()),
+                ...static::baseTableFilters(),
             ])
             ->actions([
                 ViewAction::make(),
@@ -155,11 +153,6 @@ class TopicReportResource extends Resource
             ]);
     }
 
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()
-            ->with(['topic', 'user']);
-    }
 
     public static function getPages(): array
     {

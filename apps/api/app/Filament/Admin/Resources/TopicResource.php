@@ -15,7 +15,6 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\DeleteAction;
@@ -26,7 +25,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 
-class TopicResource extends Resource
+class TopicResource extends BaseResource
 {
     protected static ?string $model = Topic::class;
 
@@ -41,6 +40,10 @@ class TopicResource extends Resource
     protected static ?string $pluralModelLabel = 'Tópicos';
 
     protected static ?int $navigationSort = 1;
+
+    protected static array $defaultEagerLoad = ['user', 'bairro'];
+
+    protected static array $defaultWithCount = ['reports'];
 
     public static function form(Forms\Form $form): Forms\Form
     {
@@ -157,11 +160,7 @@ class TopicResource extends Resource
                     ->sortable()
                     ->alignCenter()
                     ->color(fn(int $state): string => $state > 0 ? 'danger' : 'gray'),
-                TextColumn::make('created_at')
-                    ->label('Criado em')
-                    ->dateTime('d/m/Y H:i')
-                    ->sortable()
-                    ->toggleable(),
+                ...static::baseTableColumns(),
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
@@ -185,6 +184,7 @@ class TopicResource extends Resource
                 Tables\Filters\Filter::make('is_anon')
                     ->label('Anônimos')
                     ->query(fn(Builder $query): Builder => $query->where('is_anon', true)),
+                ...static::baseTableFilters(),
             ])
             ->actions([
                 ViewAction::make(),
@@ -206,6 +206,7 @@ class TopicResource extends Resource
                     ->action(fn(Topic $record) => $record->update(['status' => TopicStatus::Active]))
                     ->visible(fn(Topic $record): bool => $record->status === TopicStatus::Hidden),
                 DeleteAction::make()
+                    ->requiresConfirmation()
                     ->visible(fn() => auth()->user()?->hasRole('admin') ?? false),
             ])
             ->bulkActions([
@@ -216,13 +217,6 @@ class TopicResource extends Resource
                     ->requiresConfirmation()
                     ->action(fn($records) => $records->each->update(['status' => TopicStatus::Hidden])),
             ]);
-    }
-
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()
-            ->with(['user', 'bairro'])
-            ->withCount(['reports']);
     }
 
     public static function getRelations(): array
