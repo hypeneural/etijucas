@@ -105,3 +105,113 @@ Sistema
 - RelationManagers para 1:N e N:N.
 - `getEloquentQuery()` otimizada.
 - Logs de auditoria e validacao server-side.
+
+---
+
+## Checklist detalhado (padrao para todos os CRUDs)
+
+## 1) Regra base: Filament nao consome a API
+- Filament opera sobre Models + Policies, nao sobre endpoints.
+- API continua sendo a fonte da verdade do contrato (OpenAPI, Requests, Resources).
+- Filament e a interface administrativa usando os mesmos Models e as mesmas regras.
+- Nao duplique regra de negocio em Controller e Filament.
+- Coloque regra de negocio em `app/Domains/*/Actions/*` ou `app/Domains/*/Services/*`.
+- Filament chama essas Actions/Services.
+
+## 2) Kit CRUD Filament interno (templates + helpers)
+Objetivo: 1 comando cria tudo e registra o basico.
+- Criar gerador de Admin CRUD (Resource + Policy + Shield).
+- Comando alvo: `php artisan make:admin-crud CitizenReport --domain=Reports --media=report_images --soft-deletes`
+
+Saidas esperadas:
+- `app/Filament/Admin/Resources/CitizenReportResource/*`
+- `app/Policies/CitizenReportPolicy.php`
+- Registrar Policy se nao houver auto-discovery.
+- Rodar ou sugerir `php artisan shield:generate --resource=CitizenReport`
+
+MVP do kit (script simples):
+- `php artisan make:filament-resource Model --generate`
+- `php artisan make:policy ModelPolicy --model=Model`
+- `php artisan shield:generate --resource=Model`
+
+## 3) Padrao unico para regra de negocio
+- Controller API valida request, chama Action/Service, retorna Resource.
+- Filament chama a mesma Action/Service em Actions ou `mutateFormData*`.
+
+Exemplos:
+- `UpdateReportStatusAction` (Reports)
+- `ApproveEventAction` (Events)
+- `ModerateCommentAction` (Forum)
+
+## 4) BaseResource e Traits reutilizaveis
+
+## 4.1) BaseResource (defaults)
+- `defaultSort('created_at', 'desc')`
+- `created_at` e `updated_at` toggleable
+- Filtro de soft deletes quando aplicavel
+- `TextColumn::make('id')->toggleable()->copyable()`
+- Actions padrao com `requiresConfirmation()`
+
+## 4.2) Traits sugeridos
+- `HasAuditActionsTrait` para logar mudancas sensiveis
+- `HasStatusBadgeTrait` para badge de enum de status
+- `HasMediaLibraryTrait` para upload + preview + conversoes
+
+## 5) RelationManagers agressivamente
+Denuncias (CitizenReport)
+- `CitizenReportResource`
+- `ReportStatusHistoryRelationManager`
+- `MediaRelationManager` (ou integrar no form)
+- Action: alterar status (modal com note)
+- Action: marcar como publico/privado (se existir)
+
+Eventos
+- `EventResource`
+- RelationManagers: schedules, ticket lots, media, tags, organizers, venue
+- Actions: publicar/despublicar, destacar, duplicar evento
+
+## 6) Permissoes padronizadas (Shield + Policies)
+- Policy obrigatoria: `viewAny`, `view`, `create`, `update`, `delete`
+- Shield gera permissoes `resource_*`
+- Roles padrao:
+- `admin`: tudo
+- `moderator`: denuncias + forum (moderacao)
+- `operator`: eventos + turismo
+
+## 7) Performance: padrao de query para evitar N+1
+Todo Resource deve ter:
+- `getEloquentQuery()` com `with()` e `withCount()`
+
+Exemplos:
+- Denuncias: `with(['user','category','bairro'])->withCount('media')`
+- Eventos: `with(['venue','organizer'])->withCount(['rsvps','media'])`
+
+Filtros devem seguir indices:
+- `status`, `category_id`, `bairro_id`, `created_at`
+
+## 8) Pages e Widgets para operacao (nao CRUD)
+Ampliar a ideia de:
+- `ModerationQueue`: fila unificada (denuncias pendentes + reports do forum)
+- `ReportsDashboard`: KPIs + graficos + ultimos pendentes
+- `GeoIssues`: denuncias sem localizacao ou baixa qualidade
+
+## 9) Estrategia pratica para criar 10 CRUDs em 1 dia
+Ordem recomendada:
+- CRUDs catalogo: `Category`, `Tag`, `Bairro`, `Venue`
+- CRUDs principais: `Event`, `TourismSpot`, `CitizenReport`
+- CRUDs moderacao: `Review`, `Comment`, `Flags/Reports`
+- CRUDs sistema: `Settings`, `FeatureFlags` (se houver)
+
+Em todos:
+- Comecar com `--generate`, depois refinar form/table
+
+## 10) Ritual de 15 minutos por CRUD
+- Model + migration + relations
+- Policy (admin/moderator/operator)
+- `make:filament-resource --generate`
+- `shield:generate --resource=Model`
+- Ajustar `form()` com `Section` + `relationship()->searchable()->preload()`
+- Ajustar `table()` com filtros + badge de status
+- Ajustar `getEloquentQuery()` com `with/withCount`
+- Adicionar RelationManagers
+- Se operacao sensivel: Action chama DomainAction + log

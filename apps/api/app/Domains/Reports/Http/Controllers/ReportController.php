@@ -105,14 +105,29 @@ class ReportController extends Controller
         // Handle image uploads
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
+                // Get dimensions before processing (temp file might be moved/deleted by Spatie)
+                $dimensions = [];
+                try {
+                    $realPath = $image->getRealPath();
+                    if ($realPath && file_exists($realPath)) {
+                        $dims = @getimagesize($realPath);
+                        if ($dims) {
+                            $dimensions = ['width' => $dims[0], 'height' => $dims[1]];
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    // Ignore dimension extraction errors to not block report creation
+                    \Log::warning('[ReportController] Failed to get image dimensions: ' . $e->getMessage());
+                }
+
                 $media = $report->addMedia($image)
                     ->sanitizingFileName(fn($fileName) => sanitize_filename($fileName))
                     ->toMediaCollection('report_images');
 
-                // Store dimensions as custom properties
-                if ($dimensions = getimagesize($image->getRealPath())) {
-                    $media->setCustomProperty('width', $dimensions[0]);
-                    $media->setCustomProperty('height', $dimensions[1]);
+                // Store dimensions if captured
+                if (!empty($dimensions)) {
+                    $media->setCustomProperty('width', $dimensions['width']);
+                    $media->setCustomProperty('height', $dimensions['height']);
                     $media->save();
                 }
             }
