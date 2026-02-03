@@ -127,7 +127,7 @@ pnpm dev
 
 ## 📝 Scripts do Monorepo
 
-| Comando | Descrição |
+| Comando | Descricao |
 |---------|-----------|
 | `pnpm dev` | Roda API + Web em paralelo |
 | `pnpm api:dev` | Apenas API Laravel |
@@ -135,6 +135,31 @@ pnpm dev
 | `pnpm build` | Build de todos os packages |
 | `pnpm prod:build` | **SDK + Web build** (usar antes de deploy) |
 | `pnpm sdk:gen` | Regenera SDK do OpenAPI |
+| `pnpm make:crud` | Gera CRUD completo (back + front + contrato) |
+| `pnpm mocks:gen` | Gera handlers MSW do OpenAPI |
+| `pnpm msw:init` | Copia mockServiceWorker.js para `apps/web/public` |
+| `pnpm lint` | Lint em todos os packages |
+
+---------|-----------|
+| `pnpm dev` | Roda API + Web em paralelo |
+| `pnpm api:dev` | Apenas API Laravel |
+| `pnpm web:dev` | Apenas frontend React |
+| `pnpm build` | Build de todos os packages |
+| `pnpm prod:build` | **SDK + Web build** (usar antes de deploy) |
+| `pnpm sdk:gen` | Regenera SDK do OpenAPI |
+| `pnpm make:crud` | Gera CRUD completo (back + front + contrato) |
+| `pnpm mocks:gen` | Gera handlers MSW do OpenAPI |
+| `pnpm msw:init` | Copia mockServiceWorker.js para `apps/web/public` |
+| `pnpm lint` | Lint em todos os packages |---------|-----------|
+| `pnpm dev` | Roda API + Web em paralelo |
+| `pnpm api:dev` | Apenas API Laravel |
+| `pnpm web:dev` | Apenas frontend React |
+| `pnpm build` | Build de todos os packages |
+| `pnpm prod:build` | **SDK + Web build** (usar antes de deploy) |
+| pnpm sdk:gen | Regenera SDK do OpenAPI |
+| pnpm make:crud | Gera CRUD completo (back + front + contrato) |
+| pnpm mocks:gen | Gera handlers MSW do OpenAPI |
+| pnpm msw:init | Copia mockServiceWorker.js para pps/web/public |
 | `pnpm lint` | Lint em todos os packages |
 
 ---
@@ -179,6 +204,22 @@ Veja [ARCHITECTURE.md](./ARCHITECTURE.md) para:
 
 ---
 
+## Como o sistema funciona (na pratica)
+
+- O frontend e buildado com Vite e sai em `apps/api/public/app`
+- O Laravel serve a SPA via `apps/api/public/.htaccess`, incluindo assets e fallback
+- A API roda em `/api/v1` com Sanctum e resources padronizados
+- O PWA usa Service Worker (Workbox) para cache e modo offline
+- A base da API no front vem de `VITE_API_URL` (default `/api/v1`)
+- Mocks locais usam MSW com `VITE_API_MOCK=1` e handlers do OpenAPI
+
+## Melhorias recentes
+
+- `pnpm make:crud` gera CRUD completo (back + front + contrato)
+- MSW integrado com handlers gerados (`pnpm mocks:gen`) e worker sincronizado (`pnpm msw:init`)
+- Ajuste de deploy para servir assets do SPA corretamente via Apache
+
+---
 ## 📱 Deploy (Sem Node.js no servidor)
 
 O frontend é buildado como SPA estático e servido pelo Laravel:
@@ -277,3 +318,9 @@ Código proprietário - Hype Neural
 ---
 
 **Feito com ❤️ para Tijucas/SC**
+
+
+
+
+
+

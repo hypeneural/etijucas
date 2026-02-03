@@ -3,33 +3,50 @@ import { registerSW } from 'virtual:pwa-register';
 import App from "./App.tsx";
 import "./index.css";
 
-// Register Service Worker using vite-plugin-pwa's virtual module
-// This handles auto-updates and provides proper lifecycle management
-if (import.meta.env.PROD) {
-    const updateSW = registerSW({
-        onNeedRefresh() {
-            // New content available, show update notification
-            if (confirm('Nova versÃ£o disponÃ­vel! Atualizar agora?')) {
-                updateSW(true);
-            }
-        },
-        onOfflineReady() {
-            console.log('App pronto para uso offline');
-        },
-        onRegistered(registration) {
-            console.log('SW registered:', registration?.scope);
+async function enableMocks() {
+    if (import.meta.env.VITE_API_MOCK !== '1') {
+        return;
+    }
 
-            // Check for updates periodically (every hour)
-            if (registration) {
-                setInterval(() => {
-                    registration.update();
-                }, 1000 * 60 * 60);
-            }
-        },
-        onRegisterError(error) {
-            console.error('SW registration error:', error);
-        },
+    const { worker } = await import('./mocks/browser');
+    await worker.start({
+        onUnhandledRequest: 'bypass',
     });
 }
 
-createRoot(document.getElementById("root")!).render(<App />);
+async function bootstrap() {
+    await enableMocks();
+
+    // Register Service Worker using vite-plugin-pwa's virtual module
+    // This handles auto-updates and provides proper lifecycle management
+    if (import.meta.env.PROD) {
+        const updateSW = registerSW({
+            onNeedRefresh() {
+                // New content available, show update notification
+                if (confirm('Nova versão disponível! Atualizar agora?')) {
+                    updateSW(true);
+                }
+            },
+            onOfflineReady() {
+                console.log('App pronto para uso offline');
+            },
+            onRegistered(registration) {
+                console.log('SW registered:', registration?.scope);
+
+                // Check for updates periodically (every hour)
+                if (registration) {
+                    setInterval(() => {
+                        registration.update();
+                    }, 1000 * 60 * 60);
+                }
+            },
+            onRegisterError(error) {
+                console.error('SW registration error:', error);
+            },
+        });
+    }
+
+    createRoot(document.getElementById("root")!).render(<App />);
+}
+
+void bootstrap();

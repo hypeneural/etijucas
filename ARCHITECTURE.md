@@ -20,6 +20,14 @@ etijucas/
 
 ---
 
+## Ferramentas de Dev
+
+- `tools/generate-sdk.js` gera tipos do SDK a partir do OpenAPI
+- `tools/make-feature.js` cria a estrutura basica de feature
+- `tools/make-crud.js` gera CRUD completo (back + front + contrato)
+- `tools/generate-mocks.js` gera handlers MSW a partir do OpenAPI
+- `tools/sync-msw-worker.js` copia `mockServiceWorker.js` para `apps/web/public`
+
 ## Regras Fundamentais
 
 ### 1️⃣ API é a Fonte da Verdade
@@ -34,6 +42,11 @@ etijucas/
 - Rode `pnpm sdk:gen` após mudanças na API
 - O build quebra se o contrato mudar incompativelmente ✅
 
+### 2.1️⃣ Build do Frontend em Produção
+
+- O build do React sai em pps/api/public/app
+- O Laravel serve a SPA via pps/api/public/.htaccess (fallback + assets)
+- URLs como /assets/*, /manifest.json e /sw.js precisam resolver para /app/*
 ### 3️⃣ Sem `fetch` Direto no Frontend
 
 ```typescript
@@ -96,6 +109,11 @@ flowchart LR
 3. Rode `pnpm sdk:gen`
 4. Importe e use no frontend via `@repo/sdk`
 
+### Mocking (Frontend)
+
+- Ative com VITE_API_MOCK=1 em pps/web/.env
+- Gere handlers com pnpm mocks:gen
+- Copie o worker com pnpm msw:init (uma vez apos instalar deps)
 ### Adicionando Enum de UI
 
 1. Crie em `packages/shared/src/enums/`
@@ -130,3 +148,6 @@ Este monorepo foi estruturado para facilitar o desenvolvimento assistido por IA:
 - **SDK tipado**: Autocomplete mostra todos os métodos disponíveis
 - **Separação clara**: Fácil entender onde cada código deve ficar
 - **Erros de build**: Se algo quebrar, o TypeScript avisa imediatamente
+
+
+

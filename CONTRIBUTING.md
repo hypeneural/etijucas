@@ -66,7 +66,29 @@ src/
 
 ---
 
-## 🔌 Criando Novo Endpoint
+## Criando Nova Feature (make:crud)
+
+1. Rode o gerador
+```bash
+pnpm make:crud --feature=forum --model=Topic --fields="title:string, content:text, user_id:foreign:users"
+```
+
+2. O que ele cria:
+- Backend: Model, Migration, Controller, Requests, Resource, Collection, Policy, Test, Domain README/routes
+- Frontend: schema Zod, hooks, form e pages
+- Contratos: atualiza `contracts/features.yaml` e adiciona paths em `contracts/openapi.yaml`
+
+3. Ajustes obrigatorios:
+- Revisar `apps/api/routes/api.php` (auth vs public)
+- Completar schemas e responses no OpenAPI
+- Ligar pages no router (`apps/web/src/App.tsx`)
+- Rodar `pnpm sdk:gen` e `pnpm mocks:gen`
+
+---
+
+## Criando Novo Endpoint
+
+Use `pnpm make:crud` quando o endpoint fizer parte de um CRUD novo.
 
 ### 1. Adicionar rota
 ```php
@@ -105,7 +127,6 @@ pnpm sdk:gen
 ```
 
 ---
-
 ## 🖥️ Criando Nova Tela
 
 ### 1. Criar página
@@ -173,12 +194,14 @@ TopicDetailPage.tsx           // Página completa
 
 ## ✅ Checklist para Nova Feature
 
+- [ ] Feature criada via `pnpm make:crud` (ou manual)
 - [ ] Endpoint criado em `routes/api.php`
 - [ ] Controller com Resource para transformar response
-- [ ] FormRequest para validação
-- [ ] Policy para autorização (se aplicável)
+- [ ] FormRequest para validacao
+- [ ] Policy para autorizacao (se aplicavel)
 - [ ] OpenAPI atualizado em `contracts/openapi.yaml`
 - [ ] SDK regenerado (`pnpm sdk:gen`)
+- [ ] Mocks regenerados (`pnpm mocks:gen`)
 - [ ] Hook de query/mutation criado
-- [ ] Página/tela criada
+- [ ] Pagina/tela criada
 - [ ] Rota adicionada no React Router
