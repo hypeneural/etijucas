@@ -23,7 +23,7 @@ etijucas/
 ## Ferramentas de Dev
 
 - `tools/generate-sdk.js` gera tipos do SDK a partir do OpenAPI
-- `tools/make-feature.js` cria a estrutura basica de feature
+- `tools/make-feature.js` cria a estrutura básica de feature
 - `tools/make-crud.js` gera CRUD completo (back + front + contrato)
 - `tools/generate-mocks.js` gera handlers MSW a partir do OpenAPI
 - `tools/sync-msw-worker.js` copia `mockServiceWorker.js` para `apps/web/public`
@@ -40,9 +40,9 @@ etijucas/
 
 - Todo endpoint que o front usa **DEVE** estar em `contracts/openapi.yaml`
 - Rode `pnpm sdk:gen` após mudanças na API
-- O build quebra se o contrato mudar incompativelmente ✅
+- O build quebra se o contrato mudar de forma incompatível ✅
 
-### 2.1️⃣ Build do Frontend em Producao
+### 2.1️⃣ Build do Frontend em Produção
 
 - O build do React sai em `apps/api/public/app`
 - O Laravel serve a SPA via `apps/api/public/.htaccess` (fallback + assets)
@@ -79,11 +79,11 @@ const events = await api.events.list();
 
 ## Comandos
 
-| Comando | Descricao |
+| Comando | Descrição |
 |---------|-----------|
 | `pnpm dev` | Roda API e Web em paralelo |
-| `pnpm api:dev` | So a API Laravel |
-| `pnpm web:dev` | So o frontend React |
+| `pnpm api:dev` | Só a API Laravel |
+| `pnpm web:dev` | Só o frontend React |
 | `pnpm build` | Build de todos os packages |
 | `pnpm lint` | Lint em todos os packages |
 | `pnpm sdk:gen` | Regenera SDK do OpenAPI |
@@ -107,6 +107,8 @@ flowchart LR
 
 ### Adicionando Novo Endpoint
 
+Para CRUDs completos, prefira `pnpm make:crud` (ver `CONTRIBUTING.md`).
+
 1. Implemente no Laravel (`apps/api/routes/api.php`)
 2. Documente em `contracts/openapi.yaml`
 3. Rode `pnpm sdk:gen`
@@ -116,7 +118,8 @@ flowchart LR
 
 - Ative com `VITE_API_MOCK=1` em `apps/web/.env`
 - Gere handlers com `pnpm mocks:gen`
-- Copie o worker com `pnpm msw:init` (uma vez apos instalar deps)
+- Copie o worker com `pnpm msw:init` (uma vez após instalar deps)
+
 ### Adicionando Enum de UI
 
 1. Crie em `packages/shared/src/enums/`

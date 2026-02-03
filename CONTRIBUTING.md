@@ -73,12 +73,14 @@ src/
 pnpm make:crud --feature=forum --model=Topic --fields="title:string, content:text, user_id:foreign:users"
 ```
 
+Opções úteis: `--auth=false` (rotas públicas), `--uuids=false`, `--soft-deletes=false`.
+
 2. O que ele cria:
 - Backend: Model, Migration, Controller, Requests, Resource, Collection, Policy, Test, Domain README/routes
 - Frontend: schema Zod, hooks, form e pages
 - Contratos: atualiza `contracts/features.yaml` e adiciona paths em `contracts/openapi.yaml`
 
-3. Ajustes obrigatorios:
+3. Ajustes obrigatórios:
 - Revisar `apps/api/routes/api.php` (auth vs public)
 - Completar schemas e responses no OpenAPI
 - Ligar pages no router (`apps/web/src/App.tsx`)
@@ -197,11 +199,11 @@ TopicDetailPage.tsx           // Página completa
 - [ ] Feature criada via `pnpm make:crud` (ou manual)
 - [ ] Endpoint criado em `routes/api.php`
 - [ ] Controller com Resource para transformar response
-- [ ] FormRequest para validacao
-- [ ] Policy para autorizacao (se aplicavel)
+- [ ] FormRequest para validação
+- [ ] Policy para autorização (se aplicável)
 - [ ] OpenAPI atualizado em `contracts/openapi.yaml`
 - [ ] SDK regenerado (`pnpm sdk:gen`)
 - [ ] Mocks regenerados (`pnpm mocks:gen`)
 - [ ] Hook de query/mutation criado
-- [ ] Pagina/tela criada
+- [ ] Página/tela criada
 - [ ] Rota adicionada no React Router

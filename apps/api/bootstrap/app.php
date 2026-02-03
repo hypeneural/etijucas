@@ -21,6 +21,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'idempotent' => \App\Http\Middleware\IdempotencyKey::class,
         ]);
 
+        // Exclude public API auth routes from CSRF verification
+        $middleware->validateCsrfTokens(except: [
+            'api/*',
+        ]);
+
         // Global middleware para API
         $middleware->api(append: [
             \App\Http\Middleware\RequestId::class,

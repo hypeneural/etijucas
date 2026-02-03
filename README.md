@@ -127,7 +127,7 @@ pnpm dev
 
 ## 📝 Scripts do Monorepo
 
-| Comando | Descricao |
+| Comando | Descrição |
 |---------|-----------|
 | `pnpm dev` | Roda API + Web em paralelo |
 | `pnpm api:dev` | Apenas API Laravel |
@@ -181,13 +181,13 @@ Veja [ARCHITECTURE.md](./ARCHITECTURE.md) para:
 
 ---
 
-## Como o sistema funciona (na pratica)
+## Como o sistema funciona (na prática)
 
-- O frontend e buildado com Vite e sai em `apps/api/public/app`
+- O frontend é buildado com Vite e sai em `apps/api/public/app`
 - O Laravel serve a SPA via `apps/api/public/.htaccess`, incluindo assets e fallback
 - A API roda em `/api/v1` com Sanctum e resources padronizados
 - O PWA usa Service Worker (Workbox) para cache e modo offline
-- A base da API no front vem de `VITE_API_URL` (default `/api/v1`)
+- A base da API no front vem de `VITE_API_URL` (padrão `/api/v1`)
 - Mocks locais usam MSW com `VITE_API_MOCK=1` e handlers do OpenAPI
 
 ## Melhorias recentes
@@ -286,6 +286,10 @@ POST   /api/v1/admin/users/{id}/roles
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | Regras e convenções do monorepo |
 | [DEPLOY.md](./DEPLOY.md) | Checklist de deploy |
 | [contracts/openapi.yaml](./contracts/openapi.yaml) | Especificação OpenAPI |
+| [CONTRIBUTING.md](./CONTRIBUTING.md) | Guia para contribuidores |
+| [CHECKLIST.md](./CHECKLIST.md) | Validação de qualidade |
+| [SECURITY_AUDIT.md](./SECURITY_AUDIT.md) | Auditoria de segurança |
+| [SSH_HOSTING_GUIDE.md](./SSH_HOSTING_GUIDE.md) | Guia SSH hospedagem |
 
 ---
 
