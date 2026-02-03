@@ -12,6 +12,7 @@ import {
     ShieldAlert,
     CheckCircle,
     Info,
+    ImagePlus,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -32,6 +33,7 @@ const MAX_IMAGES = 3;
 export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [cameraState, setCameraState] = useState<CameraState>({
         status: 'idle',
@@ -253,17 +255,62 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
         }
     }, [removeImage, cameraState.status, startCamera]);
 
+    // Handle gallery file upload
+    const handleGalleryUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+
+        const remainingSlots = MAX_IMAGES - draft.images.length;
+        const filesToProcess = Array.from(files).slice(0, remainingSlots);
+
+        filesToProcess.forEach((file) => {
+            // Validate file type
+            if (!file.type.startsWith('image/')) return;
+
+            // Create preview and add to images
+            const newImage: CapturedImage = {
+                id: generateUUID(),
+                file,
+                previewUrl: URL.createObjectURL(file),
+                capturedAt: new Date(),
+            };
+
+            onUpdate({
+                images: [...draft.images, newImage],
+            });
+        });
+
+        // Reset file input
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    }, [draft.images, onUpdate]);
+
+    const openGallery = useCallback(() => {
+        fileInputRef.current?.click();
+    }, []);
+
     return (
         <div className="space-y-4 pb-48">
             <StepHeader
-                title="Tire até 3 fotos"
-                subtitle="Registre o problema com fotos tiradas agora"
-                helpTitle="Por que só fotos da câmera?"
+                title="Adicione até 3 fotos"
+                subtitle="Tire fotos agora ou escolha da galeria"
+                helpTitle="Dicas para boas fotos"
                 helpContent={[
-                    "Por segurança, só aceitamos fotos tiradas no momento da denúncia.",
-                    "Isso garante que o problema existe e é recente.",
-                    "Não é possível enviar fotos da galeria do celular."
+                    "Fotografe de perto para mostrar detalhes do problema.",
+                    "Inclua uma foto do contexto (rua, número, ponto de referência).",
+                    "Evite fotos muito escuras ou desfocadas."
                 ]}
+            />
+
+            {/* Hidden file input for gallery */}
+            <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleGalleryUpload}
+                className="hidden"
             />
 
             {/* Tips Card */}
@@ -344,7 +391,14 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
                                 </div>
                             </motion.button>
 
-                            <div className="w-12" />
+                            <motion.button
+                                whileTap={{ scale: 0.9 }}
+                                onClick={openGallery}
+                                className="p-3 rounded-full bg-black/50 text-white backdrop-blur-sm"
+                                aria-label="Escolher da galeria"
+                            >
+                                <ImagePlus className="h-5 w-5" />
+                            </motion.button>
                         </div>
 
                         {/* Counter */}

@@ -139,8 +139,17 @@ export default function ReportWizardPage() {
     }, [draft.images]);
 
     const handleSubmit = useCallback(async () => {
-        if (!draft.categoryId || !draft.title) {
-            toast.error('Preencha todos os campos obrigatórios');
+        // Validate required fields
+        if (!draft.categoryId) {
+            toast.error('Selecione uma categoria para a denúncia');
+            return;
+        }
+        if (!draft.title || draft.title.trim().length < 5) {
+            toast.error('O título deve ter pelo menos 5 caracteres');
+            return;
+        }
+        if (!draft.description || draft.description.trim().length < 10) {
+            toast.error('A descrição deve ter pelo menos 10 caracteres');
             return;
         }
 
@@ -148,8 +157,8 @@ export default function ReportWizardPage() {
             // Build payload
             const payload: CreateReportPayload = {
                 categoryId: draft.categoryId,
-                title: draft.title,
-                description: draft.description,
+                title: draft.title.trim(),
+                description: draft.description.trim(),
                 images: draft.images.map(img => img.file),
             };
 
@@ -160,7 +169,10 @@ export default function ReportWizardPage() {
                 payload.locationQuality = draft.location.quality;
                 payload.latitude = draft.location.latitude;
                 payload.longitude = draft.location.longitude;
-                payload.locationAccuracyM = draft.location.accuracy;
+                // Cap accuracy at 10000 (backend max)
+                payload.locationAccuracyM = draft.location.accuracy
+                    ? Math.min(Math.round(draft.location.accuracy), 10000)
+                    : undefined;
             }
 
             // Submit to API
