@@ -5,15 +5,21 @@ namespace App\Providers;
 use App\Console\Commands\MakeAdminCrud;
 use App\Models\Bairro;
 use App\Models\ContentFlag;
+use App\Models\EventCategory;
 use App\Models\Phone;
+use App\Models\Tag;
 use App\Models\User;
 use App\Models\UserRestriction;
+use App\Models\Venue;
 use App\Policies\ActivityPolicy;
 use App\Policies\BairroPolicy;
 use App\Policies\ContentFlagPolicy;
+use App\Policies\EventCategoryPolicy;
 use App\Policies\PhonePolicy;
+use App\Policies\TagPolicy;
 use App\Policies\UserPolicy;
 use App\Policies\UserRestrictionPolicy;
+use App\Policies\VenuePolicy;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -45,6 +51,9 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(ContentFlag::class, ContentFlagPolicy::class);
         Gate::policy(Phone::class, PhonePolicy::class);
         Gate::policy(Activity::class, ActivityPolicy::class);
+        Gate::policy(EventCategory::class, EventCategoryPolicy::class);
+        Gate::policy(Tag::class, TagPolicy::class);
+        Gate::policy(Venue::class, VenuePolicy::class);
 
         // Rate Limiters
         $this->configureRateLimiting();

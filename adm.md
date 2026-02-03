@@ -236,7 +236,10 @@ Em todos:
 - [x] Documentar o uso do kit no repo e incluir no `CONTRIBUTING.md` se necessario.
 
 ## Fase 2 - CRUDs prioritarios
-- [ ] CRUDs catalogo: `Category`, `Tag`, `Bairro`, `Venue`.
+- [x] Catalogo: `EventCategory` (Categorias de Eventos).
+- [x] Catalogo: `Tag`.
+- [x] Catalogo: `Bairro` (ja existente).
+- [x] Catalogo: `Venue`.
 - [ ] CRUDs principais: `Event`, `TourismSpot`, `CitizenReport`.
 - [ ] CRUDs moderacao: `Review`, `Comment`, `Flags/Reports`.
 - [ ] CRUDs sistema: `Settings`, `FeatureFlags` (se existirem).

@@ -141,6 +141,24 @@ class RolesAndPermissionsSeeder extends Seeder
             'create_phone',
             'update_phone',
             'delete_phone',
+            // Event Categories
+            'view_any_event_category',
+            'view_event_category',
+            'create_event_category',
+            'update_event_category',
+            'delete_event_category',
+            // Tags
+            'view_any_tag',
+            'view_tag',
+            'create_tag',
+            'update_tag',
+            'delete_tag',
+            // Venues
+            'view_any_venue',
+            'view_venue',
+            'create_venue',
+            'update_venue',
+            'delete_venue',
         ];
 
         $availableOperatorFilamentPermissions = Permission::query()
