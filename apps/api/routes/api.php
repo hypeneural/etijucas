@@ -198,5 +198,85 @@ Route::prefix('v1')->group(function () {
             Route::delete('reviews/{id}', [\App\Domains\Tourism\Http\Controllers\TourismReviewController::class, 'destroy']);
         });
     });
+
+    // =====================================================
+    // System Routes (Public - for maintenance without SSH)
+    // =====================================================
+    Route::prefix('system')->group(function () {
+        // Fix storage symlink - access via:
+        // https://etijucas.com.br/api/v1/system/fix-storage?token=etijucas2026fix
+        Route::get('fix-storage', function (\Illuminate\Http\Request $request) {
+            $token = 'etijucas2026fix';
+
+            if ($request->query('token') !== $token) {
+                return response()->json(['error' => 'Unauthorized. Use ?token=' . $token], 403);
+            }
+
+            $target = storage_path('app/public');
+            $link = public_path('storage');
+
+            $result = [
+                'target' => $target,
+                'link' => $link,
+                'target_exists' => file_exists($target),
+                'link_exists' => file_exists($link),
+                'link_is_symlink' => is_link($link),
+            ];
+
+            // If target doesn't exist, create it
+            if (!file_exists($target)) {
+                mkdir($target, 0755, true);
+                $result['target_created'] = true;
+            }
+
+            // Check if link exists
+            if (file_exists($link)) {
+                if (is_link($link)) {
+                    $result['status'] = 'Symlink already exists';
+                    $result['points_to'] = readlink($link);
+                } else {
+                    // It's a directory, check if empty
+                    $files = array_diff(scandir($link), ['.', '..']);
+                    if (count($files) === 0) {
+                        rmdir($link);
+                        $result['empty_dir_removed'] = true;
+                    } else {
+                        $result['status'] = 'Directory exists with files';
+                        $result['files'] = array_values($files);
+                        return response()->json($result);
+                    }
+                }
+            }
+
+            // Create symlink
+            if (!file_exists($link)) {
+                try {
+                    if (symlink($target, $link)) {
+                        $result['status'] = 'Symlink created successfully!';
+                        $result['symlink_created'] = true;
+                    } else {
+                        $result['status'] = 'Failed to create symlink';
+                        $result['error'] = error_get_last()['message'] ?? 'Unknown error';
+                    }
+                } catch (\Exception $e) {
+                    $result['status'] = 'Exception creating symlink';
+                    $result['error'] = $e->getMessage();
+                }
+            }
+
+            // Verify
+            $result['final_check'] = [
+                'link_exists' => file_exists($link),
+                'link_is_symlink' => is_link($link),
+                'test_path_13' => file_exists($link . '/13'),
+            ];
+
+            if (file_exists($link . '/13')) {
+                $result['files_in_13'] = array_values(array_diff(scandir($link . '/13'), ['.', '..']));
+            }
+
+            return response()->json($result);
+        });
+    });
 });
 
