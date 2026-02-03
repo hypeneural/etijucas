@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     MapPin,
@@ -19,6 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { StepHeader } from './HelpTooltip';
+import { LocationMap } from './LocationMap';
 import { reportService } from '@/services/report.service';
 import type { ReportDraft, LocationData, LocationState, GeocodeSuggestion } from '@/types/report';
 
@@ -106,33 +107,54 @@ export function StepLocation({ draft, onUpdate, onNext, onBack }: StepLocationPr
         );
     }, [onUpdate, reverseGeocode]);
 
-    // Search for address
+    // AbortController ref for cancelling pending requests
+    const abortControllerRef = useRef<AbortController | null>(null);
+
+    // Search for address with bias towards current location
     const handleSearch = useCallback(async (query: string) => {
         if (query.length < 3) {
             setSearchResults([]);
             return;
         }
 
+        // Cancel previous request
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+        abortControllerRef.current = new AbortController();
+
         setIsSearching(true);
         try {
-            const results = await reportService.geocodeAutocomplete(query);
+            // Pass current location for bias if available
+            const biasLat = draft.location?.latitude;
+            const biasLon = draft.location?.longitude;
+
+            const results = await reportService.geocodeAutocomplete(query, biasLat, biasLon);
             setSearchResults(results);
         } catch (error) {
-            console.warn('[StepLocation] Search failed:', error);
+            if ((error as Error).name !== 'AbortError') {
+                console.warn('[StepLocation] Search failed:', error);
+            }
             setSearchResults([]);
         } finally {
             setIsSearching(false);
         }
-    }, []);
+    }, [draft.location?.latitude, draft.location?.longitude]);
 
-    // Debounce search
+    // Debounce search with optimal timing (300ms)
     useEffect(() => {
         const timer = setTimeout(() => {
             if (searchQuery) {
                 handleSearch(searchQuery);
             }
         }, 300);
-        return () => clearTimeout(timer);
+        return () => {
+            clearTimeout(timer);
+            // Also abort on cleanup
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort();
+            }
+        };
     }, [searchQuery, handleSearch]);
 
     // Select address from search results
@@ -358,42 +380,45 @@ export function StepLocation({ draft, onUpdate, onNext, onBack }: StepLocationPr
                             </div>
                         </Card>
 
-                        {/* Map placeholder with address */}
-                        <Card className="overflow-hidden">
-                            <div className="relative h-40 bg-gradient-to-br from-green-100 to-blue-100 dark:from-green-900/20 dark:to-blue-900/20">
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <motion.div
-                                        animate={{ scale: [1, 1.1, 1] }}
-                                        transition={{ repeat: Infinity, duration: 2 }}
-                                        className="p-3 rounded-full bg-primary shadow-lg"
-                                    >
-                                        <MapPin className="h-6 w-6 text-primary-foreground" />
-                                    </motion.div>
+                        {/* Real Leaflet Map with draggable pin */}
+                        <LocationMap
+                            latitude={draft.location.latitude}
+                            longitude={draft.location.longitude}
+                            hasGPS={draft.location.source === 'gps'}
+                            onLocationChange={async (lat, lon) => {
+                                // Debounced reverse geocode on pin move
+                                const address = await reverseGeocode(lat, lon);
+                                onUpdate({
+                                    location: {
+                                        ...draft.location!,
+                                        latitude: lat,
+                                        longitude: lon,
+                                        address: address || draft.location!.address,
+                                        source: 'mapa',
+                                        quality: 'precisa',
+                                    },
+                                });
+                            }}
+                            onCenterGPS={draft.location.source === 'gps' ? requestLocation : undefined}
+                        />
+
+                        {/* Address display */}
+                        <Card className="p-4">
+                            <div className="flex items-start justify-between">
+                                <div>
+                                    <p className="font-medium">{draft.location.address || 'Localização capturada'}</p>
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                        Coordenadas: {draft.location.latitude.toFixed(4)}, {draft.location.longitude.toFixed(4)}
+                                    </p>
                                 </div>
-                                <div className="absolute inset-0 opacity-30">
-                                    <div className="h-full w-full" style={{
-                                        backgroundImage: 'linear-gradient(rgba(0,0,0,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px)',
-                                        backgroundSize: '20px 20px'
-                                    }} />
-                                </div>
-                            </div>
-                            <div className="p-4">
-                                <div className="flex items-start justify-between">
-                                    <div>
-                                        <p className="font-medium">{draft.location.address || 'Localização capturada'}</p>
-                                        <p className="text-xs text-muted-foreground mt-1">
-                                            Coordenadas: {draft.location.latitude.toFixed(4)}, {draft.location.longitude.toFixed(4)}
-                                        </p>
-                                    </div>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => setShowManualAdjust(true)}
-                                    >
-                                        <Edit3 className="h-3.5 w-3.5 mr-1" />
-                                        Alterar
-                                    </Button>
-                                </div>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setShowManualAdjust(true)}
+                                >
+                                    <Edit3 className="h-3.5 w-3.5 mr-1" />
+                                    Buscar
+                                </Button>
                             </div>
                         </Card>
                     </motion.div>

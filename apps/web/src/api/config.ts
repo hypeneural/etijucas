@@ -218,8 +218,17 @@ export const QUERY_KEYS = {
         notifications: ['user', 'notifications'] as const,
     },
 
-    // Reports - simple arrays for query key spreading
-    reports: ['reports'] as const,
+    // Reports - full structure matching other modules
+    reports: {
+        all: ['reports'] as const,
+        list: (filters?: Record<string, unknown>) => ['reports', 'list', filters] as const,
+        mine: ['reports', 'mine'] as const,
+        public: ['reports', 'public'] as const,
+        stats: ['reports', 'stats'] as const,
+        detail: (id: string) => ['reports', 'detail', id] as const,
+        categories: ['reports', 'categories'] as const,
+    },
+    // Legacy - keep for backwards compatibility
     myReports: ['reports', 'mine'] as const,
 
     // Topics

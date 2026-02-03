@@ -221,9 +221,8 @@ export interface ReportsStats {
     byStatus: {
         recebido: number;
         em_analise: number;
-        em_andamento: number;
         resolvido: number;
-        nao_procede: number;
+        rejeitado: number;
     };
     thisMonth: number;
     resolvedThisMonth: number;
@@ -240,7 +239,7 @@ export async function getReportsStats(): Promise<ReportsStats> {
         // Return mock stats on error
         return {
             total: 0,
-            byStatus: { recebido: 0, em_analise: 0, em_andamento: 0, resolvido: 0, nao_procede: 0 },
+            byStatus: { recebido: 0, em_analise: 0, resolvido: 0, rejeitado: 0 },
             thisMonth: 0,
             resolvedThisMonth: 0,
         };

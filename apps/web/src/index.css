@@ -1,3 +1,6 @@
+/* Leaflet Map CSS */
+@import 'leaflet/dist/leaflet.css';
+
 /* Local Fonts - Inter */
 @font-face {
   font-family: 'Inter';

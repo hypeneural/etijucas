@@ -27,9 +27,8 @@ import type { CitizenReport } from '@/types/report';
 const statusConfig: Record<string, { icon: React.ComponentType<{ className?: string }>, color: string, label: string }> = {
     recebido: { icon: Clock, color: 'text-blue-600 bg-blue-100', label: 'Recebido' },
     em_analise: { icon: AlertCircle, color: 'text-amber-600 bg-amber-100', label: 'Em Análise' },
-    em_andamento: { icon: RefreshCw, color: 'text-purple-600 bg-purple-100', label: 'Em Andamento' },
     resolvido: { icon: CheckCircle2, color: 'text-green-600 bg-green-100', label: 'Resolvido' },
-    nao_procede: { icon: XCircle, color: 'text-red-600 bg-red-100', label: 'Não Procede' },
+    rejeitado: { icon: XCircle, color: 'text-red-600 bg-red-100', label: 'Rejeitado' },
 };
 
 function ReportCard({ report }: { report: CitizenReport }) {

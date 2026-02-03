@@ -18,6 +18,8 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { StepHeader } from './HelpTooltip';
+import { compressImage, formatBytes } from '@/lib/imageCompression';
+import { toast } from 'sonner';
 import type { ReportDraft, CapturedImage, CameraState } from '@/types/report';
 import { generateUUID } from '@/lib/uuid';
 
@@ -41,6 +43,8 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
         stream: null,
     });
     const [isCapturing, setIsCapturing] = useState(false);
+    const [hasCameraDevice, setHasCameraDevice] = useState<boolean | null>(null);
+    const isSecureContext = typeof window !== 'undefined' && window.isSecureContext;
 
     const startCamera = useCallback(async () => {
         // Check if getUserMedia is available
@@ -158,11 +162,24 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
         }));
     }, [cameraState.stream]);
 
-    // Start camera on mount only if we have less than max images
+    // Check for camera device on mount (but do NOT auto-start)
     useEffect(() => {
-        if (draft.images.length < MAX_IMAGES && cameraState.status === 'idle') {
-            startCamera();
-        }
+        const checkCameraAvailability = async () => {
+            if (!navigator.mediaDevices?.enumerateDevices) {
+                setHasCameraDevice(false);
+                return;
+            }
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const hasVideo = devices.some(d => d.kind === 'videoinput');
+                setHasCameraDevice(hasVideo);
+            } catch {
+                setHasCameraDevice(false);
+            }
+        };
+        checkCameraAvailability();
+
+        // Cleanup on unmount
         return () => {
             if (cameraState.stream) {
                 cameraState.stream.getTracks().forEach(track => track.stop());
@@ -255,30 +272,73 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
         }
     }, [removeImage, cameraState.status, startCamera]);
 
-    // Handle gallery file upload
-    const handleGalleryUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    // Handle gallery file upload with compression
+    const handleGalleryUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
         if (!files || files.length === 0) return;
 
         const remainingSlots = MAX_IMAGES - draft.images.length;
         const filesToProcess = Array.from(files).slice(0, remainingSlots);
 
-        filesToProcess.forEach((file) => {
+        let totalOriginal = 0;
+        let totalCompressed = 0;
+
+        for (const file of filesToProcess) {
             // Validate file type
-            if (!file.type.startsWith('image/')) return;
+            if (!file.type.startsWith('image/')) continue;
 
-            // Create preview and add to images
-            const newImage: CapturedImage = {
-                id: generateUUID(),
-                file,
-                previewUrl: URL.createObjectURL(file),
-                capturedAt: new Date(),
-            };
+            try {
+                // Compress the image
+                const result = await compressImage(file, {
+                    maxWidth: 1920,
+                    maxHeight: 1920,
+                    quality: 0.75,
+                });
 
-            onUpdate({
-                images: [...draft.images, newImage],
-            });
-        });
+                totalOriginal += result.originalSize;
+                totalCompressed += result.compressedSize;
+
+                // Convert Blob to File
+                const compressedFile = new File(
+                    [result.blob],
+                    file.name.replace(/\.[^.]+$/, '.jpg'),
+                    { type: 'image/jpeg', lastModified: Date.now() }
+                );
+
+                // Create preview and add to images
+                const newImage: CapturedImage = {
+                    id: generateUUID(),
+                    file: compressedFile,
+                    previewUrl: URL.createObjectURL(result.blob),
+                    capturedAt: new Date(),
+                };
+
+                onUpdate({
+                    images: [...draft.images, newImage],
+                });
+            } catch (error) {
+                console.error('Failed to compress image:', error);
+                // Fallback: use original file
+                const newImage: CapturedImage = {
+                    id: generateUUID(),
+                    file,
+                    previewUrl: URL.createObjectURL(file),
+                    capturedAt: new Date(),
+                };
+                onUpdate({
+                    images: [...draft.images, newImage],
+                });
+            }
+        }
+
+        // Show compression feedback
+        if (totalOriginal > 0 && totalCompressed < totalOriginal) {
+            const saved = totalOriginal - totalCompressed;
+            const percent = Math.round((saved / totalOriginal) * 100);
+            toast.success(
+                `Imagem otimizada: ${formatBytes(totalOriginal)} → ${formatBytes(totalCompressed)} (-${percent}%)`
+            );
+        }
 
         // Reset file input
         if (fileInputRef.current) {
@@ -341,6 +401,74 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
 
             {/* Camera View */}
             <div className="relative">
+                {/* Idle State - Manual Camera Activation */}
+                {cameraState.status === 'idle' && draft.images.length < MAX_IMAGES && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                    >
+                        <Card className="p-6 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+                            <div className="flex flex-col items-center text-center space-y-4">
+                                <div className="p-4 rounded-full bg-primary/10">
+                                    <Camera className="h-10 w-10 text-primary" />
+                                </div>
+                                <div>
+                                    <h3 className="font-semibold text-lg">Adicione fotos do problema</h3>
+                                    <p className="text-sm text-muted-foreground mt-1">
+                                        Fotos ajudam a identificar e resolver o problema mais rápido
+                                    </p>
+                                </div>
+
+                                {/* HTTPS Warning */}
+                                {!isSecureContext && (
+                                    <div className="w-full p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
+                                        <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400">
+                                            <ShieldAlert className="h-4 w-4 shrink-0" />
+                                            <p className="text-xs text-left">
+                                                Câmera exige HTTPS. Use a galeria para adicionar fotos.
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="w-full space-y-2">
+                                    {/* Camera Button - Only if secure context and has camera */}
+                                    {isSecureContext && hasCameraDevice !== false && (
+                                        <Button
+                                            onClick={startCamera}
+                                            className="w-full"
+                                            size="lg"
+                                            disabled={hasCameraDevice === null}
+                                        >
+                                            {hasCameraDevice === null ? (
+                                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                            ) : (
+                                                <Camera className="h-4 w-4 mr-2" />
+                                            )}
+                                            Ativar Câmera
+                                        </Button>
+                                    )}
+
+                                    {/* Gallery Button - Always available */}
+                                    <Button
+                                        variant={isSecureContext && hasCameraDevice !== false ? "outline" : "default"}
+                                        onClick={openGallery}
+                                        className="w-full"
+                                        size="lg"
+                                    >
+                                        <ImagePlus className="h-4 w-4 mr-2" />
+                                        Escolher da Galeria
+                                    </Button>
+                                </div>
+
+                                <p className="text-xs text-muted-foreground">
+                                    Você pode pular e continuar sem fotos
+                                </p>
+                            </div>
+                        </Card>
+                    </motion.div>
+                )}
+
                 {/* Video Preview - Active Camera */}
                 {cameraState.status === 'active' && draft.images.length < MAX_IMAGES && (
                     <motion.div

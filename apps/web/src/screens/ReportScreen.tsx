@@ -58,9 +58,8 @@ const categoryConfig: Record<string, { label: string; icon: React.ElementType; c
 const statusConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
   recebido: { label: 'Recebido', color: 'bg-blue-100 text-blue-700', icon: Clock },
   em_analise: { label: 'Em Análise', color: 'bg-amber-100 text-amber-700', icon: AlertCircle },
-  em_andamento: { label: 'Em Andamento', color: 'bg-purple-100 text-purple-700', icon: RefreshCw },
   resolvido: { label: 'Resolvido', color: 'bg-green-100 text-green-700', icon: CheckCircle2 },
-  nao_procede: { label: 'Não Procede', color: 'bg-red-100 text-red-700', icon: XCircle },
+  rejeitado: { label: 'Rejeitado', color: 'bg-red-100 text-red-700', icon: XCircle },
 };
 
 interface ReportScreenProps {
@@ -84,9 +83,8 @@ export default function ReportScreen({ scrollRef }: ReportScreenProps) {
   };
 
   const handleReportClick = (id: string) => {
-    // Navigate to public report detail (to handle read-only view)
-    // For now we can reuse report detail page if it handles read-only
-    navigate(`/reports/${id}`);
+    // Navigate to public report detail
+    navigate(`/denuncia/${id}`);
   };
 
   return (
@@ -147,16 +145,16 @@ export default function ReportScreen({ scrollRef }: ReportScreenProps) {
           </button>
 
           <button
-            onClick={() => setFilterStatus('em_andamento')}
+            onClick={() => setFilterStatus('rejeitado')}
             className={cn(
               "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all whitespace-nowrap",
-              filterStatus === 'em_andamento'
-                ? "bg-purple-100 border-purple-200 text-purple-700"
+              filterStatus === 'rejeitado'
+                ? "bg-red-100 border-red-200 text-red-700"
                 : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
             )}
           >
-            <div className="w-2 h-2 rounded-full bg-purple-500" />
-            Em Andamento ({statsLoading ? '-' : stats.byStatus.em_andamento})
+            <div className="w-2 h-2 rounded-full bg-red-500" />
+            Rejeitado ({statsLoading ? '-' : stats.byStatus.rejeitado})
           </button>
 
           <button

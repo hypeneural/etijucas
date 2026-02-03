@@ -27,6 +27,7 @@ const VoteDetailPage = lazy(() => import("./pages/VoteDetailPage"));
 const VotesListPage = lazy(() => import("./pages/VotesListPage"));
 const ReportWizardPage = lazy(() => import("./pages/ReportWizardPage"));
 const MyReportsPage = lazy(() => import("./pages/MyReportsPage"));
+const ReportDetailPage = lazy(() => import("./pages/ReportDetailPage"));
 const TourismDetailPage = lazy(() => import("./pages/TourismDetailPage"));
 
 // Feature screens (will become pages)
@@ -123,6 +124,7 @@ const App = () => {
             {/* Denúncias */}
             <Route path="/denuncias" element={<ReportScreen />} />
             <Route path="/denuncia/nova" element={<ReportWizardPage />} />
+            <Route path="/denuncia/:id" element={<ReportDetailPage />} />
             <Route path="/minhas-denuncias" element={<MyReportsPage />} />
 
             {/* Coleta de Lixo */}

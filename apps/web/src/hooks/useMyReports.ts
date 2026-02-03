@@ -5,14 +5,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { reportService, type MyReportsFilters, type PublicReportsFilters, type ReportsStats } from '@/services/report.service';
 import { useAuthStore } from '@/store/useAuthStore';
+import { QUERY_KEYS } from '@/api/config';
 import type { CitizenReport, ReportStatus, CreateReportPayload } from '@/types/report';
-
-const QUERY_KEYS = {
-    myReports: ['reports', 'mine'] as const,
-    publicReports: ['reports', 'public'] as const,
-    reportsStats: ['reports', 'stats'] as const,
-    reportDetail: (id: string) => ['reports', 'detail', id] as const,
-};
 
 export function useMyReports(filters?: MyReportsFilters) {
     const { isAuthenticated } = useAuthStore();
@@ -35,7 +29,7 @@ export function useMyReports(filters?: MyReportsFilters) {
 
 export function useReportDetail(id: string | undefined) {
     const query = useQuery({
-        queryKey: QUERY_KEYS.reportDetail(id ?? ''),
+        queryKey: QUERY_KEYS.reports.detail(id ?? ''),
         queryFn: () => reportService.getReportById(id!),
         enabled: !!id,
         staleTime: 1 * 60 * 1000, // 1 minute
@@ -76,7 +70,7 @@ export function useAddReportMedia() {
         mutationFn: ({ reportId, images }: { reportId: string; images: File[] }) =>
             reportService.addReportMedia(reportId, images),
         onSuccess: (_, variables) => {
-            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.reportDetail(variables.reportId) });
+            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.reports.detail(variables.reportId) });
             queryClient.invalidateQueries({ queryKey: QUERY_KEYS.myReports });
         },
     });
@@ -95,7 +89,7 @@ export function useRemoveReportMedia() {
         mutationFn: ({ reportId, mediaId }: { reportId: string; mediaId: string }) =>
             reportService.removeReportMedia(reportId, mediaId),
         onSuccess: (_, variables) => {
-            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.reportDetail(variables.reportId) });
+            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.reports.detail(variables.reportId) });
         },
     });
 
@@ -112,7 +106,7 @@ export function useRemoveReportMedia() {
 
 export function usePublicReports(filters?: PublicReportsFilters) {
     const query = useQuery({
-        queryKey: [...QUERY_KEYS.publicReports, filters],
+        queryKey: [...QUERY_KEYS.reports.public, filters],
         queryFn: () => reportService.getPublicReports(filters),
         staleTime: 2 * 60 * 1000, // 2 minutes
     });
@@ -132,7 +126,7 @@ export function usePublicReports(filters?: PublicReportsFilters) {
 
 export function useReportsStats() {
     const query = useQuery({
-        queryKey: QUERY_KEYS.reportsStats,
+        queryKey: QUERY_KEYS.reports.stats,
         queryFn: () => reportService.getReportsStats(),
         staleTime: 5 * 60 * 1000, // 5 minutes
     });
@@ -140,7 +134,7 @@ export function useReportsStats() {
     return {
         stats: query.data ?? {
             total: 0,
-            byStatus: { recebido: 0, em_analise: 0, em_andamento: 0, resolvido: 0, nao_procede: 0 },
+            byStatus: { recebido: 0, em_analise: 0, resolvido: 0, rejeitado: 0 },
             thisMonth: 0,
             resolvedThisMonth: 0,
         },

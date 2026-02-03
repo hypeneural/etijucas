@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, X } from 'lucide-react';
+import { ArrowLeft, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { WizardProgress } from '@/components/report/WizardProgress';
 import { StepCategory } from '@/components/report/StepCategory';
@@ -11,16 +11,10 @@ import { StepReview } from '@/components/report/StepReview';
 import { ReportSuccess } from '@/components/report/ReportSuccess';
 import { LoginRequired } from '@/components/auth/LoginRequired';
 import { useCreateReport } from '@/hooks/useMyReports';
+import { useReportDraft } from '@/hooks/useReportDraft';
 import { useAuthStore } from '@/store/useAuthStore';
 import { toast } from 'sonner';
-import {
-    type ReportDraft,
-    type WizardStep,
-    type CreateReportPayload,
-    initialReportDraft,
-    generateIdempotencyKey,
-    REPORT_DRAFT_KEY
-} from '@/types/report';
+import type { CreateReportPayload } from '@/types/report';
 
 const STEP_LABELS = [
     'Categoria',
@@ -59,84 +53,37 @@ export default function ReportWizardPage() {
         );
     }
 
-    const [draft, setDraft] = useState<ReportDraft>(() => ({
-        ...initialReportDraft,
-        idempotencyKey: generateIdempotencyKey(),
-    }));
+    // Draft management via IndexedDB hook
+    const {
+        draft,
+        isLoading: isDraftLoading,
+        updateDraft,
+        nextStep,
+        prevStep,
+        clearDraft,
+    } = useReportDraft();
+
     const [direction, setDirection] = useState(0);
     const [showSuccess, setShowSuccess] = useState(false);
     const [protocolNumber, setProtocolNumber] = useState<string | null>(null);
 
     const { createReport, isCreating, error: createError } = useCreateReport();
 
-    // Load draft from localStorage on mount
-    useEffect(() => {
-        try {
-            const savedDraft = localStorage.getItem(REPORT_DRAFT_KEY);
-            if (savedDraft) {
-                const parsed = JSON.parse(savedDraft);
-                setDraft({
-                    ...parsed,
-                    createdAt: new Date(parsed.createdAt),
-                    updatedAt: new Date(parsed.updatedAt),
-                    images: [],
-                    // Keep existing idempotency key or generate new
-                    idempotencyKey: parsed.idempotencyKey || generateIdempotencyKey(),
-                });
-            }
-        } catch (error) {
-            console.error('Error loading draft:', error);
-        }
-    }, []);
-
-    const saveDraft = useCallback((newDraft: ReportDraft) => {
-        try {
-            const draftToSave = {
-                ...newDraft,
-                images: [],
-                updatedAt: new Date(),
-            };
-            localStorage.setItem(REPORT_DRAFT_KEY, JSON.stringify(draftToSave));
-        } catch (error) {
-            console.error('Error saving draft:', error);
-        }
-    }, []);
-
-    const updateDraft = useCallback((updates: Partial<ReportDraft>) => {
-        setDraft(prev => {
-            const newDraft = { ...prev, ...updates, updatedAt: new Date() };
-            saveDraft(newDraft);
-            return newDraft;
-        });
-    }, [saveDraft]);
-
-    const goToStep = useCallback((step: WizardStep) => {
+    // Wrapper for step navigation with direction tracking
+    const goToStep = useCallback((step: 1 | 2 | 3 | 4) => {
         setDirection(step > draft.currentStep ? 1 : -1);
         updateDraft({ currentStep: step });
     }, [draft.currentStep, updateDraft]);
 
-    const nextStep = useCallback(() => {
-        if (draft.currentStep < 4) {
-            setDirection(1);
-            updateDraft({ currentStep: (draft.currentStep + 1) as WizardStep });
-        }
-    }, [draft.currentStep, updateDraft]);
+    const handleNextStep = useCallback(() => {
+        setDirection(1);
+        nextStep();
+    }, [nextStep]);
 
-    const prevStep = useCallback(() => {
-        if (draft.currentStep > 1) {
-            setDirection(-1);
-            updateDraft({ currentStep: (draft.currentStep - 1) as WizardStep });
-        }
-    }, [draft.currentStep, updateDraft]);
-
-    const clearDraft = useCallback(() => {
-        draft.images.forEach(img => URL.revokeObjectURL(img.previewUrl));
-        localStorage.removeItem(REPORT_DRAFT_KEY);
-        setDraft({
-            ...initialReportDraft,
-            idempotencyKey: generateIdempotencyKey(),
-        });
-    }, [draft.images]);
+    const handlePrevStep = useCallback(() => {
+        setDirection(-1);
+        prevStep();
+    }, [prevStep]);
 
     const handleSubmit = useCallback(async () => {
         // Validate required fields
@@ -209,6 +156,15 @@ export default function ReportWizardPage() {
         navigate('/');
     };
 
+    // Show loading while draft is being loaded from IndexedDB
+    if (isDraftLoading) {
+        return (
+            <div className="fixed inset-0 z-50 bg-background flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        );
+    }
+
     // Show success page
     if (showSuccess && protocolNumber) {
         return <ReportSuccess protocolNumber={protocolNumber} onClose={handleSuccessClose} />;
@@ -268,30 +224,30 @@ export default function ReportWizardPage() {
                             <StepCategory
                                 draft={draft}
                                 onUpdate={updateDraft}
-                                onNext={nextStep}
+                                onNext={handleNextStep}
                             />
                         )}
                         {draft.currentStep === 2 && (
                             <StepLocation
                                 draft={draft}
                                 onUpdate={updateDraft}
-                                onNext={nextStep}
-                                onBack={prevStep}
+                                onNext={handleNextStep}
+                                onBack={handlePrevStep}
                             />
                         )}
                         {draft.currentStep === 3 && (
                             <StepCamera
                                 draft={draft}
                                 onUpdate={updateDraft}
-                                onNext={nextStep}
-                                onBack={prevStep}
+                                onNext={handleNextStep}
+                                onBack={handlePrevStep}
                             />
                         )}
                         {draft.currentStep === 4 && (
                             <StepReview
                                 draft={draft}
                                 onUpdate={updateDraft}
-                                onBack={prevStep}
+                                onBack={handlePrevStep}
                                 onGoToStep={goToStep}
                                 onSubmit={handleSubmit}
                             />
