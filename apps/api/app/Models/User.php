@@ -162,6 +162,44 @@ class User extends Authenticatable implements HasMedia, FilamentUser, HasName, H
     }
 
     // =====================================================
+    // Tourism Relationships
+    // =====================================================
+
+    /**
+     * Get the tourism reviews by the user.
+     */
+    public function tourismReviews(): HasMany
+    {
+        return $this->hasMany(\App\Domains\Tourism\Models\TourismReview::class, 'user_id');
+    }
+
+    /**
+     * Get the tourism spots liked by the user.
+     */
+    public function tourismLikes(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            \App\Domains\Tourism\Models\TourismSpot::class,
+            'tourism_likes',
+            'user_id',
+            'spot_id'
+        )->withTimestamps();
+    }
+
+    /**
+     * Get the tourism spots saved by the user.
+     */
+    public function savedTourismSpots(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            \App\Domains\Tourism\Models\TourismSpot::class,
+            'tourism_saved',
+            'user_id',
+            'spot_id'
+        )->withTimestamps();
+    }
+
+    // =====================================================
     // Media Collections (Spatie Media Library)
     // =====================================================
 

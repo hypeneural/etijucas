@@ -22,7 +22,7 @@ class TourismReviewResource extends JsonResource
 
             'autor' => [
                 'id' => $this->user->id,
-                'nome' => $this->user->name,
+                'nome' => $this->user->nome,
                 'avatarUrl' => $this->user->avatar_url,
                 'reviewsCount' => $this->user->tourismReviews()->count(),
             ],
