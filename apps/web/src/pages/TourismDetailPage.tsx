@@ -1,7 +1,7 @@
 // TourismDetailPage - Perfil do Ponto Turístico (TripAdvisor-like)
 // Mobile-first, offline-first, native-first
 
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -34,6 +34,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { useTourismSpot } from '@/hooks/useOfflineTourism';
+import { useAuthStore } from '@/store/useAuthStore';
 import { TOURISM_CATEGORIES, PRECO_LABELS } from '@/types/tourism.types';
 import type { TourismMedia, TourismReview, TourismOpeningHours } from '@/types/tourism.types';
 
@@ -315,10 +316,14 @@ function ReviewCard({ review, onLike }: { review: TourismReview; onLike?: () => 
 // Write review sheet
 function WriteReviewSheet({
   spotName,
-  onSubmit
+  onSubmit,
+  isAuthenticated,
+  onLoginClick,
 }: {
   spotName: string;
   onSubmit: (data: { rating: number; text: string }) => void;
+  isAuthenticated: boolean;
+  onLoginClick: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const [rating, setRating] = useState(0);
@@ -333,6 +338,20 @@ function WriteReviewSheet({
       setText('');
     }
   };
+
+  // If not authenticated, show login button
+  if (!isAuthenticated) {
+    return (
+      <Button
+        onClick={onLoginClick}
+        className="w-full"
+        variant="outline"
+      >
+        <MessageCircle className="w-4 h-4 mr-2" />
+        Cadastre/Entre para avaliar
+      </Button>
+    );
+  }
 
   return (
     <>
@@ -434,6 +453,11 @@ export default function TourismDetailPage() {
   const headerRef = useRef<HTMLDivElement>(null);
 
   const { spot, reviews, isLoading, likeSpot, saveSpot, createReview, isCreatingReview } = useTourismSpot(id || '');
+  const { isAuthenticated } = useAuthStore();
+
+  const handleLoginClick = useCallback(() => {
+    navigate('/entrar', { state: { from: `/ponto-turistico/${id}` } });
+  }, [navigate, id]);
 
   const categoryInfo = spot?.categoria ? TOURISM_CATEGORIES[spot.categoria] : null;
 
@@ -717,6 +741,8 @@ export default function TourismDetailPage() {
           {/* Write review button */}
           <WriteReviewSheet
             spotName={spot.titulo}
+            isAuthenticated={isAuthenticated}
+            onLoginClick={handleLoginClick}
             onSubmit={(data) => {
               createReview({
                 rating: data.rating,
