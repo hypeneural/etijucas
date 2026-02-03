@@ -1,165 +1,299 @@
-// Report Service - Offline-First
-// User reports to the city with IndexedDB persistence
+/**
+ * Report Service - Citizen Reports (Denúncias Cidadãs)
+ * Uses multipart/form-data for image uploads
+ */
 
 import { apiClient } from '@/api/client';
 import { ENDPOINTS } from '@/api/config';
-import { Report } from '@/types';
-import { ReportFilters, PaginatedResponse, CreateReportDTO } from '@/types/api.types';
 import { reportsDB, syncQueueDB } from '@/lib/localDatabase';
+import type {
+    CitizenReport,
+    ReportCategory,
+    CreateReportPayload,
+    GeocodeSuggestion,
+    generateIdempotencyKey,
+} from '@/types/report';
 
-// Seed data for first load (dev only)
-import { myReports as seedReports } from '@/data/mockData';
+// ======================================================
+// Categories
+// ======================================================
 
-// Initialize on first import
-let initialized = false;
-async function ensureInitialized() {
-    if (!initialized) {
-        initialized = true;
-        const cached = await reportsDB.getAll();
-        if (cached.length === 0 && import.meta.env.DEV) {
-            await reportsDB.saveMany(seedReports);
-            console.log('[ReportService] Initialized with seed data');
-        }
+export async function getCategories(): Promise<ReportCategory[]> {
+    try {
+        const response = await apiClient.get<{ data: ReportCategory[] }>(
+            ENDPOINTS.reports.categories
+        );
+        return response.data;
+    } catch (error) {
+        console.error('[ReportService] Failed to fetch categories:', error);
+        throw error;
     }
 }
 
-export const reportService = {
-    /**
-     * Get all reports with optional filters
-     */
-    async getAll(filters?: ReportFilters): Promise<PaginatedResponse<Report>> {
-        await ensureInitialized();
+// ======================================================
+// Create Report (Multipart)
+// ======================================================
 
-        try {
-            const response = await apiClient.get<PaginatedResponse<Report>>(
-                ENDPOINTS.reports.list,
-                filters as Record<string, string | number | boolean | undefined>
-            );
+export async function createReport(
+    payload: CreateReportPayload,
+    idempotencyKey: string
+): Promise<CitizenReport> {
+    const formData = new FormData();
 
-            // Cache response data to IndexedDB
-            if (response.data.length > 0) {
-                await reportsDB.saveMany(response.data);
-            }
+    // Required fields
+    formData.append('categoryId', payload.categoryId);
+    formData.append('title', payload.title);
+    formData.append('description', payload.description);
 
-            return response;
-        } catch {
-            // Fallback to IndexedDB
-            let reports = await reportsDB.getAll();
+    // Optional location fields
+    if (payload.addressText) {
+        formData.append('addressText', payload.addressText);
+    }
+    if (payload.addressSource) {
+        formData.append('addressSource', payload.addressSource);
+    }
+    if (payload.locationQuality) {
+        formData.append('locationQuality', payload.locationQuality);
+    }
+    if (payload.latitude !== undefined) {
+        formData.append('latitude', String(payload.latitude));
+    }
+    if (payload.longitude !== undefined) {
+        formData.append('longitude', String(payload.longitude));
+    }
+    if (payload.locationAccuracyM !== undefined) {
+        formData.append('locationAccuracyM', String(payload.locationAccuracyM));
+    }
+    if (payload.bairroId) {
+        formData.append('bairroId', payload.bairroId);
+    }
 
-            if (filters?.bairroId) {
-                reports = reports.filter(r => r.bairroId === filters.bairroId);
-            }
-            if (filters?.categoria) {
-                reports = reports.filter(r => r.categoria === filters.categoria);
-            }
-            if (filters?.status) {
-                reports = reports.filter(r => r.status === filters.status);
-            }
+    // Images (multipart)
+    if (payload.images && payload.images.length > 0) {
+        payload.images.forEach((file) => {
+            formData.append('images[]', file);
+        });
+    }
 
-            // Paginate
-            const page = filters?.page || 1;
-            const perPage = filters?.perPage || 10;
-            const start = (page - 1) * perPage;
-            const end = start + perPage;
+    try {
+        const response = await apiClient.postFormData<{
+            success: boolean;
+            message: string;
+            data: CitizenReport;
+        }>(ENDPOINTS.reports.create, formData, {
+            headers: {
+                'X-Idempotency-Key': idempotencyKey,
+            },
+        });
 
-            return {
-                data: reports.slice(start, end),
-                meta: {
-                    total: reports.length,
-                    page,
-                    perPage,
-                    lastPage: Math.ceil(reports.length / perPage),
-                    from: start + 1,
-                    to: Math.min(end, reports.length),
+        // Cache to IndexedDB
+        if (response.data) {
+            await reportsDB.save(response.data as unknown as import('@/types').Report);
+        }
+
+        return response.data;
+    } catch (error) {
+        console.error('[ReportService] Failed to create report:', error);
+
+        // Queue for offline sync
+        const exists = await syncQueueDB.exists(idempotencyKey);
+        if (!exists) {
+            await syncQueueDB.add({
+                type: 'report',
+                data: {
+                    ...payload,
+                    // Store images as base64 for offline (temporary)
+                    images: [], // Note: images can't be easily stored offline
                 },
-            };
+                idempotencyKey,
+            });
         }
-    },
 
-    /**
-     * Get current user's reports
-     */
-    async getMyReports(): Promise<Report[]> {
-        await ensureInitialized();
+        throw error;
+    }
+}
 
-        try {
-            const response = await apiClient.get<{ data: Report[] }>(ENDPOINTS.reports.myReports);
-            // Cache to IndexedDB
-            if (response.data.length > 0) {
-                await reportsDB.saveMany(response.data);
-            }
-            return response.data;
-        } catch {
-            return reportsDB.getAll();
+// ======================================================
+// My Reports
+// ======================================================
+
+export interface MyReportsFilters {
+    status?: string;
+    categoryId?: string;
+    page?: number;
+    perPage?: number;
+}
+
+export interface MyReportsResponse {
+    data: CitizenReport[];
+    meta: {
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+    };
+}
+
+export async function getMyReports(
+    filters?: MyReportsFilters
+): Promise<MyReportsResponse> {
+    try {
+        const params = new URLSearchParams();
+        if (filters?.status) params.append('status', filters.status);
+        if (filters?.categoryId) params.append('categoryId', filters.categoryId);
+        if (filters?.page) params.append('page', String(filters.page));
+        if (filters?.perPage) params.append('perPage', String(filters.perPage));
+
+        const queryString = params.toString();
+        const url = queryString
+            ? `${ENDPOINTS.reports.myReports}?${queryString}`
+            : ENDPOINTS.reports.myReports;
+
+        const response = await apiClient.get<MyReportsResponse>(url);
+
+        // Cache to IndexedDB
+        if (response.data.length > 0) {
+            await reportsDB.saveMany(
+                response.data as unknown as import('@/types').Report[]
+            );
         }
-    },
 
-    /**
-     * Get a single report by ID
-     */
-    async getById(id: string): Promise<Report | undefined> {
-        await ensureInitialized();
+        return response;
+    } catch (error) {
+        console.error('[ReportService] Failed to fetch my reports:', error);
 
-        try {
-            const response = await apiClient.get<{ data: Report }>(ENDPOINTS.reports.get(id));
-            // Cache to IndexedDB
-            await reportsDB.save(response.data);
-            return response.data;
-        } catch {
-            return reportsDB.getById(id);
-        }
-    },
+        // Fallback to IndexedDB
+        const cached = await reportsDB.getAll();
+        return {
+            data: cached as unknown as CitizenReport[],
+            meta: {
+                current_page: 1,
+                last_page: 1,
+                per_page: 10,
+                total: cached.length,
+            },
+        };
+    }
+}
 
-    /**
-     * Create a new report
-     */
-    async create(data: CreateReportDTO): Promise<Report> {
-        await ensureInitialized();
+// ======================================================
+// Get Report Detail
+// ======================================================
 
-        const idempotencyKey = `report-${JSON.stringify(data)}-${Date.now()}`;
+export async function getReportById(id: string): Promise<CitizenReport | null> {
+    try {
+        const response = await apiClient.get<{
+            success: boolean;
+            data: CitizenReport;
+        }>(ENDPOINTS.reports.get(id));
 
-        try {
-            const response = await apiClient.post<{ data: Report }>(ENDPOINTS.reports.create, data);
-            // Save to IndexedDB
-            await reportsDB.save(response.data);
-            return response.data;
-        } catch {
-            // Create locally and queue for sync
-            const newReport: Report = {
-                texto: data.texto,
-                categoria: data.categoria,
-                bairroId: data.bairroId,
-                fotos: data.fotos || [],
-                id: `report-local-${Date.now()}`,
-                createdAt: new Date(),
-                likes: 0,
-                protocolo: `ETJ-${String(Date.now()).slice(-6)}`,
-                status: 'recebido',
-            };
+        // Cache to IndexedDB
+        await reportsDB.save(response.data as unknown as import('@/types').Report);
 
-            // Save to IndexedDB
-            await reportsDB.save(newReport);
+        return response.data;
+    } catch (error) {
+        console.error('[ReportService] Failed to fetch report:', error);
 
-            // Add to sync queue (with deduplication check)
-            const exists = await syncQueueDB.exists(idempotencyKey);
-            if (!exists) {
-                await syncQueueDB.add({
-                    type: 'report',
-                    data: { ...data, localId: newReport.id },
-                    idempotencyKey,
-                });
-            }
+        // Fallback to IndexedDB
+        const cached = await reportsDB.getById(id);
+        return cached as unknown as CitizenReport | null;
+    }
+}
 
-            return newReport;
-        }
-    },
+// ======================================================
+// Add Media to Report
+// ======================================================
 
-    /**
-     * Delete a report
-     */
-    async delete(id: string): Promise<void> {
-        await reportsDB.delete(id);
-    },
+export async function addReportMedia(
+    reportId: string,
+    images: File[]
+): Promise<CitizenReport> {
+    const formData = new FormData();
+    images.forEach((file) => {
+        formData.append('images[]', file);
+    });
+
+    const response = await apiClient.postFormData<{
+        success: boolean;
+        message: string;
+        data: CitizenReport;
+    }>(ENDPOINTS.reports.addMedia(reportId), formData);
+
+    return response.data;
+}
+
+// ======================================================
+// Remove Media from Report
+// ======================================================
+
+export async function removeReportMedia(
+    reportId: string,
+    mediaId: string
+): Promise<void> {
+    await apiClient.delete(ENDPOINTS.reports.removeMedia(reportId, mediaId));
+}
+
+// ======================================================
+// Geocoding
+// ======================================================
+
+export async function geocodeAutocomplete(
+    query: string,
+    lat?: number,
+    lon?: number
+): Promise<GeocodeSuggestion[]> {
+    try {
+        const params = new URLSearchParams({ q: query });
+        if (lat !== undefined) params.append('lat', String(lat));
+        if (lon !== undefined) params.append('lon', String(lon));
+
+        const response = await apiClient.get<{
+            success: boolean;
+            data: GeocodeSuggestion[];
+        }>(`${ENDPOINTS.geocode.autocomplete}?${params.toString()}`);
+
+        return response.data;
+    } catch (error) {
+        console.error('[ReportService] Geocode autocomplete failed:', error);
+        return [];
+    }
+}
+
+export async function geocodeReverse(
+    lat: number,
+    lon: number
+): Promise<GeocodeSuggestion | null> {
+    try {
+        const params = new URLSearchParams({
+            lat: String(lat),
+            lon: String(lon),
+        });
+
+        const response = await apiClient.get<{
+            success: boolean;
+            data: GeocodeSuggestion;
+        }>(`${ENDPOINTS.geocode.reverse}?${params.toString()}`);
+
+        return response.data;
+    } catch (error) {
+        console.error('[ReportService] Geocode reverse failed:', error);
+        return null;
+    }
+}
+
+// ======================================================
+// Export service object
+// ======================================================
+
+export const reportService = {
+    getCategories,
+    createReport,
+    getMyReports,
+    getReportById,
+    addReportMedia,
+    removeReportMedia,
+    geocodeAutocomplete,
+    geocodeReverse,
 };
 
 export default reportService;

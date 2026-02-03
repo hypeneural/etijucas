@@ -11,13 +11,16 @@ import {
     CheckCircle,
     ChevronRight,
     RefreshCw,
+    Search,
+    Target,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { StepHeader } from './HelpTooltip';
-import type { ReportDraft, LocationData, LocationState } from '@/types/report';
+import { reportService } from '@/services/report.service';
+import type { ReportDraft, LocationData, LocationState, GeocodeSuggestion } from '@/types/report';
 
 interface StepLocationProps {
     draft: ReportDraft;
@@ -31,6 +34,24 @@ export function StepLocation({ draft, onUpdate, onNext, onBack }: StepLocationPr
         status: 'idle',
     });
     const [showManualAdjust, setShowManualAdjust] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState<GeocodeSuggestion[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const [isReverseGeocoding, setIsReverseGeocoding] = useState(false);
+
+    // Reverse geocode to get address from coordinates
+    const reverseGeocode = useCallback(async (lat: number, lon: number): Promise<string | undefined> => {
+        try {
+            setIsReverseGeocoding(true);
+            const result = await reportService.geocodeReverse(lat, lon);
+            return result?.address || result?.displayName;
+        } catch (error) {
+            console.warn('[StepLocation] Reverse geocode failed:', error);
+            return undefined;
+        } finally {
+            setIsReverseGeocoding(false);
+        }
+    }, []);
 
     const requestLocation = useCallback(async () => {
         if (!navigator.geolocation) {
@@ -45,15 +66,20 @@ export function StepLocation({ draft, onUpdate, onNext, onBack }: StepLocationPr
 
         navigator.geolocation.getCurrentPosition(
             async (position) => {
-                const locationData: LocationData = {
-                    latitude: position.coords.latitude,
-                    longitude: position.coords.longitude,
-                    accuracy: position.coords.accuracy,
-                    address: undefined,
-                    reference: draft.location?.reference,
-                };
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
 
-                locationData.address = `Tijucas, SC`;
+                // Get address via reverse geocoding
+                const address = await reverseGeocode(lat, lon);
+
+                const locationData: LocationData = {
+                    latitude: lat,
+                    longitude: lon,
+                    accuracy: position.coords.accuracy,
+                    address: address || 'Tijucas, SC',
+                    source: 'gps',
+                    quality: position.coords.accuracy <= 50 ? 'precisa' : 'aproximada',
+                };
 
                 onUpdate({ location: locationData });
                 setLocationState({ status: 'success' });
@@ -78,7 +104,54 @@ export function StepLocation({ draft, onUpdate, onNext, onBack }: StepLocationPr
                 maximumAge: 60000,
             }
         );
-    }, [draft.location?.reference, onUpdate]);
+    }, [onUpdate, reverseGeocode]);
+
+    // Search for address
+    const handleSearch = useCallback(async (query: string) => {
+        if (query.length < 3) {
+            setSearchResults([]);
+            return;
+        }
+
+        setIsSearching(true);
+        try {
+            const results = await reportService.geocodeAutocomplete(query);
+            setSearchResults(results);
+        } catch (error) {
+            console.warn('[StepLocation] Search failed:', error);
+            setSearchResults([]);
+        } finally {
+            setIsSearching(false);
+        }
+    }, []);
+
+    // Debounce search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (searchQuery) {
+                handleSearch(searchQuery);
+            }
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [searchQuery, handleSearch]);
+
+    // Select address from search results
+    const handleSelectAddress = (suggestion: GeocodeSuggestion) => {
+        const locationData: LocationData = {
+            latitude: suggestion.latitude,
+            longitude: suggestion.longitude,
+            accuracy: 100, // estimated
+            address: suggestion.address || suggestion.displayName,
+            source: 'manual',
+            quality: 'manual',
+        };
+
+        onUpdate({ location: locationData });
+        setLocationState({ status: 'success' });
+        setSearchQuery('');
+        setSearchResults([]);
+        setShowManualAdjust(false);
+    };
 
     useEffect(() => {
         if (!draft.location && locationState.status === 'idle') {
@@ -86,18 +159,25 @@ export function StepLocation({ draft, onUpdate, onNext, onBack }: StepLocationPr
         }
     }, [draft.location, locationState.status, requestLocation]);
 
-    const handleReferenceChange = (reference: string) => {
-        if (draft.location) {
-            onUpdate({
-                location: {
-                    ...draft.location,
-                    reference,
-                },
-            });
-        }
-    };
-
     const canContinue = !!draft.location;
+
+    // Quality badge component
+    const QualityBadge = ({ quality }: { quality: string }) => {
+        const config = {
+            precisa: { color: 'text-green-600 bg-green-100', icon: Target, label: 'Precisa' },
+            aproximada: { color: 'text-amber-600 bg-amber-100', icon: MapPin, label: 'Aproximada' },
+            manual: { color: 'text-blue-600 bg-blue-100', icon: Edit3, label: 'Informada' },
+        }[quality] || { color: 'text-gray-600 bg-gray-100', icon: MapPin, label: 'Desconhecida' };
+
+        const Icon = config.icon;
+
+        return (
+            <span className={cn('inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium', config.color)}>
+                <Icon className="h-3 w-3" />
+                {config.label}
+            </span>
+        );
+    };
 
     return (
         <div className="space-y-6 pb-48">
@@ -120,8 +200,7 @@ export function StepLocation({ draft, onUpdate, onNext, onBack }: StepLocationPr
                     </div>
                     <div className="text-sm text-blue-700 dark:text-blue-300">
                         <p className="font-medium mb-1">Como funciona:</p>
-                        <p>Vamos usar a localização do seu celular para marcar onde está o problema.
-                            Você pode adicionar um ponto de referência para facilitar.</p>
+                        <p>Usamos o GPS para marcar o local, ou você pode buscar o endereço manualmente.</p>
                     </div>
                 </div>
             </Card>
@@ -138,7 +217,9 @@ export function StepLocation({ draft, onUpdate, onNext, onBack }: StepLocationPr
                         <div className="p-4 rounded-full bg-primary/10 mb-4">
                             <Loader2 className="h-8 w-8 text-primary animate-spin" />
                         </div>
-                        <p className="font-medium mb-1">Buscando sua localização...</p>
+                        <p className="font-medium mb-1">
+                            {isReverseGeocoding ? 'Buscando endereço...' : 'Buscando sua localização...'}
+                        </p>
                         <p className="text-sm text-muted-foreground">
                             Se aparecer uma mensagem, toque em "Permitir"
                         </p>
@@ -181,21 +262,27 @@ export function StepLocation({ draft, onUpdate, onNext, onBack }: StepLocationPr
                                             <span className="font-bold text-primary">3.</span>
                                             <span>Mude "Localização" para "Permitir"</span>
                                         </li>
-                                        <li className="flex items-start gap-2">
-                                            <span className="font-bold text-primary">4.</span>
-                                            <span>Toque no botão abaixo para tentar novamente</span>
-                                        </li>
                                     </ol>
                                 </Card>
 
-                                <Button
-                                    variant="outline"
-                                    className="mt-4 w-full"
-                                    onClick={requestLocation}
-                                >
-                                    <RefreshCw className="h-4 w-4 mr-2" />
-                                    Tentar novamente
-                                </Button>
+                                <div className="flex gap-2 mt-4 w-full">
+                                    <Button
+                                        variant="outline"
+                                        className="flex-1"
+                                        onClick={requestLocation}
+                                    >
+                                        <RefreshCw className="h-4 w-4 mr-2" />
+                                        Tentar GPS
+                                    </Button>
+                                    <Button
+                                        variant="secondary"
+                                        className="flex-1"
+                                        onClick={() => setShowManualAdjust(true)}
+                                    >
+                                        <Search className="h-4 w-4 mr-2" />
+                                        Buscar endereço
+                                    </Button>
+                                </div>
                             </div>
                         </Card>
                     </motion.div>
@@ -219,32 +306,24 @@ export function StepLocation({ draft, onUpdate, onNext, onBack }: StepLocationPr
                                     {locationState.errorMessage}
                                 </p>
 
-                                <Card className="w-full p-4 bg-white dark:bg-background border-red-200 dark:border-red-700 text-left">
-                                    <p className="font-medium text-sm mb-3">O que você pode fazer:</p>
-                                    <ul className="text-sm space-y-2 text-muted-foreground">
-                                        <li className="flex items-start gap-2">
-                                            <CheckCircle className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
-                                            <span>Verifique se o GPS do celular está ligado</span>
-                                        </li>
-                                        <li className="flex items-start gap-2">
-                                            <CheckCircle className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
-                                            <span>Saia de ambientes fechados para melhor sinal</span>
-                                        </li>
-                                        <li className="flex items-start gap-2">
-                                            <CheckCircle className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
-                                            <span>Verifique sua conexão com a internet</span>
-                                        </li>
-                                    </ul>
-                                </Card>
-
-                                <Button
-                                    variant="outline"
-                                    className="mt-4 w-full"
-                                    onClick={requestLocation}
-                                >
-                                    <RefreshCw className="h-4 w-4 mr-2" />
-                                    Tentar novamente
-                                </Button>
+                                <div className="flex gap-2 w-full">
+                                    <Button
+                                        variant="outline"
+                                        className="flex-1"
+                                        onClick={requestLocation}
+                                    >
+                                        <RefreshCw className="h-4 w-4 mr-2" />
+                                        Tentar GPS
+                                    </Button>
+                                    <Button
+                                        variant="secondary"
+                                        className="flex-1"
+                                        onClick={() => setShowManualAdjust(true)}
+                                    >
+                                        <Search className="h-4 w-4 mr-2" />
+                                        Buscar endereço
+                                    </Button>
+                                </div>
                             </div>
                         </Card>
                     </motion.div>
@@ -263,18 +342,23 @@ export function StepLocation({ draft, onUpdate, onNext, onBack }: StepLocationPr
                                 <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/50">
                                     <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
                                 </div>
-                                <div>
+                                <div className="flex-1">
                                     <p className="font-medium text-green-800 dark:text-green-300">
                                         Localização capturada!
                                     </p>
-                                    <p className="text-sm text-green-700 dark:text-green-400">
-                                        Precisão: aproximadamente {Math.round(draft.location.accuracy)} metros
-                                    </p>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <QualityBadge quality={draft.location.quality} />
+                                        {draft.location.accuracy && draft.location.source === 'gps' && (
+                                            <span className="text-xs text-muted-foreground">
+                                                ±{Math.round(draft.location.accuracy)}m
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </Card>
 
-                        {/* Map placeholder */}
+                        {/* Map placeholder with address */}
                         <Card className="overflow-hidden">
                             <div className="relative h-40 bg-gradient-to-br from-green-100 to-blue-100 dark:from-green-900/20 dark:to-blue-900/20">
                                 <div className="absolute inset-0 flex items-center justify-center">
@@ -307,28 +391,11 @@ export function StepLocation({ draft, onUpdate, onNext, onBack }: StepLocationPr
                                         onClick={() => setShowManualAdjust(true)}
                                     >
                                         <Edit3 className="h-3.5 w-3.5 mr-1" />
-                                        Ajustar
+                                        Alterar
                                     </Button>
                                 </div>
                             </div>
                         </Card>
-
-                        {/* Reference input */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium flex items-center gap-2">
-                                <MapPin className="h-4 w-4 text-muted-foreground" />
-                                Ponto de referência (opcional)
-                            </label>
-                            <Input
-                                placeholder="Ex: em frente ao mercado, perto da escola..."
-                                value={draft.location.reference || ''}
-                                onChange={(e) => handleReferenceChange(e.target.value)}
-                                className="h-12 rounded-xl"
-                            />
-                            <p className="text-xs text-muted-foreground">
-                                Adicione informações que ajudem a encontrar o local mais facilmente
-                            </p>
-                        </div>
                     </motion.div>
                 )}
 
@@ -337,7 +404,7 @@ export function StepLocation({ draft, onUpdate, onNext, onBack }: StepLocationPr
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        className="flex flex-col items-center py-8"
+                        className="flex flex-col items-center py-8 gap-4"
                     >
                         <Button
                             size="lg"
@@ -347,14 +414,21 @@ export function StepLocation({ draft, onUpdate, onNext, onBack }: StepLocationPr
                             <Navigation className="h-5 w-5 mr-2" />
                             Usar minha localização
                         </Button>
-                        <p className="text-xs text-muted-foreground mt-3 text-center">
-                            Vamos pedir permissão para acessar seu GPS
+                        <p className="text-xs text-muted-foreground text-center">
+                            ou
                         </p>
+                        <Button
+                            variant="outline"
+                            onClick={() => setShowManualAdjust(true)}
+                        >
+                            <Search className="h-4 w-4 mr-2" />
+                            Buscar endereço manualmente
+                        </Button>
                     </motion.div>
                 )}
             </div>
 
-            {/* Manual Adjust Sheet */}
+            {/* Manual Address Search Sheet */}
             <AnimatePresence>
                 {showManualAdjust && (
                     <>
@@ -370,30 +444,77 @@ export function StepLocation({ draft, onUpdate, onNext, onBack }: StepLocationPr
                             animate={{ y: 0 }}
                             exit={{ y: '100%' }}
                             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                            className="fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl bg-background p-6 pb-8 h-[70vh]"
+                            className="fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl bg-background p-6 pb-8 max-h-[80vh] overflow-y-auto"
                         >
                             <div className="absolute top-3 left-1/2 -translate-x-1/2 h-1 w-10 rounded-full bg-muted" />
 
-                            <h3 className="font-semibold text-lg mt-4">Ajustar localização</h3>
+                            <h3 className="font-semibold text-lg mt-4">Buscar endereço</h3>
                             <p className="text-sm text-muted-foreground mt-1">
-                                Em breve você poderá ajustar o pino no mapa
+                                Digite o nome da rua ou local
                             </p>
 
-                            <div className="mt-4 flex-1 rounded-2xl bg-muted/50 h-64 flex items-center justify-center relative">
-                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                    <MapPin className="h-8 w-8 text-primary" />
-                                </div>
-                                <p className="text-sm text-muted-foreground">
-                                    Mapa interativo (em desenvolvimento)
-                                </p>
+                            <div className="relative mt-4">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    placeholder="Ex: Rua Principal, Centro, Tijucas"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="pl-10 h-12 rounded-xl"
+                                    autoFocus
+                                />
+                                {isSearching && (
+                                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+                                )}
                             </div>
 
-                            <Button
-                                className="w-full mt-4"
-                                onClick={() => setShowManualAdjust(false)}
-                            >
-                                Confirmar local
-                            </Button>
+                            {/* Search Results */}
+                            {searchResults.length > 0 && (
+                                <div className="mt-4 space-y-2">
+                                    {searchResults.map((result, idx) => (
+                                        <motion.button
+                                            key={result.placeId || idx}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: idx * 0.05 }}
+                                            onClick={() => handleSelectAddress(result)}
+                                            className="w-full text-left p-3 rounded-xl border hover:bg-muted/50 transition-colors"
+                                        >
+                                            <div className="flex items-start gap-3">
+                                                <MapPin className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                                                <div>
+                                                    <p className="font-medium text-sm">{result.address}</p>
+                                                    <p className="text-xs text-muted-foreground mt-0.5">
+                                                        {result.displayName}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </motion.button>
+                                    ))}
+                                </div>
+                            )}
+
+                            {searchQuery.length >= 3 && searchResults.length === 0 && !isSearching && (
+                                <p className="text-sm text-muted-foreground text-center py-8">
+                                    Nenhum resultado encontrado. Tente outro endereço.
+                                </p>
+                            )}
+
+                            <div className="flex gap-2 mt-6">
+                                <Button
+                                    variant="outline"
+                                    className="flex-1"
+                                    onClick={() => setShowManualAdjust(false)}
+                                >
+                                    Cancelar
+                                </Button>
+                                <Button
+                                    className="flex-1"
+                                    onClick={requestLocation}
+                                >
+                                    <Navigation className="h-4 w-4 mr-2" />
+                                    Usar GPS
+                                </Button>
+                            </div>
                         </motion.div>
                     </>
                 )}

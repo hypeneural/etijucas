@@ -1,39 +1,19 @@
 import { motion } from 'framer-motion';
 import {
-    Construction,
-    TreePine,
-    Lightbulb,
-    Trash2,
-    Waves,
-    Stethoscope,
-    Volume2,
-    TrafficCone,
-    Trees,
-    HelpCircle,
+    Loader2,
     ChevronRight,
     Info,
+    Lightbulb,
+    HelpCircle,
+    AlertCircle,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { StepHeader } from './HelpTooltip';
-import type { Category, ReportDraft } from '@/types/report';
-import categoriesData from '@/data/report.mock.json';
-
-// Icon mapping
-const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-    'construction': Construction,
-    'tree-pine': TreePine,
-    'lightbulb': Lightbulb,
-    'trash-2': Trash2,
-    'waves': Waves,
-    'stethoscope': Stethoscope,
-    'volume-2': Volume2,
-    'traffic-cone': TrafficCone,
-    'trees': Trees,
-    'help-circle': HelpCircle,
-};
+import { useReportCategories } from '@/hooks/useReportCategories';
+import type { ReportDraft, ReportCategory } from '@/types/report';
 
 interface StepCategoryProps {
     draft: ReportDraft;
@@ -42,23 +22,43 @@ interface StepCategoryProps {
 }
 
 export function StepCategory({ draft, onUpdate, onNext }: StepCategoryProps) {
-    const categories = categoriesData.categories as Category[];
+    const { categories, isLoading, error, refetch } = useReportCategories();
+
     const selectedCategory = categories.find(c => c.id === draft.categoryId);
 
-    const handleSelectCategory = (categoryId: string) => {
+    const handleSelectCategory = (category: ReportCategory) => {
         onUpdate({
-            categoryId,
-            subcategory: null
-        });
-    };
-
-    const handleSelectSubcategory = (subcategory: string) => {
-        onUpdate({
-            subcategory: draft.subcategory === subcategory ? null : subcategory
+            categoryId: category.id,
+            category: category,
         });
     };
 
     const canContinue = !!draft.categoryId;
+
+    // Loading state
+    if (isLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center py-12 gap-4">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="text-muted-foreground">Carregando categorias...</p>
+            </div>
+        );
+    }
+
+    // Error state
+    if (error) {
+        return (
+            <div className="flex flex-col items-center justify-center py-12 gap-4">
+                <AlertCircle className="h-12 w-12 text-destructive" />
+                <p className="text-muted-foreground text-center">
+                    Erro ao carregar categorias.
+                </p>
+                <Button onClick={() => refetch()} variant="outline">
+                    Tentar novamente
+                </Button>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6 pb-48">
@@ -91,7 +91,6 @@ export function StepCategory({ draft, onUpdate, onNext }: StepCategoryProps) {
             {/* Category Grid */}
             <div className="grid grid-cols-2 gap-3">
                 {categories.map((category, index) => {
-                    const Icon = iconMap[category.icon] || HelpCircle;
                     const isSelected = draft.categoryId === category.id;
 
                     return (
@@ -102,7 +101,7 @@ export function StepCategory({ draft, onUpdate, onNext }: StepCategoryProps) {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.03 }}
                             whileTap={{ scale: 0.95 }}
-                            onClick={() => handleSelectCategory(category.id)}
+                            onClick={() => handleSelectCategory(category)}
                             className={cn(
                                 'relative flex flex-col items-center gap-2 rounded-2xl border-2 p-4 text-center transition-all',
                                 isSelected
@@ -110,25 +109,34 @@ export function StepCategory({ draft, onUpdate, onNext }: StepCategoryProps) {
                                     : 'border-border bg-card hover:bg-muted/50 hover:border-muted-foreground/30'
                             )}
                         >
-                            <div className={cn(
-                                'p-3 rounded-xl transition-colors',
-                                isSelected ? 'bg-primary text-primary-foreground' : 'bg-muted'
-                            )}>
-                                <Icon className="h-6 w-6" />
+                            {/* Icon from API (emoji) */}
+                            <div
+                                className={cn(
+                                    'text-3xl p-2 rounded-xl transition-colors',
+                                    isSelected ? 'bg-primary/20' : 'bg-muted'
+                                )}
+                                style={{
+                                    backgroundColor: isSelected ? `${category.color}20` : undefined
+                                }}
+                            >
+                                {category.icon}
                             </div>
                             <span className={cn(
                                 'text-sm font-medium leading-tight',
                                 isSelected && 'text-primary'
-                            )}>
-                                {category.label}
+                            )}
+                                style={{ color: isSelected ? category.color : undefined }}
+                            >
+                                {category.name}
                             </span>
                             {isSelected && (
                                 <motion.div
                                     initial={{ scale: 0 }}
                                     animate={{ scale: 1 }}
                                     className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary flex items-center justify-center"
+                                    style={{ backgroundColor: category.color }}
                                 >
-                                    <ChevronRight className="h-3 w-3 text-primary-foreground" />
+                                    <ChevronRight className="h-3 w-3 text-white" />
                                 </motion.div>
                             )}
                         </motion.button>
@@ -136,60 +144,33 @@ export function StepCategory({ draft, onUpdate, onNext }: StepCategoryProps) {
                 })}
             </div>
 
-            {/* Subcategories */}
-            {selectedCategory && selectedCategory.subcategories.length > 0 && (
+            {/* Tips from selected category */}
+            {selectedCategory && selectedCategory.tips.length > 0 && (
                 <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     className="space-y-3"
                 >
-                    <div className="flex items-center gap-2">
-                        <div className="h-px flex-1 bg-border" />
-                        <span className="text-sm text-muted-foreground px-2">Detalhe (opcional)</span>
-                        <div className="h-px flex-1 bg-border" />
-                    </div>
-
-                    <p className="text-sm text-muted-foreground">
-                        Selecione uma opção que descreva melhor o problema:
-                    </p>
-
-                    <div className="flex flex-wrap gap-2">
-                        {selectedCategory.subcategories.map((sub) => (
-                            <motion.div key={sub} whileTap={{ scale: 0.95 }}>
-                                <Badge
-                                    variant={draft.subcategory === sub ? 'default' : 'outline'}
-                                    className={cn(
-                                        'cursor-pointer px-3 py-2 text-sm transition-all',
-                                        draft.subcategory === sub
-                                            ? 'bg-primary hover:bg-primary/90'
-                                            : 'hover:bg-muted'
-                                    )}
-                                    onClick={() => handleSelectSubcategory(sub)}
-                                >
-                                    {sub}
-                                </Badge>
-                            </motion.div>
-                        ))}
-                    </div>
-
-                    {/* Tips */}
-                    {selectedCategory.tips.length > 0 && (
-                        <Card className="p-4 border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800">
-                            <div className="flex items-start gap-3">
-                                <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/50">
-                                    <Lightbulb className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
-                                        Dica para "{selectedCategory.label}"
-                                    </p>
-                                    <p className="text-sm text-amber-700 dark:text-amber-400 mt-1">
-                                        {selectedCategory.tips[0]}
-                                    </p>
-                                </div>
+                    <Card className="p-4 border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800">
+                        <div className="flex items-start gap-3">
+                            <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/50">
+                                <Lightbulb className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                             </div>
-                        </Card>
-                    )}
+                            <div className="flex-1">
+                                <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
+                                    Dicas para "{selectedCategory.name}"
+                                </p>
+                                <ul className="mt-2 space-y-1">
+                                    {selectedCategory.tips.map((tip, i) => (
+                                        <li key={i} className="text-sm text-amber-700 dark:text-amber-400 flex gap-2">
+                                            <span className="shrink-0">•</span>
+                                            <span>{tip}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </div>
+                    </Card>
                 </motion.div>
             )}
 

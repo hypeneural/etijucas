@@ -203,9 +203,15 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
                     return;
                 }
 
+                // Convert Blob to File for FormData compatibility
+                const file = new File([blob], `photo_${Date.now()}.jpg`, {
+                    type: 'image/jpeg',
+                    lastModified: Date.now(),
+                });
+
                 const newImage: CapturedImage = {
                     id: generateUUID(),
-                    blob,
+                    file,
                     previewUrl: URL.createObjectURL(blob),
                     capturedAt: new Date(),
                 };

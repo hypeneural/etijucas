@@ -43,14 +43,22 @@ export const ENDPOINTS = {
         notifications: '/users/me/notifications',
     },
 
-    // ==================== REPORTS (Denúncias) ====================
+    // ==================== REPORTS (Denúncias Cidadãs) ====================
     reports: {
-        list: '/reports',
-        get: (id: string) => `/reports/${id}`,
+        categories: '/report-categories',
         create: '/reports',
         myReports: '/reports/me',
-        like: (id: string) => `/reports/${id}/like`,
-        unlike: (id: string) => `/reports/${id}/like`,
+        get: (id: string) => `/reports/${id}`,
+        addMedia: (id: string) => `/reports/${id}/media`,
+        removeMedia: (id: string, mediaId: string) => `/reports/${id}/media/${mediaId}`,
+        updateStatus: (id: string) => `/reports/${id}/status`,
+        adminList: '/admin/reports',
+    },
+
+    // ==================== GEOCODING ====================
+    geocode: {
+        autocomplete: '/geocode/autocomplete',
+        reverse: '/geocode/reverse',
     },
 
     // ==================== FORUM (Boca no Trombone) ====================

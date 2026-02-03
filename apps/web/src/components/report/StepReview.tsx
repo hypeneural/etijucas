@@ -6,45 +6,23 @@ import {
     Edit2,
     CheckCircle,
     Loader2,
-    Construction,
-    TreePine,
-    Lightbulb,
-    Trash2,
-    Waves,
-    Stethoscope,
-    Volume2,
-    TrafficCone,
-    Trees,
-    HelpCircle,
     ChevronRight,
     AlertTriangle,
     FileCheck,
     Send,
     Info,
+    FileText,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { StepHeader } from './HelpTooltip';
-import type { ReportDraft, Category } from '@/types/report';
-import categoriesData from '@/data/report.mock.json';
-
-// Icon mapping
-const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-    'construction': Construction,
-    'tree-pine': TreePine,
-    'lightbulb': Lightbulb,
-    'trash-2': Trash2,
-    'waves': Waves,
-    'stethoscope': Stethoscope,
-    'volume-2': Volume2,
-    'traffic-cone': TrafficCone,
-    'trees': Trees,
-    'help-circle': HelpCircle,
-};
+import { useReportCategories } from '@/hooks/useReportCategories';
+import type { ReportDraft } from '@/types/report';
 
 interface StepReviewProps {
     draft: ReportDraft;
@@ -62,14 +40,12 @@ export function StepReview({
     onSubmit
 }: StepReviewProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [submitSuccess, setSubmitSuccess] = useState(false);
-    const [protocolNumber, setProtocolNumber] = useState<string | null>(null);
+    const { categories } = useReportCategories();
 
-    const categories = categoriesData.categories as Category[];
     const selectedCategory = categories.find(c => c.id === draft.categoryId);
-    const CategoryIcon = selectedCategory ? iconMap[selectedCategory.icon] || HelpCircle : HelpCircle;
 
-    const canSubmit = draft.categoryId && draft.location && draft.confirmed;
+    // Validation: title is required, category, location, confirmed
+    const canSubmit = !!draft.categoryId && !!draft.location && draft.confirmed && !!draft.title?.trim();
 
     const handleSubmit = async () => {
         if (!canSubmit) return;
@@ -78,11 +54,6 @@ export function StepReview({
 
         try {
             await onSubmit();
-
-            const year = new Date().getFullYear();
-            const randomNum = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
-            setProtocolNumber(`#TJ-${year}-${randomNum}`);
-            setSubmitSuccess(true);
         } catch (error) {
             console.error('Submit error:', error);
         } finally {
@@ -90,124 +61,50 @@ export function StepReview({
         }
     };
 
-    // Success screen
-    if (submitSuccess && protocolNumber) {
-        return (
-            <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center"
-            >
-                <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: 'spring', delay: 0.2 }}
-                    className="p-6 rounded-full bg-green-100 dark:bg-green-900/30 mb-6"
-                >
-                    <CheckCircle className="h-16 w-16 text-green-600 dark:text-green-400" />
-                </motion.div>
-
-                <motion.h1
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                    className="text-2xl font-bold mb-2"
-                >
-                    Denúncia enviada!
-                </motion.h1>
-
-                <motion.p
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
-                    className="text-muted-foreground mb-6"
-                >
-                    Obrigado por ajudar a melhorar Tijucas!
-                </motion.p>
-
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 }}
-                    className="w-full max-w-xs"
-                >
-                    <Card className="p-4 bg-muted/50">
-                        <div className="flex items-center gap-2 justify-center mb-2">
-                            <FileCheck className="h-5 w-5 text-primary" />
-                            <span className="text-sm text-muted-foreground">Seu protocolo:</span>
-                        </div>
-                        <p className="text-xl font-bold font-mono">{protocolNumber}</p>
-                    </Card>
-                </motion.div>
-
-                <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.7 }}
-                    className="text-xs text-muted-foreground mt-4 max-w-xs"
-                >
-                    Guarde este número para acompanhar o andamento da sua denúncia
-                </motion.p>
-
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.8 }}
-                    className="mt-8"
-                >
-                    <Button
-                        size="lg"
-                        className="h-14 px-8 rounded-2xl"
-                        onClick={() => window.location.href = '/'}
-                    >
-                        Voltar para o início
-                    </Button>
-                </motion.div>
-            </motion.div>
-        );
-    }
-
     return (
         <div className="space-y-4 pb-48">
             <StepHeader
                 title="Revisar e enviar"
-                subtitle="Confira se está tudo certo antes de enviar"
+                subtitle="Adicione um título e confira as informações"
                 helpTitle="Última etapa!"
                 helpContent={[
+                    "Adicione um título curto que descreva o problema.",
                     "Revise todas as informações antes de enviar.",
-                    "Você pode voltar e editar qualquer etapa tocando em 'Editar'.",
-                    "Após enviar, você receberá um número de protocolo para acompanhar."
+                    "Após enviar, você receberá um número de protocolo."
                 ]}
             />
 
-            {/* Review instructions */}
-            <Card className="p-4 bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
-                <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/50">
-                        <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <div className="text-sm text-blue-700 dark:text-blue-300">
-                        <p>Confira as informações abaixo. Se algo estiver errado, toque em
-                            <span className="font-medium"> Editar</span> para corrigir.</p>
-                    </div>
-                </div>
-            </Card>
+            {/* Title Input - REQUIRED */}
+            <div className="space-y-2">
+                <label className="text-sm font-medium flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                    Título da denúncia *
+                </label>
+                <Input
+                    placeholder="Ex: Buraco grande na Rua Principal"
+                    value={draft.title || ''}
+                    onChange={(e) => onUpdate({ title: e.target.value })}
+                    className="h-12 rounded-xl"
+                    maxLength={100}
+                />
+                <p className="text-xs text-muted-foreground">
+                    Descreva o problema em poucas palavras (obrigatório)
+                </p>
+            </div>
 
             {/* Category Summary */}
             <Card className="p-4">
                 <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="p-3 rounded-xl bg-primary/10">
-                            <CategoryIcon className="h-6 w-6 text-primary" />
+                        <div
+                            className="p-3 rounded-xl text-2xl"
+                            style={{ backgroundColor: selectedCategory?.color + '20' }}
+                        >
+                            {selectedCategory?.icon || '❓'}
                         </div>
                         <div>
                             <p className="text-sm text-muted-foreground">Categoria</p>
-                            <p className="font-semibold">{selectedCategory?.label || 'Não selecionada'}</p>
-                            {draft.subcategory && (
-                                <Badge variant="secondary" className="mt-1 text-xs">
-                                    {draft.subcategory}
-                                </Badge>
-                            )}
+                            <p className="font-semibold">{selectedCategory?.name || 'Não selecionada'}</p>
                         </div>
                     </div>
                     <Button
@@ -234,10 +131,10 @@ export function StepReview({
                             <p className="font-semibold">
                                 {draft.location?.address || 'Localização capturada'}
                             </p>
-                            {draft.location?.reference && (
-                                <p className="text-sm text-muted-foreground mt-0.5">
-                                    Ref: {draft.location.reference}
-                                </p>
+                            {draft.location?.quality && (
+                                <Badge variant="secondary" className="mt-1 text-xs capitalize">
+                                    {draft.location.quality}
+                                </Badge>
                             )}
                         </div>
                     </div>
@@ -304,14 +201,14 @@ export function StepReview({
                     Descrição adicional (opcional)
                 </label>
                 <Textarea
-                    placeholder="Algum detalhe importante que queira adicionar? (máx. 280 caracteres)"
-                    maxLength={280}
+                    placeholder="Algum detalhe importante? (máx. 500 caracteres)"
+                    maxLength={500}
                     value={draft.description}
                     onChange={(e) => onUpdate({ description: e.target.value })}
                     className="min-h-[100px] rounded-xl resize-none"
                 />
                 <p className="text-xs text-muted-foreground text-right">
-                    {draft.description.length}/280
+                    {draft.description.length}/500
                 </p>
             </div>
 
@@ -345,7 +242,7 @@ export function StepReview({
                         <p className="text-xs text-muted-foreground mt-1">
                             {draft.confirmed
                                 ? 'Você confirmou que as informações são verdadeiras'
-                                : 'Marque esta opção para poder enviar a denúncia'}
+                                : 'Marque para poder enviar a denúncia'}
                         </p>
                     </div>
                 </label>
@@ -361,6 +258,7 @@ export function StepReview({
                                 Não é possível enviar ainda
                             </p>
                             <ul className="text-sm text-red-700 dark:text-red-400 mt-1 space-y-1">
+                                {!draft.title?.trim() && <li>• Adicione um título</li>}
                                 {!draft.categoryId && <li>• Selecione uma categoria</li>}
                                 {!draft.location && <li>• Capture sua localização</li>}
                                 {!draft.confirmed && <li>• Confirme que as informações são verdadeiras</li>}
@@ -410,4 +308,3 @@ export function StepReview({
         </div>
     );
 }
-

@@ -9,10 +9,14 @@ import { StepLocation } from '@/components/report/StepLocation';
 import { StepCamera } from '@/components/report/StepCamera';
 import { StepReview } from '@/components/report/StepReview';
 import { ReportSuccess } from '@/components/report/ReportSuccess';
+import { useCreateReport } from '@/hooks/useMyReports';
+import { toast } from 'sonner';
 import {
     type ReportDraft,
     type WizardStep,
+    type CreateReportPayload,
     initialReportDraft,
+    generateIdempotencyKey,
     REPORT_DRAFT_KEY
 } from '@/types/report';
 
@@ -40,10 +44,15 @@ const slideVariants = {
 
 export default function ReportWizardPage() {
     const navigate = useNavigate();
-    const [draft, setDraft] = useState<ReportDraft>(initialReportDraft);
+    const [draft, setDraft] = useState<ReportDraft>(() => ({
+        ...initialReportDraft,
+        idempotencyKey: generateIdempotencyKey(),
+    }));
     const [direction, setDirection] = useState(0);
     const [showSuccess, setShowSuccess] = useState(false);
     const [protocolNumber, setProtocolNumber] = useState<string | null>(null);
+
+    const { createReport, isCreating, error: createError } = useCreateReport();
 
     // Load draft from localStorage on mount
     useEffect(() => {
@@ -56,6 +65,8 @@ export default function ReportWizardPage() {
                     createdAt: new Date(parsed.createdAt),
                     updatedAt: new Date(parsed.updatedAt),
                     images: [],
+                    // Keep existing idempotency key or generate new
+                    idempotencyKey: parsed.idempotencyKey || generateIdempotencyKey(),
                 });
             }
         } catch (error) {
@@ -106,26 +117,56 @@ export default function ReportWizardPage() {
     const clearDraft = useCallback(() => {
         draft.images.forEach(img => URL.revokeObjectURL(img.previewUrl));
         localStorage.removeItem(REPORT_DRAFT_KEY);
-        setDraft(initialReportDraft);
+        setDraft({
+            ...initialReportDraft,
+            idempotencyKey: generateIdempotencyKey(),
+        });
     }, [draft.images]);
 
     const handleSubmit = useCallback(async () => {
-        console.log('Submitting report:', draft);
+        if (!draft.categoryId || !draft.title) {
+            toast.error('Preencha todos os campos obrigatórios');
+            return;
+        }
 
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        try {
+            // Build payload
+            const payload: CreateReportPayload = {
+                categoryId: draft.categoryId,
+                title: draft.title,
+                description: draft.description,
+                images: draft.images.map(img => img.file),
+            };
 
-        // Generate protocol number
-        const year = new Date().getFullYear();
-        const randomNum = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
-        setProtocolNumber(`#TJ-${year}-${randomNum}`);
+            // Add location data if available
+            if (draft.location) {
+                payload.addressText = draft.location.address;
+                payload.addressSource = draft.location.source;
+                payload.locationQuality = draft.location.quality;
+                payload.latitude = draft.location.latitude;
+                payload.longitude = draft.location.longitude;
+                payload.locationAccuracyM = draft.location.accuracy;
+            }
 
-        // Show success page
-        setShowSuccess(true);
+            // Submit to API
+            const result = await createReport({
+                payload,
+                idempotencyKey: draft.idempotencyKey,
+            });
 
-        // Clear draft after successful submit
-        clearDraft();
-    }, [draft, clearDraft]);
+            // Set protocol and show success
+            setProtocolNumber(result.protocol);
+            setShowSuccess(true);
+
+            // Clear draft after successful submit
+            clearDraft();
+
+            toast.success('Denúncia enviada com sucesso!');
+        } catch (error) {
+            console.error('Error submitting report:', error);
+            toast.error('Erro ao enviar denúncia. Tente novamente.');
+        }
+    }, [draft, createReport, clearDraft]);
 
     const handleClose = () => {
         if (draft.categoryId || draft.location || draft.images.length > 0) {

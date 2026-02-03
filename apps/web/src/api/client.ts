@@ -304,6 +304,45 @@ export const apiClient = {
         }),
 
     /**
+     * POST request with FormData (for file uploads)
+     * Does NOT set Content-Type header - browser sets it automatically with boundary
+     */
+    postFormData: async <T>(
+        endpoint: string,
+        formData: FormData,
+        options?: { headers?: Record<string, string> }
+    ): Promise<T> => {
+        const url = buildUrl(endpoint);
+        const authToken = getAuthToken();
+
+        const headers: Record<string, string> = {
+            'Accept': 'application/json',
+            'X-App-Version': '1.0.0',
+            ...(authToken && { 'Authorization': `Bearer ${authToken}` }),
+            ...(options?.headers || {}),
+        };
+        // Note: Do NOT set Content-Type for FormData - browser sets it with boundary
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers,
+            body: formData,
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new ApiError(
+                errorData.message || 'Upload failed',
+                response.status,
+                errorData.code,
+                errorData.errors
+            );
+        }
+
+        return response.json();
+    },
+
+    /**
      * DELETE request
      */
     delete: <T>(endpoint: string) =>
