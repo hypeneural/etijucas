@@ -9,7 +9,9 @@ import { StepLocation } from '@/components/report/StepLocation';
 import { StepCamera } from '@/components/report/StepCamera';
 import { StepReview } from '@/components/report/StepReview';
 import { ReportSuccess } from '@/components/report/ReportSuccess';
+import { LoginRequired } from '@/components/auth/LoginRequired';
 import { useCreateReport } from '@/hooks/useMyReports';
+import { useAuthStore } from '@/store/useAuthStore';
 import { toast } from 'sonner';
 import {
     type ReportDraft,
@@ -44,6 +46,19 @@ const slideVariants = {
 
 export default function ReportWizardPage() {
     const navigate = useNavigate();
+    const { isAuthenticated } = useAuthStore();
+
+    // Auth gate - require login to create reports
+    if (!isAuthenticated) {
+        return (
+            <LoginRequired
+                title="Cadastre-se ou entre"
+                message="Para enviar uma denúncia, você precisa estar cadastrado no aplicativo."
+                returnUrl="/denuncia/nova"
+            />
+        );
+    }
+
     const [draft, setDraft] = useState<ReportDraft>(() => ({
         ...initialReportDraft,
         idempotencyKey: generateIdempotencyKey(),

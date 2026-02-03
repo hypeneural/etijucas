@@ -4,6 +4,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { reportService, type MyReportsFilters } from '@/services/report.service';
+import { useAuthStore } from '@/store/useAuthStore';
 import type { CitizenReport, ReportStatus, CreateReportPayload } from '@/types/report';
 
 const QUERY_KEYS = {
@@ -12,10 +13,13 @@ const QUERY_KEYS = {
 };
 
 export function useMyReports(filters?: MyReportsFilters) {
+    const { isAuthenticated } = useAuthStore();
+
     const query = useQuery({
         queryKey: [...QUERY_KEYS.myReports, filters],
         queryFn: () => reportService.getMyReports(filters),
         staleTime: 2 * 60 * 1000, // 2 minutes
+        enabled: isAuthenticated, // Only fetch when authenticated
     });
 
     return {

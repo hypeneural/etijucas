@@ -20,6 +20,8 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useMyReports } from '@/hooks/useMyReports';
+import { useAuthStore } from '@/store/useAuthStore';
+import { LoginRequired } from '@/components/auth/LoginRequired';
 import type { CitizenReport } from '@/types/report';
 
 const statusConfig: Record<string, { icon: React.ComponentType<{ className?: string }>, color: string, label: string }> = {
@@ -107,6 +109,19 @@ function ReportCard({ report }: { report: CitizenReport }) {
 
 export default function MyReportsPage() {
     const navigate = useNavigate();
+    const { isAuthenticated } = useAuthStore();
+
+    // Auth gate - require login to view reports
+    if (!isAuthenticated) {
+        return (
+            <LoginRequired
+                title="Entrar para ver denúncias"
+                message="Faça login para ver e acompanhar suas denúncias."
+                returnUrl="/minhas-denuncias"
+            />
+        );
+    }
+
     const { reports, isLoading, error, refetch } = useMyReports();
     const [filter, setFilter] = useState<string | null>(null);
 
