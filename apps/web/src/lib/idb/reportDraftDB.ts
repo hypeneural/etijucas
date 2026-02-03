@@ -53,32 +53,83 @@ interface StoredDraft {
 export type SyncStatus = 'draft' | 'queued' | 'sending' | 'sent' | 'failed';
 
 const DB_NAME = 'etijucas-reports';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Bump version to force upgrade
 
 let dbInstance: IDBPDatabase<ReportDraftDBSchema> | null = null;
+let dbInitialized = false;
 
-// Initialize database
+// Initialize database with error recovery
 async function getDB(): Promise<IDBPDatabase<ReportDraftDBSchema>> {
-    if (dbInstance) return dbInstance;
+    if (dbInstance && dbInitialized) return dbInstance;
 
-    dbInstance = await openDB<ReportDraftDBSchema>(DB_NAME, DB_VERSION, {
-        upgrade(db) {
-            // Drafts store
-            if (!db.objectStoreNames.contains('drafts')) {
-                const draftStore = db.createObjectStore('drafts', { keyPath: 'id' });
-                draftStore.createIndex('by-status', 'syncStatus');
-                draftStore.createIndex('by-updated', 'updatedAt');
+    try {
+        dbInstance = await openDB<ReportDraftDBSchema>(DB_NAME, DB_VERSION, {
+            upgrade(db, oldVersion, newVersion) {
+                console.log(`[reportDraftDB] Upgrading from v${oldVersion} to v${newVersion}`);
+
+                // Drafts store
+                if (!db.objectStoreNames.contains('drafts')) {
+                    const draftStore = db.createObjectStore('drafts', { keyPath: 'id' });
+                    draftStore.createIndex('by-status', 'syncStatus');
+                    draftStore.createIndex('by-updated', 'updatedAt');
+                }
+
+                // Images store (separate for blob storage efficiency)
+                if (!db.objectStoreNames.contains('images')) {
+                    const imageStore = db.createObjectStore('images', { keyPath: 'id' });
+                    imageStore.createIndex('by-draft', 'draftId');
+                }
+            },
+            blocked() {
+                console.warn('[reportDraftDB] Database blocked - close other tabs');
+            },
+            blocking() {
+                // Close the db to allow upgrade in other tab
+                dbInstance?.close();
+                dbInstance = null;
+                dbInitialized = false;
+            },
+        });
+
+        dbInitialized = true;
+        return dbInstance;
+    } catch (error) {
+        console.error('[reportDraftDB] Failed to open database:', error);
+
+        // If object store not found, delete and recreate the database
+        if (error instanceof Error && error.name === 'NotFoundError') {
+            console.warn('[reportDraftDB] Corrupted database, deleting and recreating...');
+            try {
+                // Close existing connection if any
+                if (dbInstance) {
+                    dbInstance.close();
+                    dbInstance = null;
+                }
+
+                // Delete the database
+                await new Promise<void>((resolve, reject) => {
+                    const deleteRequest = indexedDB.deleteDatabase(DB_NAME);
+                    deleteRequest.onsuccess = () => resolve();
+                    deleteRequest.onerror = () => reject(deleteRequest.error);
+                    deleteRequest.onblocked = () => {
+                        console.warn('[reportDraftDB] Delete blocked');
+                        resolve(); // Continue anyway
+                    };
+                });
+
+                console.log('[reportDraftDB] Database deleted, recreating...');
+
+                // Recursively call to recreate
+                dbInitialized = false;
+                return getDB();
+            } catch (deleteError) {
+                console.error('[reportDraftDB] Failed to delete database:', deleteError);
+                throw deleteError;
             }
+        }
 
-            // Images store (separate for blob storage efficiency)
-            if (!db.objectStoreNames.contains('images')) {
-                const imageStore = db.createObjectStore('images', { keyPath: 'id' });
-                imageStore.createIndex('by-draft', 'draftId');
-            }
-        },
-    });
-
-    return dbInstance;
+        throw error;
+    }
 }
 
 // Generate unique IDs
