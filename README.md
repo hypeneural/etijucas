@@ -140,30 +140,7 @@ pnpm dev
 | `pnpm msw:init` | Copia mockServiceWorker.js para `apps/web/public` |
 | `pnpm lint` | Lint em todos os packages |
 
----------|-----------|
-| `pnpm dev` | Roda API + Web em paralelo |
-| `pnpm api:dev` | Apenas API Laravel |
-| `pnpm web:dev` | Apenas frontend React |
-| `pnpm build` | Build de todos os packages |
-| `pnpm prod:build` | **SDK + Web build** (usar antes de deploy) |
-| `pnpm sdk:gen` | Regenera SDK do OpenAPI |
-| `pnpm make:crud` | Gera CRUD completo (back + front + contrato) |
-| `pnpm mocks:gen` | Gera handlers MSW do OpenAPI |
-| `pnpm msw:init` | Copia mockServiceWorker.js para `apps/web/public` |
-| `pnpm lint` | Lint em todos os packages |---------|-----------|
-| `pnpm dev` | Roda API + Web em paralelo |
-| `pnpm api:dev` | Apenas API Laravel |
-| `pnpm web:dev` | Apenas frontend React |
-| `pnpm build` | Build de todos os packages |
-| `pnpm prod:build` | **SDK + Web build** (usar antes de deploy) |
-| pnpm sdk:gen | Regenera SDK do OpenAPI |
-| pnpm make:crud | Gera CRUD completo (back + front + contrato) |
-| pnpm mocks:gen | Gera handlers MSW do OpenAPI |
-| pnpm msw:init | Copia mockServiceWorker.js para pps/web/public |
-| `pnpm lint` | Lint em todos os packages |
-
 ---
-
 ## 🏗️ Arquitetura
 
 ```mermaid
@@ -229,6 +206,7 @@ O frontend é buildado como SPA estático e servido pelo Laravel:
 pnpm prod:build
 
 # 2. Output vai para apps/api/public/app/
+# 2.1 Apache deve servir assets da SPA (ver apps/api/public/.htaccess)
 
 # 3. No servidor (só PHP):
 cd apps/api
@@ -318,6 +296,8 @@ Código proprietário - Hype Neural
 ---
 
 **Feito com ❤️ para Tijucas/SC**
+
+
 
 
 

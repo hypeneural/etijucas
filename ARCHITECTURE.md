@@ -42,11 +42,12 @@ etijucas/
 - Rode `pnpm sdk:gen` após mudanças na API
 - O build quebra se o contrato mudar incompativelmente ✅
 
-### 2.1️⃣ Build do Frontend em Produção
+### 2.1️⃣ Build do Frontend em Producao
 
-- O build do React sai em pps/api/public/app
-- O Laravel serve a SPA via pps/api/public/.htaccess (fallback + assets)
-- URLs como /assets/*, /manifest.json e /sw.js precisam resolver para /app/*
+- O build do React sai em `apps/api/public/app`
+- O Laravel serve a SPA via `apps/api/public/.htaccess` (fallback + assets)
+- URLs como `/assets/*`, `/manifest.json` e `/sw.js` precisam resolver para `/app/*`
+
 ### 3️⃣ Sem `fetch` Direto no Frontend
 
 ```typescript
@@ -78,20 +79,22 @@ const events = await api.events.list();
 
 ## Comandos
 
-| Comando | Descrição |
+| Comando | Descricao |
 |---------|-----------|
 | `pnpm dev` | Roda API e Web em paralelo |
-| `pnpm api:dev` | Só a API Laravel |
-| `pnpm web:dev` | Só o frontend React |
+| `pnpm api:dev` | So a API Laravel |
+| `pnpm web:dev` | So o frontend React |
 | `pnpm build` | Build de todos os packages |
 | `pnpm lint` | Lint em todos os packages |
 | `pnpm sdk:gen` | Regenera SDK do OpenAPI |
 | `pnpm web:build` | Build do frontend |
 | `pnpm prod:build` | **SDK + Web build** (usar antes de deploy) |
 | `pnpm deploy:prep` | Prepara tudo para deploy |
+| `pnpm make:crud` | Gera CRUD completo (back + front + contrato) |
+| `pnpm mocks:gen` | Gera handlers MSW do OpenAPI |
+| `pnpm msw:init` | Copia mockServiceWorker.js para `apps/web/public` |
 
 ---
-
 ## Fluxo de Desenvolvimento
 
 ```mermaid
@@ -111,9 +114,9 @@ flowchart LR
 
 ### Mocking (Frontend)
 
-- Ative com VITE_API_MOCK=1 em pps/web/.env
-- Gere handlers com pnpm mocks:gen
-- Copie o worker com pnpm msw:init (uma vez apos instalar deps)
+- Ative com `VITE_API_MOCK=1` em `apps/web/.env`
+- Gere handlers com `pnpm mocks:gen`
+- Copie o worker com `pnpm msw:init` (uma vez apos instalar deps)
 ### Adicionando Enum de UI
 
 1. Crie em `packages/shared/src/enums/`
@@ -148,6 +151,12 @@ Este monorepo foi estruturado para facilitar o desenvolvimento assistido por IA:
 - **SDK tipado**: Autocomplete mostra todos os métodos disponíveis
 - **Separação clara**: Fácil entender onde cada código deve ficar
 - **Erros de build**: Se algo quebrar, o TypeScript avisa imediatamente
+
+
+
+
+
+
 
 
 
