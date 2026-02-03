@@ -14,12 +14,19 @@
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=301]
     
-    # API Routes - Send to Laravel
-    RewriteCond %{REQUEST_URI} ^/api
+    # Laravel Routes (API + Admin/Filament/Sanctum/Livewire)
+    RewriteCond %{REQUEST_URI} ^/(api|admin|filament|sanctum|livewire)
     RewriteRule ^ index.php [L]
+
+    # Serve built SPA assets from /app when requested at root
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{DOCUMENT_ROOT}/app%{REQUEST_URI} -f [OR]
+    RewriteCond %{DOCUMENT_ROOT}/app%{REQUEST_URI} -d
+    RewriteRule ^(.*)$ /app/$1 [L]
     
     # SPA Routes - Send to React app
-    RewriteCond %{REQUEST_URI} !^/api
+    RewriteCond %{REQUEST_URI} !^/(api|admin|filament|sanctum|livewire)
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^(.*)$ /app/index.html [L]
