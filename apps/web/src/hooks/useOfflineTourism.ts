@@ -4,21 +4,11 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { tourismDB, syncQueueDB } from '@/lib/localDatabase';
-import { tourismService } from '@/services/tourism.service';
-import type { TourismSpotEnhanced, TourismFilters, TourismCategory } from '@/types/tourism.types';
-import { tourismSpotsMock, tourismReviewsMock } from '@/data/tourism.mock';
+import { tourismService, CreateReviewData } from '@/services/tourism.service';
+import type { TourismSpotEnhanced, TourismFilters, TourismCategory, TourismReview } from '@/types/tourism.types';
+import { tourismSpotsMock } from '@/data/tourism.mock';
 import { useNetworkStatus } from './useNetworkStatus';
 import { QUERY_KEYS, CACHE_TIMES } from '@/api/config';
-
-// Initialize with mock data in dev
-async function initializeTourismDB() {
-  const spots = await tourismDB.getAll();
-  if (spots.length === 0) {
-    // Cast mock data to work with existing DB
-    await tourismDB.saveMany(tourismSpotsMock as unknown as import('@/types').TourismSpot[]);
-    console.log('[Tourism] Initialized IndexedDB with mock data');
-  }
-}
 
 /**
  * Offline-first hook for tourism spots
@@ -31,13 +21,6 @@ async function initializeTourismDB() {
 export function useOfflineTourism(filters?: TourismFilters) {
   const queryClient = useQueryClient();
   const { isOnline } = useNetworkStatus();
-  const [isInitialized, setIsInitialized] = useState(false);
-
-  // Initialize DB on mount
-  useEffect(() => {
-    initializeTourismDB().then(() => setIsInitialized(true));
-  }, []);
-
   // Main query - fetch all spots
   const { data: rawSpots = [], isLoading, error, refetch } = useQuery({
     queryKey: [...QUERY_KEYS.tourism.spots(), 'enhanced'],
@@ -71,7 +54,6 @@ export function useOfflineTourism(filters?: TourismFilters) {
       return [];
     },
     staleTime: CACHE_TIMES.events, // 1 hour
-    enabled: isInitialized,
   });
 
   // Apply client-side filters
@@ -152,9 +134,13 @@ export function useOfflineTourism(filters?: TourismFilters) {
     return rawSpots.find(s => s.id === id);
   }, [rawSpots]);
 
-  // Get reviews for a spot
-  const getReviews = useCallback((spotId: string) => {
-    return tourismReviewsMock.filter(r => r.spotId === spotId);
+  // Get reviews for a spot - uses API
+  const getReviews = useCallback(async (spotId: string): Promise<TourismReview[]> => {
+    try {
+      return await tourismService.getReviews(spotId);
+    } catch {
+      return [];
+    }
   }, []);
 
   // Featured spots
@@ -275,7 +261,7 @@ export function useOfflineTourism(filters?: TourismFilters) {
     getReviews,
 
     // State
-    isLoading: isLoading || !isInitialized,
+    isLoading,
     error,
     isOnline,
 
@@ -289,21 +275,44 @@ export function useOfflineTourism(filters?: TourismFilters) {
 }
 
 /**
- * Hook for single tourism spot detail
+ * Hook for single tourism spot detail with reviews
  */
 export function useTourismSpot(id: string) {
-  const { getSpotById, getReviews, likeSpot, saveSpot, isLoading: listLoading } = useOfflineTourism();
+  const queryClient = useQueryClient();
+  const { getSpotById, likeSpot, saveSpot, isLoading: listLoading, refetch: refetchSpots } = useOfflineTourism();
 
   const spot = useMemo(() => getSpotById(id), [getSpotById, id]);
-  const reviews = useMemo(() => getReviews(id), [getReviews, id]);
+
+  // Fetch reviews from API
+  const { data: reviews = [], isLoading: reviewsLoading, refetch: refetchReviews } = useQuery({
+    queryKey: QUERY_KEYS.tourism.reviews(id),
+    queryFn: () => tourismService.getReviews(id),
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  // Create review mutation
+  const createReviewMutation = useMutation({
+    mutationFn: (data: CreateReviewData) => tourismService.createReview(id, data),
+    onSuccess: () => {
+      // Refetch reviews after creating
+      refetchReviews();
+      refetchSpots(); // Update spot rating
+    },
+  });
 
   return {
     spot,
     reviews,
     isLoading: listLoading,
+    reviewsLoading,
     likeSpot: () => likeSpot(id),
     saveSpot: () => saveSpot(id),
+    createReview: createReviewMutation.mutate,
+    isCreatingReview: createReviewMutation.isPending,
+    refetchReviews,
   };
 }
 
 export default useOfflineTourism;
+

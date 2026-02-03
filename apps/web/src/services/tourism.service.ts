@@ -5,19 +5,14 @@ import { apiClient } from '@/api/client';
 import { ENDPOINTS } from '@/api/config';
 import { TourismSpot } from '@/types';
 import { tourismDB } from '@/lib/localDatabase';
+import type { TourismReview } from '@/types/tourism.types';
 
-// Seed data for first load (dev only)
-import { tourismSpots as seedSpots } from '@/data/mockData';
-
-/**
- * Initialize tourism spots in IndexedDB if empty (first load)
- */
-async function ensureInitialized(): Promise<void> {
-    const cached = await tourismDB.getAll();
-    if (cached.length === 0 && import.meta.env.DEV) {
-        await tourismDB.saveMany(seedSpots);
-        console.log('[TourismService] Initialized with seed data');
-    }
+export interface CreateReviewData {
+    rating: number;
+    titulo?: string;
+    texto: string;
+    fotos?: string[];
+    visitDate?: string;
 }
 
 export const tourismService = {
@@ -26,21 +21,22 @@ export const tourismService = {
      * Strategy: API first → IndexedDB fallback
      */
     async getAll(): Promise<TourismSpot[]> {
-        await ensureInitialized();
-
         try {
+            console.log('[TourismService] Fetching from API...');
             const response = await apiClient.get<{ data: TourismSpot[] }>(ENDPOINTS.tourism.spots);
 
             // Cache to IndexedDB
             if (response.data && response.data.length > 0) {
                 await tourismDB.clear();
                 await tourismDB.saveMany(response.data);
+                console.log('[TourismService] Cached', response.data.length, 'spots to IndexedDB');
             }
 
-            return response.data;
+            return response.data || [];
         } catch (error) {
             console.warn('[TourismService] API failed, using cache:', error);
-            return tourismDB.getAll();
+            const cached = await tourismDB.getAll();
+            return cached || [];
         }
     },
 
@@ -48,20 +44,8 @@ export const tourismService = {
      * Get a single spot by ID
      */
     async getById(id: string): Promise<TourismSpot | undefined> {
-        await ensureInitialized();
-
         try {
             const response = await apiClient.get<{ data: TourismSpot }>(ENDPOINTS.tourism.get(id));
-
-            // Cache to IndexedDB
-            if (response.data) {
-                const spots = await tourismDB.getAll();
-                const existingIndex = spots.findIndex(s => s.id === id);
-                if (existingIndex === -1) {
-                    await tourismDB.saveMany([response.data]);
-                }
-            }
-
             return response.data;
         } catch (error) {
             console.warn('[TourismService] API failed for getById, using cache');
@@ -71,39 +55,56 @@ export const tourismService = {
     },
 
     /**
-     * Get spots by tag
+     * Get reviews for a spot
      */
-    async getByTag(tag: string): Promise<TourismSpot[]> {
-        await ensureInitialized();
-
+    async getReviews(spotId: string): Promise<TourismReview[]> {
         try {
-            const response = await apiClient.get<{ data: TourismSpot[] }>(
-                ENDPOINTS.tourism.spots,
-                { tag }
+            const response = await apiClient.get<{ data: TourismReview[] }>(
+                ENDPOINTS.tourism.reviews(spotId)
             );
-            return response.data;
+            return response.data || [];
         } catch (error) {
-            console.warn('[TourismService] API failed for getByTag, using cache');
-            const spots = await tourismDB.getAll();
-            return spots.filter(s => s.tags.includes(tag));
+            console.warn('[TourismService] Failed to fetch reviews:', error);
+            return [];
         }
     },
 
     /**
-     * Search spots by title or description
+     * Toggle like on a spot (auth required)
      */
-    async search(query: string): Promise<TourismSpot[]> {
-        await ensureInitialized();
-
-        const q = query.toLowerCase();
-        const spots = await tourismDB.getAll();
-
-        return spots.filter(
-            s => s.titulo.toLowerCase().includes(q) ||
-                s.descCurta?.toLowerCase().includes(q) ||
-                s.descLonga?.toLowerCase().includes(q) ||
-                s.tags.some(t => t.toLowerCase().includes(q))
+    async toggleLike(spotId: string): Promise<{ liked: boolean; likesCount: number }> {
+        const response = await apiClient.post<{ liked: boolean; likesCount: number }>(
+            ENDPOINTS.tourism.like(spotId)
         );
+        return response;
+    },
+
+    /**
+     * Toggle save/favorite on a spot (auth required)
+     */
+    async toggleSave(spotId: string): Promise<{ isSaved: boolean }> {
+        const response = await apiClient.post<{ isSaved: boolean }>(
+            ENDPOINTS.tourism.save(spotId)
+        );
+        return response;
+    },
+
+    /**
+     * Create a review (auth required)
+     */
+    async createReview(spotId: string, data: CreateReviewData): Promise<TourismReview> {
+        const response = await apiClient.post<{ data: TourismReview; success: boolean; message: string }>(
+            ENDPOINTS.tourism.createReview(spotId),
+            data
+        );
+        return response.data;
+    },
+
+    /**
+     * Delete own review (auth required)
+     */
+    async deleteReview(reviewId: string): Promise<void> {
+        await apiClient.delete(ENDPOINTS.tourism.deleteReview(reviewId));
     },
 
     /**
@@ -116,3 +117,4 @@ export const tourismService = {
 };
 
 export default tourismService;
+

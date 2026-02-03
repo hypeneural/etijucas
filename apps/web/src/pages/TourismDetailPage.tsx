@@ -369,8 +369,8 @@ function WriteReviewSheet({
                   >
                     <Star
                       className={`w-10 h-10 ${star <= (hoverRating || rating)
-                          ? 'fill-yellow-400 text-yellow-400'
-                          : 'text-gray-300'
+                        ? 'fill-yellow-400 text-yellow-400'
+                        : 'text-gray-300'
                         }`}
                     />
                   </motion.button>
@@ -433,7 +433,7 @@ export default function TourismDetailPage() {
   const [galleryIndex, setGalleryIndex] = useState(0);
   const headerRef = useRef<HTMLDivElement>(null);
 
-  const { spot, reviews, isLoading, likeSpot, saveSpot } = useTourismSpot(id || '');
+  const { spot, reviews, isLoading, likeSpot, saveSpot, createReview, isCreatingReview } = useTourismSpot(id || '');
 
   const categoryInfo = spot?.categoria ? TOURISM_CATEGORIES[spot.categoria] : null;
 
@@ -718,8 +718,10 @@ export default function TourismDetailPage() {
           <WriteReviewSheet
             spotName={spot.titulo}
             onSubmit={(data) => {
-              console.log('New review:', data);
-              // TODO: Submit review to API
+              createReview({
+                rating: data.rating,
+                texto: data.text,
+              });
             }}
           />
 
