@@ -102,14 +102,26 @@ Um arquivo `ADR.md` (Architecture Decision Records) simples.
 
 ---
 
-## 🎯 Próximos Passos Prioritários
+## ✅ Priorização Executável (P0–P3)
 
-Para chegar lá, sugiro esta ordem de execução:
+| Prioridade | Resultado | Entrega objetiva | DoD (definição de pronto) |
+|---|---|---|---|
+| **P0** | Scaffolding útil (CRUD real) | `pnpm make:crud` gera Model, Migration, Controller, Request, Resource, Policy, Test, Routes + front (schema Zod, hooks, form, page) + patch do OpenAPI | Rodar `pnpm make:crud` e ter CRUD funcional de exemplo com 1 teste green |
+| **P0** | Contrato sempre sincronizado | `check:contracts` bloqueia PR, `sdk:gen` antes do build, validação automatizada em CI | Qualquer PR com SDK defasado falha na CI |
+| **P1** | Front não espera Back | MSW com `VITE_API_MOCK=1`, handlers gerados do OpenAPI, fixtures por feature | App carrega sem API e navega em fluxo principal |
+| **P1** | CI básico e rápido | Pipeline com lint, typecheck, tests e build em paralelo | PR sem regressão passa em < 10 min |
+| **P2** | UI guiada por schema | `<AutoForm>` com Zod + RHF, usado em 1 feature | Form simples gerado sem HTML manual |
+| **P3** | Doc viva + decisões | Storybook inicial + `ADR.md` com template | Componentes base documentados e primeira ADR criada |
 
-1.  **Refinar `make:feature`:** Adicionar templates (stub files) para que os arquivos já venham preenchidos com o padrão do projeto.
-2.  **Configurar MSW:** Habilitar mocks no frontend baseados no OpenAPI.
-3.  **Storybook Básico:** Instalar e configurar para os componentes do `@repo/ui`.
-4.  **GitHub Actions:** Configurar pipeline de CI básico (Lint + Type Check).
+## 🔧 Melhorias Detalhadas (O que realmente mudar)
+
+- **make:crud**: criar `tools/stubs/` com templates (Laravel + React), prompt interativo para campos e tipos, gera CRUD completo e já registra rota e policy.
+- **Contrato**: script para inserir endpoints CRUD no OpenAPI e rodar `pnpm sdk:gen` automaticamente no build de produção.
+- **MSW**: modo mock por env, fixtures por feature, handlers gerados do OpenAPI para evitar drift.
+- **CI**: separar jobs (lint, typecheck, test, build) e cache para pnpm/composer.
+- **AutoForm**: mapear Zod -> componentes base, permitir overrides por campo.
+- **Storybook**: documentar componentes base e flows críticos (Button, Input, Card, Modal).
+- **ADR**: arquivo `ADR.md` com template curto e convenção de nome (`ADR-0001-...`).
 
 ---
 
