@@ -40,7 +40,7 @@ export function useOfflineTourism(filters?: TourismFilters) {
 
   // Main query - fetch all spots
   const { data: rawSpots = [], isLoading, error, refetch } = useQuery({
-    queryKey: [...QUERY_KEYS.tourism.spots, 'enhanced'],
+    queryKey: [...QUERY_KEYS.tourism.spots(), 'enhanced'],
     queryFn: async () => {
       // In production, try API first
       if (import.meta.env.PROD && isOnline) {
@@ -51,13 +51,13 @@ export function useOfflineTourism(filters?: TourismFilters) {
           console.warn('[Tourism] API failed, using cache:', err);
         }
       }
-      
+
       // Fallback to IndexedDB / mock data
       const cached = await tourismDB.getAll();
       if (cached.length > 0) {
         return cached as unknown as TourismSpotEnhanced[];
       }
-      
+
       return tourismSpotsMock;
     },
     staleTime: CACHE_TIMES.events, // 1 hour
@@ -67,7 +67,7 @@ export function useOfflineTourism(filters?: TourismFilters) {
   // Apply client-side filters
   const spots = useMemo(() => {
     if (!rawSpots.length) return [];
-    
+
     let filtered = [...rawSpots];
 
     // Category filter
@@ -77,7 +77,7 @@ export function useOfflineTourism(filters?: TourismFilters) {
 
     // Tags filter
     if (filters?.tags?.length) {
-      filtered = filtered.filter(s => 
+      filtered = filtered.filter(s =>
         filters.tags!.some(tag => s.tags.includes(tag))
       );
     }
@@ -121,7 +121,7 @@ export function useOfflineTourism(filters?: TourismFilters) {
         filtered.sort((a, b) => b.likesCount - a.likesCount);
         break;
       case 'recent':
-        filtered.sort((a, b) => 
+        filtered.sort((a, b) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
         break;
@@ -148,7 +148,7 @@ export function useOfflineTourism(filters?: TourismFilters) {
   }, []);
 
   // Featured spots
-  const featuredSpots = useMemo(() => 
+  const featuredSpots = useMemo(() =>
     rawSpots.filter(s => s.isDestaque).slice(0, 4),
     [rawSpots]
   );
@@ -184,18 +184,18 @@ export function useOfflineTourism(filters?: TourismFilters) {
     },
     onMutate: async (spotId) => {
       // Cancel outgoing refetches
-      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.tourism.spots });
-      
+      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.tourism.spots() });
+
       // Snapshot previous value
       const previous = queryClient.getQueryData<TourismSpotEnhanced[]>(
-        [...QUERY_KEYS.tourism.spots, 'enhanced']
+        [...QUERY_KEYS.tourism.spots(), 'enhanced']
       );
 
       // Optimistic update
       queryClient.setQueryData<TourismSpotEnhanced[]>(
-        [...QUERY_KEYS.tourism.spots, 'enhanced'],
-        (old) => old?.map(s => 
-          s.id === spotId 
+        [...QUERY_KEYS.tourism.spots(), 'enhanced'],
+        (old) => old?.map(s =>
+          s.id === spotId
             ? { ...s, liked: !s.liked, likesCount: s.likesCount + (s.liked ? -1 : 1) }
             : s
         )
@@ -207,7 +207,7 @@ export function useOfflineTourism(filters?: TourismFilters) {
       // Rollback on error
       if (context?.previous) {
         queryClient.setQueryData(
-          [...QUERY_KEYS.tourism.spots, 'enhanced'],
+          [...QUERY_KEYS.tourism.spots(), 'enhanced'],
           context.previous
         );
       }
@@ -227,15 +227,15 @@ export function useOfflineTourism(filters?: TourismFilters) {
       return spotId;
     },
     onMutate: async (spotId) => {
-      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.tourism.spots });
-      
+      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.tourism.spots() });
+
       const previous = queryClient.getQueryData<TourismSpotEnhanced[]>(
-        [...QUERY_KEYS.tourism.spots, 'enhanced']
+        [...QUERY_KEYS.tourism.spots(), 'enhanced']
       );
 
       queryClient.setQueryData<TourismSpotEnhanced[]>(
-        [...QUERY_KEYS.tourism.spots, 'enhanced'],
-        (old) => old?.map(s => 
+        [...QUERY_KEYS.tourism.spots(), 'enhanced'],
+        (old) => old?.map(s =>
           s.id === spotId ? { ...s, isSaved: !s.isSaved } : s
         )
       );
@@ -245,7 +245,7 @@ export function useOfflineTourism(filters?: TourismFilters) {
     onError: (_, __, context) => {
       if (context?.previous) {
         queryClient.setQueryData(
-          [...QUERY_KEYS.tourism.spots, 'enhanced'],
+          [...QUERY_KEYS.tourism.spots(), 'enhanced'],
           context.previous
         );
       }
@@ -259,16 +259,16 @@ export function useOfflineTourism(filters?: TourismFilters) {
     featuredSpots,
     allTags,
     usedCategories,
-    
+
     // Getters
     getSpotById,
     getReviews,
-    
+
     // State
     isLoading: isLoading || !isInitialized,
     error,
     isOnline,
-    
+
     // Actions
     refetch,
     likeSpot: likeMutation.mutate,
@@ -283,7 +283,7 @@ export function useOfflineTourism(filters?: TourismFilters) {
  */
 export function useTourismSpot(id: string) {
   const { getSpotById, getReviews, likeSpot, saveSpot, isLoading: listLoading } = useOfflineTourism();
-  
+
   const spot = useMemo(() => getSpotById(id), [getSpotById, id]);
   const reviews = useMemo(() => getReviews(id), [getReviews, id]);
 

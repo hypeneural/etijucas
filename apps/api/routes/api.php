@@ -98,6 +98,16 @@ Route::prefix('v1')->group(function () {
     });
 
     // =====================================================
+    // Tourism Public Routes
+    // =====================================================
+    Route::prefix('tourism')->group(function () {
+        Route::get('spots', [\App\Domains\Tourism\Http\Controllers\TourismSpotController::class, 'index'])->name('tourism.index');
+        Route::get('spots/{id}', [\App\Domains\Tourism\Http\Controllers\TourismSpotController::class, 'show'])->name('tourism.show');
+        Route::get('spots/{spotId}/reviews', [\App\Domains\Tourism\Http\Controllers\TourismReviewController::class, 'index']);
+        Route::get('categories', [\App\Domains\Tourism\Http\Controllers\TourismSpotController::class, 'categories']);
+    });
+
+    // =====================================================
     // Authenticated Routes
     // =====================================================
     Route::middleware('auth:sanctum')->group(function () {
@@ -177,6 +187,16 @@ Route::prefix('v1')->group(function () {
         // User Events (RSVPs and Favorites)
         Route::get('users/me/events', [\App\Http\Controllers\Api\Events\UserEventController::class, 'myEvents']);
         Route::get('users/me/favorites/events', [\App\Http\Controllers\Api\Events\UserEventController::class, 'myFavorites']);
+
+        // =====================================================
+        // Tourism Authenticated Routes
+        // =====================================================
+        Route::prefix('tourism')->group(function () {
+            Route::post('spots/{id}/like', [\App\Domains\Tourism\Http\Controllers\TourismSpotController::class, 'toggleLike']);
+            Route::post('spots/{id}/save', [\App\Domains\Tourism\Http\Controllers\TourismSpotController::class, 'toggleSave']);
+            Route::post('spots/{spotId}/reviews', [\App\Domains\Tourism\Http\Controllers\TourismReviewController::class, 'store']);
+            Route::delete('reviews/{id}', [\App\Domains\Tourism\Http\Controllers\TourismReviewController::class, 'destroy']);
+        });
     });
 });
 

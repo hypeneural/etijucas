@@ -1,0 +1,185 @@
+<?php
+
+namespace Database\Seeders;
+
+use App\Domains\Tourism\Models\TourismSpot;
+use App\Models\Bairro;
+use Illuminate\Database\Seeder;
+
+class TourismSpotSeeder extends Seeder
+{
+    public function run(): void
+    {
+        // Get bairros
+        $centro = Bairro::where('nome', 'like', '%Centro%')->first();
+        $prainha = Bairro::where('nome', 'like', '%Prainha%')->first();
+
+        $spots = [
+            [
+                'titulo' => 'Praia de Tijucas',
+                'desc_curta' => 'Praia tranquila com águas calmas, perfeita para famílias e esportes náuticos.',
+                'desc_longa' => "A Praia de Tijucas é um verdadeiro refúgio para quem busca tranquilidade e contato com a natureza. Com águas calmas e cristalinas, é ideal para banho de crianças e prática de stand-up paddle, caiaque e vela.\n\nA orla conta com quiosques que servem frutos do mar frescos e petiscos típicos da região. Ao pôr do sol, a vista é simplesmente espetacular.",
+                'categoria' => 'praia',
+                'tags' => ['natureza', 'família', 'praia', 'esportes'],
+                'image_url' => 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800',
+                'endereco' => 'Av. Beira-Mar, s/n - Centro',
+                'bairro_id' => $centro?->id,
+                'latitude' => -27.2420,
+                'longitude' => -48.6344,
+                'como_chegar' => 'Acesso fácil pela Av. Beira-Mar, com estacionamento público gratuito.',
+                'preco' => 'gratis',
+                'duracao' => '2-4 horas',
+                'dificuldade' => 'facil',
+                'acessibilidade' => ['Rampa de acesso', 'Cadeiras anfíbias disponíveis'],
+                'dicas_visita' => [
+                    'Chegue cedo para garantir lugar nos quiosques',
+                    'Leve protetor solar - não há muita sombra natural',
+                    'Os melhores horários são ao nascer e pôr do sol',
+                ],
+                'is_destaque' => true,
+                'is_verificado' => true,
+                'rating_avg' => 4.7,
+                'reviews_count' => 234,
+                'likes_count' => 1520,
+                'views_count' => 12450,
+            ],
+            [
+                'titulo' => 'Igreja Matriz São Sebastião',
+                'desc_curta' => 'Igreja histórica do século XIX, marco arquitetônico e religioso de Tijucas.',
+                'desc_longa' => "A Igreja Matriz São Sebastião é o coração espiritual de Tijucas. Construída em 1830, a igreja é um exemplo notável da arquitetura colonial portuguesa.\n\nO interior impressiona com seus vitrais coloridos, altar de madeira entalhada à mão e pinturas do teto que narram passagens bíblicas.",
+                'categoria' => 'religioso',
+                'tags' => ['cultura', 'história', 'arquitetura', 'religioso'],
+                'image_url' => 'https://images.unsplash.com/photo-1548625149-fc4a29cf7092?w=800',
+                'endereco' => 'Praça Nereu Ramos, 100 - Centro',
+                'bairro_id' => $centro?->id,
+                'latitude' => -27.2385,
+                'longitude' => -48.6352,
+                'telefone' => '(47) 3263-0100',
+                'website' => 'https://www.paroquiatijucas.com.br',
+                'instagram' => '@igrejatijucas',
+                'preco' => 'gratis',
+                'duracao' => '30min - 1 hora',
+                'dificuldade' => 'facil',
+                'acessibilidade' => ['Rampa lateral', 'Lugares reservados'],
+                'dicas_visita' => [
+                    'Visite durante a missa de domingo com coral às 10h',
+                    'A subida à torre é possível mediante agendamento',
+                ],
+                'is_destaque' => true,
+                'is_verificado' => true,
+                'rating_avg' => 4.9,
+                'reviews_count' => 187,
+                'likes_count' => 890,
+                'views_count' => 8500,
+            ],
+            [
+                'titulo' => 'Trilha do Morro do Boi',
+                'desc_curta' => 'Trilha com vista panorâmica incrível da cidade e do vale do Rio Tijucas.',
+                'desc_longa' => "A Trilha do Morro do Boi é uma aventura imperdível para os amantes de natureza e caminhadas. Com cerca de 3km de extensão, a trilha oferece diferentes níveis de dificuldade e culmina em um mirante natural com vista de 360° de Tijucas e região.",
+                'categoria' => 'aventura',
+                'tags' => ['natureza', 'aventura', 'esporte', 'trilha'],
+                'image_url' => 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=800',
+                'endereco' => 'Estrada do Morro do Boi, s/n',
+                'bairro_id' => null,
+                'latitude' => -27.2580,
+                'longitude' => -48.6520,
+                'como_chegar' => 'Acesso pela SC-410, seguir placas indicativas.',
+                'preco' => 'gratis',
+                'duracao' => '2-3 horas',
+                'dificuldade' => 'moderada',
+                'acessibilidade' => [],
+                'dicas_visita' => [
+                    'Use calçados apropriados para trilha',
+                    'Leve água e lanche',
+                    'Evite dias de chuva - trilha escorregadia',
+                ],
+                'is_destaque' => false,
+                'is_verificado' => true,
+                'rating_avg' => 4.8,
+                'reviews_count' => 156,
+                'likes_count' => 720,
+                'views_count' => 5200,
+            ],
+            [
+                'titulo' => 'Mercado Municipal',
+                'desc_curta' => 'Produtos locais, artesanato, gastronomia típica e o melhor da cultura açoriana.',
+                'desc_longa' => "O Mercado Municipal de Tijucas é um verdadeiro centro cultural e gastronômico. Aqui você encontra o melhor da produção local: frutas frescas, frutos do mar, queijos artesanais, embutidos coloniais e o famoso pastel de berbigão.",
+                'categoria' => 'gastronomia',
+                'tags' => ['cultura', 'gastronomia', 'compras', 'artesanato'],
+                'image_url' => 'https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=800',
+                'endereco' => 'Rua Hercílio Luz, 245 - Centro',
+                'bairro_id' => $centro?->id,
+                'latitude' => -27.2395,
+                'longitude' => -48.6348,
+                'telefone' => '(47) 3263-8100',
+                'preco' => 'barato',
+                'duracao' => '1-2 horas',
+                'dificuldade' => 'facil',
+                'acessibilidade' => ['Acessível para cadeirantes', 'Banheiros adaptados'],
+                'dicas_visita' => [
+                    'Vá aos sábados para a feira de orgânicos',
+                    'Experimente o pastel de berbigão - especialidade local',
+                ],
+                'is_destaque' => true,
+                'is_verificado' => true,
+                'rating_avg' => 4.5,
+                'reviews_count' => 312,
+                'likes_count' => 1150,
+                'views_count' => 9800,
+            ],
+            [
+                'titulo' => 'Parque Linear do Rio Tijucas',
+                'desc_curta' => 'Área verde com pista de caminhada, playground e espaço para piquenique.',
+                'desc_longa' => "O Parque Linear do Rio Tijucas é o pulmão verde da cidade. Com mais de 2km de extensão às margens do rio, oferece estrutura completa para lazer e esportes.",
+                'categoria' => 'lazer',
+                'tags' => ['natureza', 'família', 'esporte', 'lazer'],
+                'image_url' => 'https://images.unsplash.com/photo-1568393691622-c7ba131d63b4?w=800',
+                'endereco' => 'Av. Getúlio Vargas, s/n - Centro',
+                'bairro_id' => $centro?->id,
+                'latitude' => -27.2410,
+                'longitude' => -48.6360,
+                'preco' => 'gratis',
+                'duracao' => '1-3 horas',
+                'dificuldade' => 'facil',
+                'acessibilidade' => ['Totalmente acessível', 'Banheiros adaptados', 'Piso tátil'],
+                'is_destaque' => false,
+                'is_verificado' => true,
+                'rating_avg' => 4.3,
+                'reviews_count' => 89,
+                'likes_count' => 456,
+                'views_count' => 3400,
+            ],
+            [
+                'titulo' => 'Casa da Cultura',
+                'desc_curta' => 'Centro cultural com exposições, teatro e oficinas de arte.',
+                'desc_longa' => "A Casa da Cultura de Tijucas ocupa um casarão histórico restaurado e funciona como centro de difusão artística e cultural. O espaço abriga exposições temporárias de artistas locais e regionais.",
+                'categoria' => 'cultura',
+                'tags' => ['cultura', 'arte', 'história', 'teatro'],
+                'image_url' => 'https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=800',
+                'endereco' => 'Rua Coronel Bernardino, 80 - Centro',
+                'bairro_id' => $centro?->id,
+                'latitude' => -27.2388,
+                'longitude' => -48.6355,
+                'telefone' => '(47) 3263-8200',
+                'website' => 'https://cultura.tijucas.sc.gov.br',
+                'instagram' => '@culturatijucas',
+                'preco' => 'gratis',
+                'duracao' => '1-2 horas',
+                'dificuldade' => 'facil',
+                'acessibilidade' => ['Rampa de acesso', 'Elevador'],
+                'is_destaque' => false,
+                'is_verificado' => true,
+                'rating_avg' => 4.6,
+                'reviews_count' => 67,
+                'likes_count' => 320,
+                'views_count' => 2100,
+            ],
+        ];
+
+        foreach ($spots as $spotData) {
+            TourismSpot::create($spotData);
+        }
+
+        $this->command->info('Created ' . count($spots) . ' tourism spots');
+    }
+}

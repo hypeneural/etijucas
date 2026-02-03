@@ -173,6 +173,16 @@ export const ENDPOINTS = {
     tourism: {
         spots: '/tourism/spots',
         get: (id: string) => `/tourism/spots/${id}`,
+        categories: '/tourism/categories',
+
+        // User interactions (auth required)
+        like: (id: string) => `/tourism/spots/${id}/like`,
+        save: (id: string) => `/tourism/spots/${id}/save`,
+
+        // Reviews
+        reviews: (spotId: string) => `/tourism/spots/${spotId}/reviews`,
+        createReview: (spotId: string) => `/tourism/spots/${spotId}/reviews`,
+        deleteReview: (reviewId: string) => `/tourism/reviews/${reviewId}`,
     },
 
     // ==================== UPLOADS ====================
@@ -246,8 +256,11 @@ export const QUERY_KEYS = {
 
     // Tourism
     tourism: {
-        spots: ['tourism', 'spots'] as const,
-        detail: (id: string) => ['tourism', id] as const,
+        all: ['tourism'] as const,
+        spots: (filters?: Record<string, unknown>) => ['tourism', 'spots', filters] as const,
+        detail: (id: string) => ['tourism', 'detail', id] as const,
+        reviews: (spotId: string) => ['tourism', spotId, 'reviews'] as const,
+        categories: ['tourism', 'categories'] as const,
     },
 } as const;
 
