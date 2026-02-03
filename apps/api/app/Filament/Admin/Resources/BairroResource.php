@@ -10,7 +10,6 @@ use Filament\Forms;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\EditAction;
@@ -19,7 +18,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Support\Str;
 
-class BairroResource extends Resource
+class BairroResource extends BaseResource
 {
     protected static ?string $model = Bairro::class;
 
@@ -71,11 +70,7 @@ class BairroResource extends Resource
                     ->label('Ativo')
                     ->boolean()
                     ->sortable(),
-                TextColumn::make('created_at')
-                    ->label('Criado em')
-                    ->dateTime('d/m/Y H:i')
-                    ->sortable()
-                    ->toggleable(),
+                ...static::baseTableColumns(),
             ])
             ->filters([
                 SelectFilter::make('active')
@@ -84,10 +79,12 @@ class BairroResource extends Resource
                         1 => 'Ativo',
                         0 => 'Inativo',
                     ]),
+                ...static::baseTableFilters(),
             ])
             ->actions([
                 EditAction::make(),
                 DeleteAction::make()
+                    ->requiresConfirmation()
                     ->visible(fn () => auth()->user()?->hasRole('admin') ?? false),
             ]);
     }

@@ -349,6 +349,12 @@ export default function ReportDetailPage() {
         setGalleryOpen(true);
     };
 
+    // Handle tab change (fixo no rodapé)
+    const handleTabChange = (tab: TabId) => {
+        setActiveTab(tab);
+        navigate(`/?tab=${tab}`);
+    };
+
     // Loading state
     if (isLoading) {
         return <LoadingSkeleton />;

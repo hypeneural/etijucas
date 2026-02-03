@@ -12,7 +12,6 @@ use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\EditAction;
@@ -20,7 +19,7 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 
-class PhoneResource extends Resource
+class PhoneResource extends BaseResource
 {
     protected static ?string $model = Phone::class;
 
@@ -96,6 +95,7 @@ class PhoneResource extends Resource
                 IconColumn::make('is_pinned')
                     ->label('Destaque')
                     ->boolean(),
+                ...static::baseTableColumns(),
             ])
             ->filters([
                 SelectFilter::make('category')
@@ -115,10 +115,12 @@ class PhoneResource extends Resource
                         1 => 'Sim',
                         0 => 'Nao',
                     ]),
+                ...static::baseTableFilters(),
             ])
             ->actions([
                 EditAction::make(),
                 DeleteAction::make()
+                    ->requiresConfirmation()
                     ->visible(fn () => auth()->user()?->hasRole('admin') ?? false),
             ]);
     }

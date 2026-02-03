@@ -5,13 +5,11 @@ declare(strict_types=1);
 namespace App\Filament\Admin\Resources;
 
 use App\Filament\Admin\Resources\ActivityLogResource\Pages;
-use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
-use Illuminate\Database\Eloquent\Builder;
 use Spatie\Activitylog\Models\Activity;
 
-class ActivityLogResource extends Resource
+class ActivityLogResource extends BaseResource
 {
     protected static ?string $model = Activity::class;
 
@@ -23,14 +21,12 @@ class ActivityLogResource extends Resource
 
     protected static ?string $navigationLabel = 'Auditoria';
 
+    protected static array $defaultEagerLoad = ['causer'];
+
     public static function table(Tables\Table $table): Tables\Table
     {
         return $table
             ->columns([
-                TextColumn::make('created_at')
-                    ->label('Data')
-                    ->dateTime('d/m/Y H:i')
-                    ->sortable(),
                 TextColumn::make('log_name')
                     ->label('Log')
                     ->badge(),
@@ -50,8 +46,12 @@ class ActivityLogResource extends Resource
                 TextColumn::make('subject_id')
                     ->label('ID')
                     ->toggleable(),
+                ...static::baseTableColumns(),
             ])
-            ->defaultSort('created_at', 'desc');
+            ->defaultSort('created_at', 'desc')
+            ->filters([
+                ...static::baseTableFilters(),
+            ]);
     }
 
     public static function getPages(): array
@@ -59,11 +59,6 @@ class ActivityLogResource extends Resource
         return [
             'index' => Pages\ListActivityLogs::route('/'),
         ];
-    }
-
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()->with('causer');
     }
 
     public static function canCreate(): bool

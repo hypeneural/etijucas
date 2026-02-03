@@ -12,15 +12,13 @@ use Filament\Forms;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
-use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
-use Illuminate\Database\Eloquent\Builder;
 
-class CommentReportResource extends Resource
+class CommentReportResource extends BaseResource
 {
     protected static ?string $model = CommentReport::class;
 
@@ -35,6 +33,8 @@ class CommentReportResource extends Resource
     protected static ?string $pluralModelLabel = 'Denúncias de Comentários';
 
     protected static ?int $navigationSort = 4;
+
+    protected static array $defaultEagerLoad = ['comment.topic', 'user'];
 
     public static function form(Forms\Form $form): Forms\Form
     {
@@ -107,10 +107,7 @@ class CommentReportResource extends Resource
                         ReportStatus::Dismissed => 'gray',
                         ReportStatus::ActionTaken => 'success',
                     }),
-                TextColumn::make('created_at')
-                    ->label('Data')
-                    ->dateTime('d/m/Y H:i')
-                    ->sortable(),
+                ...static::baseTableColumns(),
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
@@ -125,6 +122,7 @@ class CommentReportResource extends Resource
                     ->options(collect(ReportMotivo::cases())
                         ->mapWithKeys(fn(ReportMotivo $m) => [$m->value => $m->label()])
                         ->toArray()),
+                ...static::baseTableFilters(),
             ])
             ->actions([
                 ViewAction::make(),
@@ -155,12 +153,6 @@ class CommentReportResource extends Resource
                     ->requiresConfirmation()
                     ->action(fn($records) => $records->each->update(['status' => ReportStatus::Dismissed])),
             ]);
-    }
-
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()
-            ->with(['comment.topic', 'user']);
     }
 
     public static function getPages(): array
