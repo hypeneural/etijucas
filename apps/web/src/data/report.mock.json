@@ -1,0 +1,138 @@
+{
+    "categories": [
+        {
+            "id": "buraco",
+            "label": "Buraco na via",
+            "icon": "construction",
+            "tips": [
+                "Fotografe de perto e depois mostre o trecho da rua.",
+                "Se tiver risco de acidente, marque como urgente."
+            ],
+            "subcategories": [
+                "Cratera grande",
+                "Remendo solto",
+                "Tampa de bueiro quebrada",
+                "Desnível perigoso"
+            ]
+        },
+        {
+            "id": "mato_alto",
+            "label": "Mato alto",
+            "icon": "tree-pine",
+            "tips": [
+                "Mostre a área e o entorno (calçada/rua)."
+            ],
+            "subcategories": [
+                "Praça/área pública",
+                "Beira de rua",
+                "Terreno baldio"
+            ]
+        },
+        {
+            "id": "iluminacao",
+            "label": "Iluminação pública",
+            "icon": "lightbulb",
+            "tips": [
+                "Se possível, fotografe o poste e a rua para referência."
+            ],
+            "subcategories": [
+                "Poste apagado",
+                "Piscando",
+                "Fiação baixa",
+                "Poste caído (perigo)"
+            ]
+        },
+        {
+            "id": "lixo",
+            "label": "Lixo/Entulho",
+            "icon": "trash-2",
+            "tips": [
+                "Mostre a quantidade e a localização exata."
+            ],
+            "subcategories": [
+                "Lixo acumulado",
+                "Entulho",
+                "Ponto viciado",
+                "Coleta não passou"
+            ]
+        },
+        {
+            "id": "alagamento",
+            "label": "Alagamento/Drenagem",
+            "icon": "waves",
+            "tips": [
+                "Se for seguro, mostre bueiros e o nível da água."
+            ],
+            "subcategories": [
+                "Bueiro entupido",
+                "Rua alagando",
+                "Boca de lobo quebrada",
+                "Esgoto retornando"
+            ]
+        },
+        {
+            "id": "saude",
+            "label": "Saúde/Sanitário",
+            "icon": "stethoscope",
+            "tips": [
+                "Evite fotografar pessoas. Foque no problema."
+            ],
+            "subcategories": [
+                "Água parada",
+                "Mau cheiro",
+                "Animal morto",
+                "Risco sanitário em área pública"
+            ]
+        },
+        {
+            "id": "barulho",
+            "label": "Barulho",
+            "icon": "volume-2",
+            "tips": [
+                "Informe dias e horários. Se tiver, permitir vídeo curto no futuro."
+            ],
+            "subcategories": [
+                "Som alto recorrente",
+                "Obra fora de horário",
+                "Evento irregular"
+            ]
+        },
+        {
+            "id": "transito",
+            "label": "Trânsito/Sinalização",
+            "icon": "traffic-cone",
+            "tips": [
+                "Mostre placas, faixas ou semáforo no contexto da via."
+            ],
+            "subcategories": [
+                "Semáforo com defeito",
+                "Placa faltando",
+                "Faixa apagada",
+                "Ponto de risco"
+            ]
+        },
+        {
+            "id": "pracas",
+            "label": "Praças/Equipamentos",
+            "icon": "trees",
+            "tips": [
+                "Mostre o item quebrado e a área ao redor."
+            ],
+            "subcategories": [
+                "Parquinho quebrado",
+                "Banco danificado",
+                "Piso solto",
+                "Vandalismo"
+            ]
+        },
+        {
+            "id": "outros",
+            "label": "Outros",
+            "icon": "help-circle",
+            "tips": [
+                "Descreva com poucas palavras e tire uma foto do local."
+            ],
+            "subcategories": []
+        }
+    ]
+}

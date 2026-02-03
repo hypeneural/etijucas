@@ -1,0 +1,420 @@
+{
+    "meta": {
+        "parishName": "Paróquia São Sebastião",
+        "city": "Tijucas/SC",
+        "timezone": "America/Sao_Paulo",
+        "lastUpdated": "2026-01-27",
+        "sourceNote": "Horários conforme artes oficiais da paróquia."
+    },
+    "locations": [
+        {
+            "id": "loc_matriz_centro",
+            "name": "Comunidade Matriz",
+            "type": "MATRIZ",
+            "neighborhood": "Centro",
+            "address": null,
+            "geo": null,
+            "tags": [
+                "matriz",
+                "centro"
+            ]
+        },
+        {
+            "id": "loc_capela_lar_santa_maria",
+            "name": "Capela do Lar Santa Maria da Paz",
+            "type": "CAPELA",
+            "neighborhood": null,
+            "address": null,
+            "geo": null,
+            "tags": [
+                "capela",
+                "lar",
+                "santa maria da paz"
+            ]
+        },
+        {
+            "id": "loc_sao_francisco_morretes",
+            "name": "Comunidade São Francisco de Assis",
+            "type": "COMUNIDADE",
+            "neighborhood": "Morretes",
+            "address": null,
+            "geo": null,
+            "tags": [
+                "morretes",
+                "sao francisco"
+            ]
+        },
+        {
+            "id": "loc_santa_paulina_pernambuco",
+            "name": "Comunidade Santa Paulina",
+            "type": "COMUNIDADE",
+            "neighborhood": "Pernambuco",
+            "address": null,
+            "geo": null,
+            "tags": [
+                "pernambuco",
+                "santa paulina"
+            ]
+        },
+        {
+            "id": "loc_nsa_aparecida_jardim_progresso",
+            "name": "Comunidade Nossa Senhora Aparecida",
+            "type": "COMUNIDADE",
+            "neighborhood": "Jardim Progresso",
+            "address": null,
+            "geo": null,
+            "tags": [
+                "jardim progresso",
+                "aparecida"
+            ]
+        },
+        {
+            "id": "loc_santa_teresinha_universitario",
+            "name": "Comunidade Santa Teresinha",
+            "type": "COMUNIDADE",
+            "neighborhood": "Universitário",
+            "address": null,
+            "geo": null,
+            "tags": [
+                "universitario",
+                "teresinha"
+            ]
+        },
+        {
+            "id": "loc_sao_pedro_joaia",
+            "name": "Comunidade São Pedro",
+            "type": "COMUNIDADE",
+            "neighborhood": "Joáia",
+            "address": null,
+            "geo": null,
+            "tags": [
+                "joaia",
+                "sao pedro"
+            ]
+        },
+        {
+            "id": "loc_santa_luzia_santa_luzia",
+            "name": "Comunidade Santa Luzia",
+            "type": "COMUNIDADE",
+            "neighborhood": "Santa Luzia",
+            "address": null,
+            "geo": null,
+            "tags": [
+                "santa luzia"
+            ]
+        },
+        {
+            "id": "loc_sao_luis_gonzaga_timbe",
+            "name": "Comunidade São Luís Gonzaga",
+            "type": "COMUNIDADE",
+            "neighborhood": "Timbé",
+            "address": null,
+            "geo": null,
+            "tags": [
+                "timbe",
+                "sao luis"
+            ]
+        },
+        {
+            "id": "loc_sao_joao_batista_centro_itinga",
+            "name": "Comunidade São João Batista",
+            "type": "COMUNIDADE",
+            "neighborhood": "Centro do Itinga",
+            "address": null,
+            "geo": null,
+            "tags": [
+                "itinga",
+                "sao joao batista"
+            ]
+        },
+        {
+            "id": "loc_bom_parto_terra_nova",
+            "name": "Comunidade Nossa Senhora do Bom Parto",
+            "type": "COMUNIDADE",
+            "neighborhood": "Terra Nova",
+            "address": null,
+            "geo": null,
+            "tags": [
+                "terra nova",
+                "bom parto"
+            ]
+        },
+        {
+            "id": "loc_senhor_bom_jesus_porto_itinga",
+            "name": "Comunidade Senhor Bom Jesus",
+            "type": "COMUNIDADE",
+            "neighborhood": "Porto do Itinga",
+            "address": null,
+            "geo": null,
+            "tags": [
+                "porto do itinga",
+                "bom jesus"
+            ]
+        },
+        {
+            "id": "loc_sao_jose_oliveira",
+            "name": "Comunidade São José",
+            "type": "COMUNIDADE",
+            "neighborhood": "Oliveira",
+            "address": null,
+            "geo": null,
+            "tags": [
+                "oliveira",
+                "sao jose"
+            ]
+        },
+        {
+            "id": "loc_santa_rita_sul_do_rio",
+            "name": "Comunidade Santa Rita de Cassia",
+            "type": "COMUNIDADE",
+            "neighborhood": "Sul do Rio",
+            "address": null,
+            "geo": null,
+            "tags": [
+                "sul do rio",
+                "santa rita"
+            ]
+        },
+        {
+            "id": "loc_nsa_navegantes_praca",
+            "name": "Comunidade Nossa Senhora dos Navegantes",
+            "type": "COMUNIDADE",
+            "neighborhood": "Praça",
+            "address": null,
+            "geo": null,
+            "tags": [
+                "praca",
+                "navegantes"
+            ]
+        },
+        {
+            "id": "loc_sao_bras_xv_novembro",
+            "name": "Comunidade São Brás",
+            "type": "COMUNIDADE",
+            "neighborhood": "XV de Novembro",
+            "address": null,
+            "geo": null,
+            "tags": [
+                "xv de novembro",
+                "sao bras"
+            ]
+        },
+        {
+            "id": "loc_nsa_fatima_areias",
+            "name": "Comunidade Nossa Senhora de Fátima",
+            "type": "COMUNIDADE",
+            "neighborhood": "Areias",
+            "address": null,
+            "geo": null,
+            "tags": [
+                "areias",
+                "fatima"
+            ]
+        }
+    ],
+    "masses": [
+        {
+            "id": "m1",
+            "weekday": 1,
+            "time": "07:30",
+            "locationId": "loc_capela_lar_santa_maria",
+            "note": null
+        },
+        {
+            "id": "m2",
+            "weekday": 2,
+            "time": "07:30",
+            "locationId": "loc_capela_lar_santa_maria",
+            "note": null
+        },
+        {
+            "id": "m3",
+            "weekday": 2,
+            "time": "19:30",
+            "locationId": "loc_sao_francisco_morretes",
+            "note": null
+        },
+        {
+            "id": "m4",
+            "weekday": 2,
+            "time": "19:30",
+            "locationId": "loc_santa_paulina_pernambuco",
+            "note": null
+        },
+        {
+            "id": "m5",
+            "weekday": 3,
+            "time": "07:30",
+            "locationId": "loc_capela_lar_santa_maria",
+            "note": null
+        },
+        {
+            "id": "m6",
+            "weekday": 3,
+            "time": "20:00",
+            "locationId": "loc_matriz_centro",
+            "note": null
+        },
+        {
+            "id": "m7",
+            "weekday": 4,
+            "time": "07:30",
+            "locationId": "loc_capela_lar_santa_maria",
+            "note": null
+        },
+        {
+            "id": "m8",
+            "weekday": 4,
+            "time": "20:00",
+            "locationId": "loc_capela_lar_santa_maria",
+            "note": null
+        },
+        {
+            "id": "m9",
+            "weekday": 5,
+            "time": "07:30",
+            "locationId": "loc_capela_lar_santa_maria",
+            "note": null
+        },
+        {
+            "id": "m10",
+            "weekday": 5,
+            "time": "20:00",
+            "locationId": "loc_matriz_centro",
+            "note": null
+        },
+        {
+            "id": "m11",
+            "weekday": 6,
+            "time": "07:30",
+            "locationId": "loc_capela_lar_santa_maria",
+            "note": null
+        },
+        {
+            "id": "m12",
+            "weekday": 6,
+            "time": "18:00",
+            "locationId": "loc_nsa_aparecida_jardim_progresso",
+            "note": null
+        },
+        {
+            "id": "m13",
+            "weekday": 6,
+            "time": "18:00",
+            "locationId": "loc_santa_teresinha_universitario",
+            "note": null
+        },
+        {
+            "id": "m14",
+            "weekday": 6,
+            "time": "18:00",
+            "locationId": "loc_sao_pedro_joaia",
+            "note": null
+        },
+        {
+            "id": "m15",
+            "weekday": 6,
+            "time": "19:30",
+            "locationId": "loc_matriz_centro",
+            "note": null
+        },
+        {
+            "id": "m16",
+            "weekday": 6,
+            "time": "19:30",
+            "locationId": "loc_santa_luzia_santa_luzia",
+            "note": null
+        },
+        {
+            "id": "m17",
+            "weekday": 6,
+            "time": "19:30",
+            "locationId": "loc_sao_luis_gonzaga_timbe",
+            "note": null
+        },
+        {
+            "id": "m18",
+            "weekday": 0,
+            "time": "08:00",
+            "locationId": "loc_matriz_centro",
+            "note": null
+        },
+        {
+            "id": "m19",
+            "weekday": 0,
+            "time": "08:00",
+            "locationId": "loc_sao_joao_batista_centro_itinga",
+            "note": null
+        },
+        {
+            "id": "m20",
+            "weekday": 0,
+            "time": "08:00",
+            "locationId": "loc_bom_parto_terra_nova",
+            "note": null
+        },
+        {
+            "id": "m21",
+            "weekday": 0,
+            "time": "09:30",
+            "locationId": "loc_senhor_bom_jesus_porto_itinga",
+            "note": null
+        },
+        {
+            "id": "m22",
+            "weekday": 0,
+            "time": "09:30",
+            "locationId": "loc_sao_jose_oliveira",
+            "note": null
+        },
+        {
+            "id": "m23",
+            "weekday": 0,
+            "time": "09:30",
+            "locationId": "loc_santa_rita_sul_do_rio",
+            "note": null
+        },
+        {
+            "id": "m24",
+            "weekday": 0,
+            "time": "15:00",
+            "locationId": "loc_capela_lar_santa_maria",
+            "note": null
+        },
+        {
+            "id": "m25",
+            "weekday": 0,
+            "time": "15:00",
+            "locationId": "loc_matriz_centro",
+            "note": null
+        },
+        {
+            "id": "m26",
+            "weekday": 0,
+            "time": "18:00",
+            "locationId": "loc_nsa_navegantes_praca",
+            "note": null
+        },
+        {
+            "id": "m27",
+            "weekday": 0,
+            "time": "18:00",
+            "locationId": "loc_sao_bras_xv_novembro",
+            "note": null
+        },
+        {
+            "id": "m28",
+            "weekday": 0,
+            "time": "19:30",
+            "locationId": "loc_nsa_fatima_areias",
+            "note": null
+        },
+        {
+            "id": "m29",
+            "weekday": 0,
+            "time": "19:30",
+            "locationId": "loc_matriz_centro",
+            "note": null
+        }
+    ]
+}

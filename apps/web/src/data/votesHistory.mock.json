@@ -1,0 +1,188 @@
+{
+    "meta": {
+        "city": "Tijucas/SC",
+        "lastUpdated": "2026-01-28"
+    },
+    "votes": [
+        {
+            "id": "iptutijucas-2026-001",
+            "status": "APROVADO",
+            "date": "2026-01-20",
+            "title": "Aumento do IPTU",
+            "summary": "Projeto de reajuste do IPTU em Tijucas com atualização da planta genérica de valores.",
+            "counts": {
+                "sim": 6,
+                "nao": 5,
+                "abstencao": 1,
+                "naoVotou": 1
+            },
+            "tags": [
+                "tributos",
+                "iptu",
+                "fiscal"
+            ]
+        },
+        {
+            "id": "pl-104-2025",
+            "status": "APROVADO",
+            "date": "2025-10-12",
+            "title": "Reforma da Praça Central",
+            "summary": "Projeto de Lei Complementar nº 045/2025 que dispõe sobre a revitalização urbana da praça.",
+            "counts": {
+                "sim": 10,
+                "nao": 2,
+                "abstencao": 1,
+                "naoVotou": 0
+            },
+            "tags": [
+                "urbanismo",
+                "praça",
+                "centro"
+            ]
+        },
+        {
+            "id": "pl-087-2025",
+            "status": "REJEITADO",
+            "date": "2025-09-05",
+            "title": "Redução da Taxa de Lixo",
+            "summary": "Projeto propunha redução de 20% na taxa de coleta de lixo para residências.",
+            "counts": {
+                "sim": 4,
+                "nao": 8,
+                "abstencao": 0,
+                "naoVotou": 1
+            },
+            "tags": [
+                "tributos",
+                "lixo",
+                "taxa"
+            ]
+        },
+        {
+            "id": "pl-062-2025",
+            "status": "APROVADO",
+            "date": "2025-07-22",
+            "title": "Nova Creche no Bairro Areias",
+            "summary": "Autoriza construção de creche municipal com capacidade para 120 crianças.",
+            "counts": {
+                "sim": 11,
+                "nao": 1,
+                "abstencao": 1,
+                "naoVotou": 0
+            },
+            "tags": [
+                "educação",
+                "creche",
+                "areias"
+            ]
+        },
+        {
+            "id": "pl-045-2025",
+            "status": "APROVADO",
+            "date": "2025-06-10",
+            "title": "Iluminação Pública LED",
+            "summary": "Projeto de modernização do sistema de iluminação pública com tecnologia LED.",
+            "counts": {
+                "sim": 12,
+                "nao": 0,
+                "abstencao": 1,
+                "naoVotou": 0
+            },
+            "tags": [
+                "infraestrutura",
+                "iluminação",
+                "led"
+            ]
+        },
+        {
+            "id": "pl-033-2025",
+            "status": "REJEITADO",
+            "date": "2025-04-18",
+            "title": "Aumento do Salário dos Vereadores",
+            "summary": "Proposta de reajuste de 15% nos subsídios dos vereadores a partir de 2026.",
+            "counts": {
+                "sim": 3,
+                "nao": 9,
+                "abstencao": 1,
+                "naoVotou": 0
+            },
+            "tags": [
+                "legislativo",
+                "salário",
+                "vereadores"
+            ]
+        },
+        {
+            "id": "pl-021-2025",
+            "status": "APROVADO",
+            "date": "2025-03-08",
+            "title": "Feira Livre aos Sábados",
+            "summary": "Regulamenta a realização de feira livre de produtores locais aos sábados.",
+            "counts": {
+                "sim": 10,
+                "nao": 2,
+                "abstencao": 0,
+                "naoVotou": 1
+            },
+            "tags": [
+                "comércio",
+                "feira",
+                "agricultura"
+            ]
+        },
+        {
+            "id": "pl-089-2024",
+            "status": "APROVADO",
+            "date": "2024-11-20",
+            "title": "Ciclovia da Beira-Rio",
+            "summary": "Projeto de construção de ciclovia na orla do Rio Tijucas com 3,5km de extensão.",
+            "counts": {
+                "sim": 9,
+                "nao": 3,
+                "abstencao": 1,
+                "naoVotou": 0
+            },
+            "tags": [
+                "mobilidade",
+                "ciclovia",
+                "rio"
+            ]
+        },
+        {
+            "id": "pl-067-2024",
+            "status": "REJEITADO",
+            "date": "2024-09-15",
+            "title": "Proibição de Fogos de Artifício",
+            "summary": "Proposta para proibir fogos de artifício com estampido no município.",
+            "counts": {
+                "sim": 5,
+                "nao": 7,
+                "abstencao": 1,
+                "naoVotou": 0
+            },
+            "tags": [
+                "meio ambiente",
+                "animais",
+                "fogos"
+            ]
+        },
+        {
+            "id": "pl-052-2024",
+            "status": "APROVADO",
+            "date": "2024-07-03",
+            "title": "Programa Tijucas Digital",
+            "summary": "Cria programa de inclusão digital com internet gratuita em praças públicas.",
+            "counts": {
+                "sim": 11,
+                "nao": 1,
+                "abstencao": 0,
+                "naoVotou": 1
+            },
+            "tags": [
+                "tecnologia",
+                "internet",
+                "inclusão"
+            ]
+        }
+    ]
+}

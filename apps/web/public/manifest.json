@@ -1,0 +1,82 @@
+{
+  "name": "eTijucas",
+  "short_name": "eTijucas",
+  "description": "Tijucas em tempo real. Reporte problemas, participe do fórum, confira eventos e serviços.",
+  "start_url": "/",
+  "id": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
+  "background_color": "#f8fafc",
+  "theme_color": "#0891b2",
+  "orientation": "portrait-primary",
+  "categories": [
+    "social",
+    "news",
+    "lifestyle"
+  ],
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Reportar Problema",
+      "short_name": "Reportar",
+      "description": "Reporte um problema na cidade",
+      "url": "/?tab=reportar",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Fórum da Comunidade",
+      "short_name": "F\u00f3rum",
+      "description": "Participe das discussões da comunidade",
+      "url": "/?tab=forum",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Agenda de Eventos",
+      "short_name": "Agenda",
+      "description": "Confira os próximos eventos",
+      "url": "/?tab=agenda",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}

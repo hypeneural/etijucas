@@ -1,0 +1,113 @@
+{
+    "vote": {
+        "id": "iptutijucas-2026-001",
+        "title": "Aumento do IPTU",
+        "subtitle": "Projeto aprovado por 6 a 5",
+        "date": "2026-01-20",
+        "description": "Votação referente ao projeto de reajuste do IPTU em Tijucas. O projeto prevê atualização da planta genérica de valores e reajuste progressivo ao longo de 3 anos.",
+        "source": {
+            "label": "Fonte oficial",
+            "url": "https://exemplo.tijucas.sc.gov.br/ata-ou-projeto"
+        },
+        "counts": {
+            "sim": 6,
+            "nao": 5,
+            "abstencao": 1,
+            "naoVotou": 1
+        }
+    },
+    "councilors": [
+        {
+            "id": "ecio-helio",
+            "name": "Écio Hélio de Melo",
+            "party": "PL",
+            "vote": "SIM",
+            "photoUrl": "/img/vereadores/ecio.jpg"
+        },
+        {
+            "id": "julio-bucoski",
+            "name": "Júlio Cesar Bucoski",
+            "party": "PP",
+            "vote": "SIM",
+            "photoUrl": "/img/vereadores/julio.jpg"
+        },
+        {
+            "id": "maria-edesia",
+            "name": "Maria Edésia da Silva Vargas",
+            "party": "MDB",
+            "vote": "SIM",
+            "photoUrl": "/img/vereadores/maria.jpg"
+        },
+        {
+            "id": "mauricio-poli",
+            "name": "Maurício Poli",
+            "party": "MDB",
+            "vote": "SIM",
+            "photoUrl": "/img/vereadores/mauricio.jpg"
+        },
+        {
+            "id": "nadir-olindina",
+            "name": "Nadir Olindina Amorim",
+            "party": "MDB",
+            "vote": "SIM",
+            "photoUrl": "/img/vereadores/nadir.jpg"
+        },
+        {
+            "id": "paulo-cesar",
+            "name": "Paulo Cesar Pereira",
+            "party": "MDB",
+            "vote": "SIM",
+            "photoUrl": "/img/vereadores/paulo.jpg"
+        },
+        {
+            "id": "esau-bayer",
+            "name": "Esaú Bayer",
+            "party": "PL",
+            "vote": "NAO",
+            "photoUrl": "/img/vereadores/esau.jpg"
+        },
+        {
+            "id": "fabiano-morfelle",
+            "name": "Fabiano Morfelle",
+            "party": "MDB",
+            "vote": "NAO",
+            "photoUrl": "/img/vereadores/fabiano.jpg"
+        },
+        {
+            "id": "jose-vicente",
+            "name": "José Vicente de Souza e Silva",
+            "party": "PL",
+            "vote": "NAO",
+            "photoUrl": "/img/vereadores/jose.jpg"
+        },
+        {
+            "id": "lizandra-dadam",
+            "name": "Lizandra Dadam",
+            "party": "PDT",
+            "vote": "NAO",
+            "photoUrl": "/img/vereadores/lizandra.jpg"
+        },
+        {
+            "id": "renato-laurindo",
+            "name": "Renato Laurindo Júnior",
+            "party": "PSDB",
+            "vote": "NAO",
+            "photoUrl": "/img/vereadores/renato.jpg"
+        },
+        {
+            "id": "claudio-souza",
+            "name": "Cláudio Eduardo de Souza",
+            "party": "MDB",
+            "vote": "ABSTENCAO",
+            "photoUrl": "/img/vereadores/claudio.jpg",
+            "justification": "Conflito de interesse por ser proprietário de imóveis na região afetada."
+        },
+        {
+            "id": "flavio-souza",
+            "name": "Flávio Henrique Souza",
+            "party": "MDB",
+            "vote": "NAO_VOTOU",
+            "photoUrl": "/img/vereadores/flavio.jpg"
+        }
+    ]
+}

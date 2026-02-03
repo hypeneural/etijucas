@@ -1,0 +1,381 @@
+﻿{
+  "meta": {
+    "city": "Tijucas/SC",
+    "timezone": "America/Sao_Paulo",
+    "currency": "BRL",
+    "lastUpdated": "2026-01-27"
+  },
+  "events": [
+    {
+      "id": "evt_feira_gastro_centro",
+      "title": "Feira Gastronômica do Centro",
+      "category": "GASTRONOMICO",
+      "tags": ["ao ar livre", "comida", "família"],
+      "descriptionShort": "Sabores locais, food trucks e música ao vivo.",
+      "descriptionFull": "Uma noite especial no centro com pratos típicos, food trucks selecionados e um palco com artistas locais. Traga a família e aproveite a praça com segurança e conforto.",
+      "startDateTime": "2026-01-27T18:00:00-03:00",
+      "endDateTime": "2026-01-27T22:00:00-03:00",
+      "venue": {
+        "name": "Praça Central",
+        "neighborhood": "Centro",
+        "address": "Praça Central, Tijucas - SC",
+        "geo": { "lat": -27.2412, "lng": -48.6338 }
+      },
+      "ticket": {
+        "type": "FREE",
+        "minPrice": 0,
+        "currency": "BRL",
+        "url": null,
+        "lots": []
+      },
+      "links": {
+        "instagram": "https://instagram.com/tijucas.gastro",
+        "whatsapp": null,
+        "website": null,
+        "other": []
+      },
+      "media": {
+        "coverImage": "/images/events/gastro.svg",
+        "gallery": ["/images/events/gastro.svg", "/images/events/feira.svg"]
+      },
+      "schedule": [
+        { "time": "18:00", "title": "Abertura", "details": "Praça liberada ao público", "stage": "Praça" },
+        { "time": "19:30", "title": "Show acústico", "details": "Música regional", "stage": "Palco Principal" },
+        { "time": "21:00", "title": "Encerramento", "details": "Últimos pedidos", "stage": "Praça" }
+      ],
+      "flags": {
+        "ageRating": "LIVRE",
+        "outdoor": true,
+        "accessibility": true,
+        "parking": true
+      },
+      "organizer": { "name": "Gastro Tijucas", "avatar": "/images/orgs/gastro.svg" },
+      "popularityScore": 78
+    },
+    {
+      "id": "evt_cinema_ar_livre",
+      "title": "Cinema ao Ar Livre — Clássicos de Verão",
+      "category": "CULTURA",
+      "tags": ["cinema", "ao ar livre", "família"],
+      "descriptionShort": "Sessão gratuita com pipoca solidária.",
+      "descriptionFull": "Sessão gratuita na praça com tela gigante e cadeiras. Traga sua canga e contribua com 1kg de alimento para a ação solidária.",
+      "startDateTime": "2026-01-28T19:00:00-03:00",
+      "endDateTime": "2026-01-28T22:00:00-03:00",
+      "venue": {
+        "name": "Praça do Dino",
+        "neighborhood": "Centro",
+        "address": "Praça do Dino, Tijucas - SC",
+        "geo": { "lat": -27.2411, "lng": -48.6332 }
+      },
+      "ticket": {
+        "type": "FREE",
+        "minPrice": 0,
+        "currency": "BRL",
+        "url": null,
+        "lots": []
+      },
+      "links": {
+        "instagram": "https://instagram.com/cultura.tijucas",
+        "whatsapp": null,
+        "website": null,
+        "other": []
+      },
+      "media": {
+        "coverImage": "/images/events/cinema.svg",
+        "gallery": ["/images/events/cinema.svg"]
+      },
+      "schedule": [
+        { "time": "19:00", "title": "Abertura", "details": "Distribuição de pipoca", "stage": "Praça" },
+        { "time": "20:00", "title": "Filme", "details": "Clássico nacional", "stage": "Tela Principal" }
+      ],
+      "flags": {
+        "ageRating": "LIVRE",
+        "outdoor": true,
+        "accessibility": true,
+        "parking": false
+      },
+      "organizer": { "name": "Cultura Tijucas", "avatar": "/images/orgs/cultura.svg" },
+      "popularityScore": 64
+    },
+    {
+      "id": "evt_sarau_praca",
+      "title": "Sarau na Praça — Vozes da Cidade",
+      "category": "CULTURA",
+      "tags": ["poesia", "música", "comunidade"],
+      "descriptionShort": "Noite de poesia, música e histórias da cidade.",
+      "descriptionFull": "Encontro cultural com declamações, violões e microfone aberto para quem quiser compartilhar histórias e músicas.",
+      "startDateTime": "2026-01-30T20:00:00-03:00",
+      "endDateTime": "2026-01-30T22:30:00-03:00",
+      "venue": {
+        "name": "Coreto da Praça",
+        "neighborhood": "Praça",
+        "address": "Praça da Matriz, Tijucas - SC",
+        "geo": null
+      },
+      "ticket": {
+        "type": "FREE",
+        "minPrice": 0,
+        "currency": "BRL",
+        "url": null,
+        "lots": []
+      },
+      "links": {
+        "instagram": "https://instagram.com/vozes.tijucas",
+        "whatsapp": null,
+        "website": null,
+        "other": []
+      },
+      "media": {
+        "coverImage": "/images/events/cultura.svg",
+        "gallery": ["/images/events/cultura.svg"]
+      },
+      "schedule": [
+        { "time": "20:00", "title": "Abertura", "details": "Boas-vindas", "stage": "Coreto" },
+        { "time": "21:00", "title": "Microfone aberto", "details": "Poesias e músicas", "stage": "Coreto" }
+      ],
+      "flags": {
+        "ageRating": "LIVRE",
+        "outdoor": true,
+        "accessibility": false,
+        "parking": false
+      },
+      "organizer": { "name": "Coletivo Vozes", "avatar": "/images/orgs/cultura.svg" },
+      "popularityScore": 58
+    },
+    {
+      "id": "evt_torneio_beach",
+      "title": "Torneio de Beach Soccer",
+      "category": "ESPORTES",
+      "tags": ["esporte", "competição", "ao ar livre"],
+      "descriptionShort": "Times locais disputando o título no final de semana.",
+      "descriptionFull": "Participe da manhã esportiva com torneio de beach soccer. Inscrições gratuitas para equipes comunitárias.",
+      "startDateTime": "2026-01-31T08:00:00-03:00",
+      "endDateTime": "2026-01-31T12:00:00-03:00",
+      "venue": {
+        "name": "Arena Municipal",
+        "neighborhood": "XV de Novembro",
+        "address": "Rua do Esporte, 120 - Tijucas/SC",
+        "geo": null
+      },
+      "ticket": {
+        "type": "FREE",
+        "minPrice": 0,
+        "currency": "BRL",
+        "url": null,
+        "lots": []
+      },
+      "links": {
+        "instagram": "https://instagram.com/esporte.tijucas",
+        "whatsapp": "https://wa.me/5547991111111",
+        "website": null,
+        "other": []
+      },
+      "media": {
+        "coverImage": "/images/events/esportes.svg",
+        "gallery": ["/images/events/esportes.svg"]
+      },
+      "schedule": [
+        { "time": "08:00", "title": "Credenciamento", "details": "Entrega de uniformes", "stage": "Arena" },
+        { "time": "09:00", "title": "Fase de grupos", "details": "Jogos simultâneos", "stage": "Arena" },
+        { "time": "11:30", "title": "Final", "details": "Partida decisiva", "stage": "Arena" }
+      ],
+      "flags": {
+        "ageRating": "LIVRE",
+        "outdoor": true,
+        "accessibility": true,
+        "parking": true
+      },
+      "organizer": { "name": "Esporte Tijucas", "avatar": "/images/orgs/esporte.svg" },
+      "popularityScore": 73
+    },
+    {
+      "id": "evt_rock_praca_dino",
+      "title": "Rock na Praça do Dino",
+      "category": "SHOW",
+      "tags": ["ao ar livre", "música", "família"],
+      "descriptionShort": "Show ao vivo com bandas locais e food trucks.",
+      "descriptionFull": "Um fim de tarde especial com bandas locais, praça cheia e clima de festival. Traga sua cadeira e aproveite!",
+      "startDateTime": "2026-02-01T18:00:00-03:00",
+      "endDateTime": "2026-02-01T22:30:00-03:00",
+      "venue": {
+        "name": "Praça do Dino",
+        "neighborhood": "Centro",
+        "address": "Praça do Dino, Tijucas - SC",
+        "geo": { "lat": -27.2411, "lng": -48.6332 }
+      },
+      "ticket": {
+        "type": "FREE",
+        "minPrice": 0,
+        "currency": "BRL",
+        "url": null,
+        "lots": []
+      },
+      "links": {
+        "instagram": "https://instagram.com/rock.tijucas",
+        "whatsapp": null,
+        "website": null,
+        "other": []
+      },
+      "media": {
+        "coverImage": "/images/events/rock.svg",
+        "gallery": ["/images/events/rock.svg", "/images/events/cinema.svg"]
+      },
+      "schedule": [
+        { "time": "18:00", "title": "Abertura", "details": "Recepção e ambientação", "stage": "Palco Principal" },
+        { "time": "19:00", "title": "Banda 1", "details": "Clássicos do rock", "stage": "Palco Principal" },
+        { "time": "21:00", "title": "Banda 2", "details": "Rock autoral", "stage": "Palco Principal" }
+      ],
+      "flags": {
+        "ageRating": "LIVRE",
+        "outdoor": true,
+        "accessibility": true,
+        "parking": true
+      },
+      "organizer": { "name": "Cultura Tijucas", "avatar": "/images/orgs/cultura.svg" },
+      "popularityScore": 82
+    },
+    {
+      "id": "evt_oficina_infantil",
+      "title": "Oficina Infantil de Artes",
+      "category": "INFANTIL",
+      "tags": ["crianças", "arte", "educativo"],
+      "descriptionShort": "Atividades criativas para crianças a partir de 5 anos.",
+      "descriptionFull": "Oficina com pintura, colagem e pequenas esculturas. Vagas limitadas, chegue cedo.",
+      "startDateTime": "2026-02-02T14:00:00-03:00",
+      "endDateTime": "2026-02-02T17:00:00-03:00",
+      "venue": {
+        "name": "Centro Cultural",
+        "neighborhood": "Areias",
+        "address": "Rua das Artes, 45 - Tijucas/SC",
+        "geo": null
+      },
+      "ticket": {
+        "type": "FREE",
+        "minPrice": 0,
+        "currency": "BRL",
+        "url": "https://inscricoes.tijucas.sc/oficina",
+        "lots": []
+      },
+      "links": {
+        "instagram": "https://instagram.com/infantil.tijucas",
+        "whatsapp": "https://wa.me/5547992222222",
+        "website": null,
+        "other": []
+      },
+      "media": {
+        "coverImage": "/images/events/infantil.svg",
+        "gallery": ["/images/events/infantil.svg", "/images/events/feira.svg"]
+      },
+      "schedule": [
+        { "time": "14:00", "title": "Boas-vindas", "details": "Check-in das crianças", "stage": "Sala 1" },
+        { "time": "15:00", "title": "Atividades criativas", "details": "Pintura e colagem", "stage": "Sala 1" },
+        { "time": "16:30", "title": "Encerramento", "details": "Exposição dos trabalhos", "stage": "Sala 1" }
+      ],
+      "flags": {
+        "ageRating": "LIVRE",
+        "outdoor": false,
+        "accessibility": true,
+        "parking": false
+      },
+      "organizer": { "name": "EducaTijucas", "avatar": "/images/orgs/juventude.svg" },
+      "popularityScore": 69
+    },
+    {
+      "id": "evt_festa_neon",
+      "title": "Noite Eletrônica — Edição Neon",
+      "category": "FESTA",
+      "tags": ["DJ", "neon", "18+"],
+      "descriptionShort": "Line-up com DJs convidados e pista temática.",
+      "descriptionFull": "Uma noite neon com efeitos visuais, bar e convidados especiais. Evento para maiores de 18 anos.",
+      "startDateTime": "2026-02-03T23:00:00-03:00",
+      "endDateTime": "2026-02-04T05:00:00-03:00",
+      "venue": {
+        "name": "Clube XYZ",
+        "neighborhood": "XV de Novembro",
+        "address": "Av. Exemplo, 123 - Tijucas/SC",
+        "geo": null
+      },
+      "ticket": {
+        "type": "PAID",
+        "minPrice": 30,
+        "currency": "BRL",
+        "url": "https://ingressos.exemplo.com/neon",
+        "lots": [
+          { "name": "Lote 1", "price": 30, "availableUntil": "2026-02-02T23:59:00-03:00" },
+          { "name": "Lote 2", "price": 45, "availableUntil": "2026-02-03T20:00:00-03:00" }
+        ]
+      },
+      "links": {
+        "instagram": "https://instagram.com/exemplo_festa",
+        "whatsapp": "https://wa.me/5547999999999",
+        "website": "https://site.exemplo.com",
+        "other": []
+      },
+      "media": {
+        "coverImage": "/images/events/neon.svg",
+        "gallery": ["/images/events/neon.svg"]
+      },
+      "schedule": [
+        { "time": "23:00", "title": "Warm-up", "details": "Abertura da pista", "stage": "Pista 1" },
+        { "time": "01:00", "title": "DJ convidado", "details": "Set especial", "stage": "Pista 1" }
+      ],
+      "flags": {
+        "ageRating": "18+",
+        "outdoor": false,
+        "accessibility": false,
+        "parking": true
+      },
+      "organizer": { "name": "Clube XYZ", "avatar": "/images/orgs/juventude.svg" },
+      "popularityScore": 91
+    },
+    {
+      "id": "evt_festival_cerveja",
+      "title": "Festival de Cerveja Artesanal",
+      "category": "GASTRONOMICO",
+      "tags": ["cerveja", "gastronomia", "música"],
+      "descriptionShort": "Degustação, bandas e food trucks.",
+      "descriptionFull": "Festival com cervejarias artesanais da região, food trucks e bandas locais. Área coberta e lounges para descanso.",
+      "startDateTime": "2026-02-04T17:00:00-03:00",
+      "endDateTime": "2026-02-04T23:00:00-03:00",
+      "venue": {
+        "name": "Parque Municipal",
+        "neighborhood": "Morretes",
+        "address": "Parque Municipal, Tijucas - SC",
+        "geo": null
+      },
+      "ticket": {
+        "type": "PAID",
+        "minPrice": 25,
+        "currency": "BRL",
+        "url": "https://ingressos.exemplo.com/cerveja",
+        "lots": [
+          { "name": "Lote promocional", "price": 25, "availableUntil": "2026-02-03T23:59:00-03:00" },
+          { "name": "Lote regular", "price": 40, "availableUntil": "2026-02-04T16:00:00-03:00" }
+        ]
+      },
+      "links": {
+        "instagram": "https://instagram.com/cervejaria.tijucas",
+        "whatsapp": null,
+        "website": "https://cerveja.tijucas.sc",
+        "other": []
+      },
+      "media": {
+        "coverImage": "/images/events/feira.svg",
+        "gallery": ["/images/events/feira.svg", "/images/events/gastro.svg"]
+      },
+      "schedule": [
+        { "time": "17:00", "title": "Abertura", "details": "Credenciais e degustação", "stage": "Entrada" },
+        { "time": "19:00", "title": "Banda local", "details": "Rock & blues", "stage": "Palco" },
+        { "time": "22:00", "title": "Encerramento", "details": "Últimos pedidos", "stage": "Palco" }
+      ],
+      "flags": {
+        "ageRating": "18+",
+        "outdoor": true,
+        "accessibility": true,
+        "parking": true
+      },
+      "organizer": { "name": "Cerveja Tijucas", "avatar": "/images/orgs/gastro.svg" },
+      "popularityScore": 86
+    }
+  ]
+}
