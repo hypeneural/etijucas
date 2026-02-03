@@ -113,6 +113,11 @@ Route::prefix('v1')->group(function () {
     Route::get('report-categories', [\App\Domains\Reports\Http\Controllers\ReportCategoryController::class, 'index'])
         ->middleware('cache.headers:static');
 
+    Route::prefix('reports')->group(function () {
+        Route::get('/', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'index']);
+        Route::get('/stats', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'stats']);
+    });
+
     // =====================================================
     // Geocoding Public Routes (cached proxy)
     // =====================================================

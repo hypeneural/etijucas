@@ -15,6 +15,69 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 class ReportController extends Controller
 {
     /**
+     * GET /api/v1/reports
+     * List public reports (all approved/visible)
+     */
+    public function index(Request $request): AnonymousResourceCollection
+    {
+        // Public reports query
+        $query = CitizenReport::with(['category', 'media', 'bairro', 'statusHistory'])
+            ->orderByDesc('created_at');
+
+        // Filter by status
+        if ($request->filled('status')) {
+            $status = ReportStatus::tryFrom($request->input('status'));
+            if ($status) {
+                $query->byStatus($status);
+            }
+        }
+
+        // Filter by category
+        if ($request->filled('categoryId')) {
+            $query->byCategory($request->input('categoryId'));
+        }
+
+        // Search by title or protocol
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%")
+                    ->orWhere('protocol', 'like', "%{$search}%");
+            });
+        }
+
+        // Pagination
+        $perPage = min($request->integer('perPage', 10), 50);
+        $reports = $query->paginate($perPage);
+
+        return ReportResource::collection($reports);
+    }
+
+    /**
+     * GET /api/v1/reports/stats
+     * Get report statistics (KPIs)
+     */
+    public function stats(): JsonResponse
+    {
+        $stats = [
+            'total' => CitizenReport::count(),
+            'byStatus' => [
+                'recebido' => CitizenReport::byStatus(ReportStatus::Recebido)->count(),
+                'em_analise' => CitizenReport::byStatus(ReportStatus::EmAnalise)->count(),
+                'resolvido' => CitizenReport::byStatus(ReportStatus::Resolvido)->count(),
+                'rejeitado' => CitizenReport::byStatus(ReportStatus::Rejeitado)->count(),
+            ],
+            'thisMonth' => CitizenReport::whereMonth('created_at', now()->month)->count(),
+            'resolvedThisMonth' => CitizenReport::byStatus(ReportStatus::Resolvido)
+                ->whereMonth('updated_at', now()->month)
+                ->count(),
+        ];
+
+        return response()->json(['data' => $stats]);
+    }
+
+    /**
      * POST /api/v1/reports
      * Create a new citizen report
      */
