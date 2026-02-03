@@ -88,6 +88,27 @@ Opções úteis: `--auth=false` (rotas públicas), `--uuids=false`, `--soft-dele
 
 ---
 
+## Criando CRUD Admin (Filament)
+
+1. Rode o gerador
+```bash
+php artisan make:admin-crud CitizenReport --domain=Reports --media=report_images --soft-deletes
+```
+
+2. O que ele cria
+- Resource do Filament para o painel Admin
+- Policy do model (com registro automatico em `AppServiceProvider`)
+- Permissoes no Shield para o Resource
+
+3. Ajustes obrigatorios
+- Revisar `form()` e `table()` no Resource
+- Adicionar `defaultEagerLoad`/`defaultWithCount` se necessario
+- Usar Traits do admin: `HasAuditActionsTrait`, `HasStatusBadgeTrait`, `HasMediaLibraryTrait`
+
+Stubs internos ficam em `apps/api/stubs/filament-admin`.
+
+---
+
 ## Criando Novo Endpoint
 
 Use `pnpm make:crud` quando o endpoint fizer parte de um CRUD novo.

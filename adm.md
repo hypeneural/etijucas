@@ -128,6 +128,7 @@ Saidas esperadas:
 - `app/Policies/CitizenReportPolicy.php`
 - Registrar Policy se nao houver auto-discovery.
 - Rodar ou sugerir `php artisan shield:generate --resource=CitizenReport`
+ - Stubs internos em `apps/api/stubs/filament-admin/*` para padronizar novos CRUDs
 
 MVP do kit (script simples):
 - `php artisan make:filament-resource Model --generate`
@@ -221,18 +222,18 @@ Em todos:
 ## Plano de melhorias (checklist executavel)
 
 ## Fase 0 - Fundacao e padronizacao
-- [ ] Definir estrutura padrao de dominio para `Actions` e `Services` por modulo.
-- [ ] Criar `BaseResource` com defaults de tabela, filtros e actions.
-- [ ] Criar Traits reutilizaveis: `HasAuditActionsTrait`, `HasStatusBadgeTrait`, `HasMediaLibraryTrait`.
-- [ ] Padronizar `getEloquentQuery()` com `with/withCount` em todos os Resources existentes.
-- [ ] Definir roles base `admin`, `moderator`, `operator` e mapear permissoes por modulo.
-- [ ] Atualizar Policies existentes para refletir as roles base.
+- [x] Definir estrutura padrao de dominio para `Actions` e `Services` por modulo.
+- [x] Criar `BaseResource` com defaults de tabela, filtros e actions.
+- [x] Criar Traits reutilizaveis: `HasAuditActionsTrait`, `HasStatusBadgeTrait`, `HasMediaLibraryTrait`.
+- [x] Padronizar `getEloquentQuery()` com `with/withCount` em todos os Resources existentes.
+- [x] Definir roles base `admin`, `moderator`, `operator` e mapear permissoes por modulo.
+- [x] Atualizar Policies existentes para refletir as roles base.
 
 ## Fase 1 - Kit CRUD Filament
-- [ ] Implementar script/command `make:admin-crud` (Resource + Policy + Shield).
-- [ ] Criar stubs internos para Resource, Policy e RelationManager.
-- [ ] Garantir que o kit roda `shield:generate --resource=Model`.
-- [ ] Documentar o uso do kit no repo e incluir no `CONTRIBUTING.md` se necessario.
+- [x] Implementar script/command `make:admin-crud` (Resource + Policy + Shield).
+- [x] Criar stubs internos para Resource, Policy e RelationManager.
+- [x] Garantir que o kit roda `shield:generate --resource=Model`.
+- [x] Documentar o uso do kit no repo e incluir no `CONTRIBUTING.md` se necessario.
 
 ## Fase 2 - CRUDs prioritarios
 - [ ] CRUDs catalogo: `Category`, `Tag`, `Bairro`, `Venue`.
