@@ -52,7 +52,7 @@ function ReportCard({ report }: { report: CitizenReport }) {
         >
             <Card
                 className="p-4 cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => navigate(`/reports/${report.id}`)}
+                onClick={() => navigate(`/denuncia/${report.id}`)}
             >
                 <div className="flex items-start gap-3">
                     {/* Category Emoji */}

@@ -106,7 +106,7 @@ export function useRemoveReportMedia() {
 
 export function usePublicReports(filters?: PublicReportsFilters) {
     const query = useQuery({
-        queryKey: [...QUERY_KEYS.reports.public, filters],
+        queryKey: ['reports', 'public', filters],
         queryFn: () => reportService.getPublicReports(filters),
         staleTime: 2 * 60 * 1000, // 2 minutes
     });
@@ -126,7 +126,7 @@ export function usePublicReports(filters?: PublicReportsFilters) {
 
 export function useReportsStats() {
     const query = useQuery({
-        queryKey: QUERY_KEYS.reports.stats,
+        queryKey: QUERY_KEYS.reports.stats(),
         queryFn: () => reportService.getReportsStats(),
         staleTime: 5 * 60 * 1000, // 5 minutes
     });
