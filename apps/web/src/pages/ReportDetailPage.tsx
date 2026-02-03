@@ -20,6 +20,7 @@ import {
     Camera,
     Calendar,
     Eye,
+    ExternalLink,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -33,6 +34,9 @@ import { formatDistanceToNow, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { LocationMap } from '@/components/report/LocationMap';
+import { BottomTabBar, TabId } from '@/components/layout/BottomTabBar';
+import { useAppStore } from '@/store/useAppStore';
 
 // ============================================
 // TYPES

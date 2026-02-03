@@ -215,3 +215,44 @@ Em todos:
 - Ajustar `getEloquentQuery()` com `with/withCount`
 - Adicionar RelationManagers
 - Se operacao sensivel: Action chama DomainAction + log
+
+---
+
+## Plano de melhorias (checklist executavel)
+
+## Fase 0 - Fundacao e padronizacao
+- [ ] Definir estrutura padrao de dominio para `Actions` e `Services` por modulo.
+- [ ] Criar `BaseResource` com defaults de tabela, filtros e actions.
+- [ ] Criar Traits reutilizaveis: `HasAuditActionsTrait`, `HasStatusBadgeTrait`, `HasMediaLibraryTrait`.
+- [ ] Padronizar `getEloquentQuery()` com `with/withCount` em todos os Resources existentes.
+- [ ] Definir roles base `admin`, `moderator`, `operator` e mapear permissoes por modulo.
+- [ ] Atualizar Policies existentes para refletir as roles base.
+
+## Fase 1 - Kit CRUD Filament
+- [ ] Implementar script/command `make:admin-crud` (Resource + Policy + Shield).
+- [ ] Criar stubs internos para Resource, Policy e RelationManager.
+- [ ] Garantir que o kit roda `shield:generate --resource=Model`.
+- [ ] Documentar o uso do kit no repo e incluir no `CONTRIBUTING.md` se necessario.
+
+## Fase 2 - CRUDs prioritarios
+- [ ] CRUDs catalogo: `Category`, `Tag`, `Bairro`, `Venue`.
+- [ ] CRUDs principais: `Event`, `TourismSpot`, `CitizenReport`.
+- [ ] CRUDs moderacao: `Review`, `Comment`, `Flags/Reports`.
+- [ ] CRUDs sistema: `Settings`, `FeatureFlags` (se existirem).
+
+## Fase 3 - RelationManagers e operacao
+- [ ] `EventResource`: RelationManagers para schedules, ticket lots, media, tags, organizers, venue.
+- [ ] `TourismSpotResource`: RelationManager para reviews.
+- [ ] `CitizenReportResource`: RelationManager para status history e media.
+- [ ] Actions operacionais: publicar/despublicar, destacar, duplicar, alterar status com nota.
+
+## Fase 4 - Pages e Widgets operacionais
+- [ ] Unificar a fila em `ModerationQueue` (forum + reports + flags).
+- [ ] Criar `ReportsDashboard` com KPIs e ultimos pendentes.
+- [ ] Criar `GeoIssues` para itens sem localizacao ou baixa qualidade.
+
+## Fase 5 - Performance e qualidade
+- [ ] Revisar indices para filtros padrao (`status`, `category_id`, `bairro_id`, `created_at`).
+- [ ] Garantir `with/withCount` em todos os Resources criados.
+- [ ] Auditar actions sensiveis com Activity Log.
+- [ ] Testes minimos para Actions criticas (status, moderacao, publicacao).

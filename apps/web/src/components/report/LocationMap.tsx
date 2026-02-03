@@ -69,18 +69,22 @@ function MapController({ center, zoom }: { center: [number, number]; zoom: numbe
     return null;
 }
 
+
 // Draggable Marker Component
 function DraggableMarker({
     position,
     onDragEnd,
+    readOnly = false,
 }: {
     position: [number, number];
     onDragEnd: (lat: number, lon: number) => void;
+    readOnly?: boolean;
 }) {
     const markerRef = useRef<L.Marker>(null);
 
     const eventHandlers = {
         dragend: () => {
+            if (readOnly) return;
             const marker = markerRef.current;
             if (marker) {
                 const { lat, lng } = marker.getLatLng();
@@ -91,7 +95,7 @@ function DraggableMarker({
 
     return (
         <Marker
-            draggable
+            draggable={!readOnly}
             eventHandlers={eventHandlers}
             position={position}
             ref={markerRef}
@@ -107,7 +111,8 @@ export function LocationMap({
     onCenterGPS,
     hasGPS = false,
     className,
-}: LocationMapProps) {
+    readOnly = false,
+}: LocationMapProps & { readOnly?: boolean }) {
     const [isOnline, setIsOnline] = useState(navigator.onLine);
     const position: [number, number] = [latitude, longitude];
 
@@ -127,16 +132,16 @@ export function LocationMap({
 
     const handleMarkerDragEnd = useCallback(
         (lat: number, lon: number) => {
-            onLocationChange(lat, lon);
+            if (!readOnly) onLocationChange(lat, lon);
         },
-        [onLocationChange]
+        [onLocationChange, readOnly]
     );
 
     const handleMapClick = useCallback(
         (lat: number, lon: number) => {
-            onLocationChange(lat, lon);
+            if (!readOnly) onLocationChange(lat, lon);
         },
-        [onLocationChange]
+        [onLocationChange, readOnly]
     );
 
     // Offline fallback
@@ -179,6 +184,7 @@ export function LocationMap({
                     <DraggableMarker
                         position={position}
                         onDragEnd={handleMarkerDragEnd}
+                        readOnly={readOnly}
                     />
                     <MapEventHandler onLocationChange={handleMapClick} />
                     <MapController center={position} zoom={zoom} />
