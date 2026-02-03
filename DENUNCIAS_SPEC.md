@@ -106,6 +106,30 @@ Payload de criacao (multipart)
 - Quando lat/lng existir, salvar `location_accuracy_m`.
 - Se o usuario digitar endereco, opcionalmente geocodificar no backend (ex: Nominatim ou Google), sem bloquear o envio.
 
+**Integracao Geocoding No Wizard**
+Regra de ouro: nunca chamar o provedor direto do front com a key solta. Use um backend-proxy com debounce, cache e rate limit.
+
+Arquitetura simples e robusta
+- Backend-proxy para `autocomplete` e `reverse`.
+- Debounce no autocomplete entre 250 e 350ms.
+- Cache curto por query entre 5 e 30 minutos.
+- Rate limit leve por IP ou sessao.
+- Normalizacao do payload em um modelo interno unico.
+
+Fluxo do wizard
+1. Usar minha localizacao.
+2. Captura `navigator.geolocation` e a precisao.
+3. Chama `reverse` no backend e preenche o endereco.
+4. Campo de busca chama `autocomplete` com bias na posicao atual (se existir).
+5. Selecionou sugestao, fixa o pin e mostra o endereco final.
+6. Pin arrastavel, no `dragend` chama `reverse` e atualiza o endereco.
+7. Edicao manual sempre disponivel.
+
+Qualidade da localizacao
+- Precisa: GPS + reverse com boa confianca.
+- Aproximada: autocomplete ou geocode sem alta confianca.
+- Manual: usuario editou o endereco.
+
 **Imagens (3 fotos, ate 15MB)**
 - Limite: 3 imagens por denuncia.
 - Tamanho bruto: permitir ate 15MB por imagem.
