@@ -1,0 +1,177 @@
+# Features Map
+# Este arquivo é a fonte da verdade de todas as features do projeto.
+# Validado por: pnpm check:features
+#
+# Estrutura:
+#   feature_name:
+#     screens: [lista de componentes de tela]
+#     api: [lista de endpoints]
+#     tables: [tabelas do banco]
+#     permissions: {read, write, mod}
+#     offline: true/false
+
+features:
+  auth:
+    screens:
+      - LoginPage
+      - RegisterPage
+      - ForgotPasswordPage
+    api:
+      - POST /api/v1/auth/login
+      - POST /api/v1/auth/register
+      - POST /api/v1/auth/send-otp
+      - POST /api/v1/auth/verify-otp
+      - POST /api/v1/auth/refresh
+      - POST /api/v1/auth/logout
+      - GET /api/v1/auth/me
+    tables:
+      - users
+      - personal_access_tokens
+      - otp_codes
+    permissions:
+      read: public
+      write: public
+      mod: null
+    offline: false
+
+  forum:
+    screens:
+      - ForumScreen
+      - TopicDetailPage
+      - CreateTopicForm
+    api:
+      - GET /api/v1/forum/topics
+      - GET /api/v1/forum/topics/{id}
+      - POST /api/v1/forum/topics
+      - PUT /api/v1/forum/topics/{id}
+      - DELETE /api/v1/forum/topics/{id}
+      - POST /api/v1/forum/topics/{id}/like
+      - POST /api/v1/forum/topics/{id}/save
+      - POST /api/v1/forum/topics/{id}/comments
+      - GET /api/v1/forum/topics/{id}/comments
+    tables:
+      - topics
+      - comments
+      - topic_likes
+      - comment_likes
+      - saved_topics
+      - reports
+    permissions:
+      read: public
+      write: auth:sanctum
+      mod: role:admin|moderator
+    offline: true
+
+  events:
+    screens:
+      - AgendaScreen
+      - EventDetailsPage
+    api:
+      - GET /api/v1/events
+      - GET /api/v1/events/{id}
+      - GET /api/v1/events/featured
+      - GET /api/v1/events/today
+      - GET /api/v1/events/weekend
+      - GET /api/v1/events/calendar-summary
+      - POST /api/v1/events/{id}/rsvp
+      - POST /api/v1/events/{id}/favorite
+    tables:
+      - events
+      - event_categories
+      - event_tags
+      - event_rsvps
+      - event_favorites
+    permissions:
+      read: public
+      write: auth:sanctum
+      mod: role:admin
+    offline: false
+
+  reports:
+    screens:
+      - ReportScreen
+      - ReportListPage
+    api:
+      - POST /api/v1/reports
+      - GET /api/v1/users/me/reports
+    tables:
+      - reports
+      - report_categories
+      - media
+    permissions:
+      read: auth:sanctum
+      write: auth:sanctum
+      mod: role:admin
+    offline: true
+
+  bairros:
+    screens: []
+    api:
+      - GET /api/v1/bairros
+    tables:
+      - bairros
+    permissions:
+      read: public
+      write: null
+      mod: null
+    offline: false
+    cache: static
+
+  tourism:
+    screens:
+      - TourismScreen
+      - TourismDetailPage
+    api:
+      - GET /api/v1/tourism
+      - GET /api/v1/tourism/{id}
+    tables:
+      - tourist_spots
+      - media
+    permissions:
+      read: public
+      write: null
+      mod: null
+    offline: false
+    cache: static
+
+  masses:
+    screens:
+      - MassesPage
+    api:
+      - GET /api/v1/masses
+      - GET /api/v1/masses/churches
+    tables:
+      - churches
+      - mass_schedules
+    permissions:
+      read: public
+      write: null
+      mod: null
+    offline: false
+    cache: static
+
+  phones:
+    screens:
+      - UsefulPhonesScreen
+    api: []
+    tables: []
+    permissions:
+      read: public
+      write: null
+      mod: null
+    offline: false
+    dataSource: static # dados em src/data/phoneContacts.ts
+
+  trash:
+    screens:
+      - TrashScheduleScreen
+    api:
+      - GET /api/v1/trash-schedules
+    tables:
+      - trash_schedules
+    permissions:
+      read: public
+      write: null
+      mod: null
+    offline: false
+    cache: static

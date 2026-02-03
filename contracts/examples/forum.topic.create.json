@@ -1,0 +1,12 @@
+{
+    "title": "Buraco na Rua Principal",
+    "category": "reclamacao",
+    "content": "Existe um buraco enorme na Rua Principal, próximo ao número 500. Está causando acidentes e precisa de reparo urgente.",
+    "bairroId": "550e8400-e29b-41d4-a716-446655440001",
+    "images": [
+        {
+            "base64": "data:image/jpeg;base64,/9j/4AAQSkZ...",
+            "filename": "buraco.jpg"
+        }
+    ]
+}

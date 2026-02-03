@@ -1,0 +1,132 @@
+# ETijucas Monorepo Architecture
+
+> **Guia rápido de regras e convenções para manter o projeto organizado e escalável.**
+
+## Estrutura
+
+```
+etijucas/
+├── apps/
+│   ├── api/        # Laravel - Backend, Auth, Integrações
+│   └── web/        # React/Vite - Frontend PWA
+├── packages/
+│   ├── sdk/        # Cliente API gerado do OpenAPI
+│   └── shared/     # Types/Enums de UI compartilhados
+├── contracts/
+│   └── openapi.yaml  # Contrato da API (fonte da verdade)
+└── tools/
+    └── generate-sdk.js  # Geração automática do SDK
+```
+
+---
+
+## Regras Fundamentais
+
+### 1️⃣ API é a Fonte da Verdade
+
+- Toda lógica de negócio fica no **backend** (`apps/api`)
+- Validações críticas são feitas no backend, nunca só no front
+- O frontend apenas exibe e coleta dados
+
+### 2️⃣ Contrato Explícito via OpenAPI
+
+- Todo endpoint que o front usa **DEVE** estar em `contracts/openapi.yaml`
+- Rode `pnpm sdk:gen` após mudanças na API
+- O build quebra se o contrato mudar incompativelmente ✅
+
+### 3️⃣ Sem `fetch` Direto no Frontend
+
+```typescript
+// ❌ ERRADO - fetch direto
+const res = await fetch('/api/v1/events');
+
+// ✅ CERTO - usar SDK tipado
+import { createApiClient } from '@repo/sdk';
+const api = createApiClient({ baseUrl: '/api' });
+const events = await api.events.list();
+```
+
+### 4️⃣ Separação de Types
+
+| Origem | Pacote | Exemplo |
+|--------|--------|---------|
+| API (dados) | `@repo/sdk` | `User`, `Event`, `Bairro` |
+| UI only | `@repo/shared` | `LoadingState`, `ModalSize` |
+
+### 5️⃣ Integrações Externas só no Backend
+
+```
+✅ apps/api/app/Services/WhatsApp/
+✅ apps/api/app/Services/Payments/
+❌ apps/web/src/services/stripe.ts  # NUNCA!
+```
+
+---
+
+## Comandos
+
+| Comando | Descrição |
+|---------|-----------|
+| `pnpm dev` | Roda API e Web em paralelo |
+| `pnpm api:dev` | Só a API Laravel |
+| `pnpm web:dev` | Só o frontend React |
+| `pnpm build` | Build de todos os packages |
+| `pnpm lint` | Lint em todos os packages |
+| `pnpm sdk:gen` | Regenera SDK do OpenAPI |
+| `pnpm web:build` | Build do frontend |
+| `pnpm prod:build` | **SDK + Web build** (usar antes de deploy) |
+| `pnpm deploy:prep` | Prepara tudo para deploy |
+
+---
+
+## Fluxo de Desenvolvimento
+
+```mermaid
+flowchart LR
+    A[Cria/Altera API] --> B[Atualiza openapi.yaml]
+    B --> C[pnpm sdk:gen]
+    C --> D[Front usa @repo/sdk]
+    D --> E[TypeScript valida tudo]
+```
+
+### Adicionando Novo Endpoint
+
+1. Implemente no Laravel (`apps/api/routes/api.php`)
+2. Documente em `contracts/openapi.yaml`
+3. Rode `pnpm sdk:gen`
+4. Importe e use no frontend via `@repo/sdk`
+
+### Adicionando Enum de UI
+
+1. Crie em `packages/shared/src/enums/`
+2. Exporte em `packages/shared/src/enums/index.ts`
+3. Importe no frontend: `import { MyEnum } from '@repo/shared'`
+
+---
+
+## Setup Local
+
+```bash
+# Instalar dependências
+pnpm install
+
+# API (em apps/api)
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate
+
+# Rodar tudo
+pnpm dev
+```
+
+---
+
+## Vibecoding-Friendly 🎯
+
+Este monorepo foi estruturado para facilitar o desenvolvimento assistido por IA:
+
+- **Contrato explícito**: O OpenAPI mostra claramente o que a API oferece
+- **SDK tipado**: Autocomplete mostra todos os métodos disponíveis
+- **Separação clara**: Fácil entender onde cada código deve ficar
+- **Erros de build**: Se algo quebrar, o TypeScript avisa imediatamente

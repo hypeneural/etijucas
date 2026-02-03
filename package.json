@@ -1,0 +1,32 @@
+{
+  "private": true,
+  "name": "@repo/root",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "pnpm --filter @repo/api dev & pnpm --filter @repo/web dev",
+    "api:dev": "pnpm --filter @repo/api dev",
+    "web:dev": "pnpm --filter @repo/web dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "sdk:gen": "node tools/generate-sdk.js && node tools/update-checksum.js",
+    "check:contracts": "node tools/check-contracts.js",
+    "check:features": "node tools/check-features-map.js",
+    "make:feature": "node tools/make-feature.js",
+    "web:build": "pnpm --filter @repo/web build",
+    "prod:build": "pnpm sdk:gen && pnpm web:build",
+    "deploy:prep": "pnpm prod:build && echo 'Build ready in apps/api/public/app'",
+    "ci": "pnpm check:contracts && pnpm check:features && pnpm lint && pnpm test && pnpm build"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "yaml": "^2.8.2"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "pnpm@9.0.0"
+}

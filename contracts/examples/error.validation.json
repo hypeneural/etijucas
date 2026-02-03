@@ -1,0 +1,12 @@
+{
+    "message": "Dados inválidos.",
+    "code": "VALIDATION_ERROR",
+    "errors": {
+        "email": [
+            "O campo email é obrigatório."
+        ],
+        "password": [
+            "A senha deve ter no mínimo 8 caracteres."
+        ]
+    }
+}

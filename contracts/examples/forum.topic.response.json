@@ -1,0 +1,25 @@
+{
+    "data": {
+        "id": "550e8400-e29b-41d4-a716-446655440099",
+        "title": "Buraco na Rua Principal",
+        "slug": "buraco-na-rua-principal",
+        "category": "reclamacao",
+        "content": "Existe um buraco enorme na Rua Principal, próximo ao número 500.",
+        "imageUrl": "https://api.etijucas.com.br/storage/forum/buraco.jpg",
+        "likesCount": 0,
+        "commentsCount": 0,
+        "isLiked": false,
+        "isSaved": false,
+        "author": {
+            "id": "550e8400-e29b-41d4-a716-446655440001",
+            "name": "João Silva",
+            "avatarUrl": null
+        },
+        "bairro": {
+            "id": "550e8400-e29b-41d4-a716-446655440001",
+            "name": "Centro"
+        },
+        "createdAt": "2026-02-03T10:30:00Z",
+        "updatedAt": "2026-02-03T10:30:00Z"
+    }
+}

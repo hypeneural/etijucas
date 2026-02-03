@@ -1,0 +1,799 @@
+openapi: 3.0.3
+info:
+  title: ETijucas API
+  description: |
+    API para o aplicativo ETijucas - Seu Dia a Dia.
+    
+    Este arquivo é a fonte de verdade para os contratos da API.
+    O SDK TypeScript é gerado automaticamente a partir desta especificação.
+  version: 1.0.0
+  contact:
+    name: ETijucas Team
+    
+servers:
+  - url: http://localhost:8000
+    description: Development server
+  - url: https://api.etijucas.com.br
+    description: Production server
+
+tags:
+  - name: Auth
+    description: Authentication endpoints
+  - name: Events
+    description: Events/Agenda management
+  - name: Bairros
+    description: Neighborhood data
+  - name: Forum
+    description: Boca no Trombone (community forum)
+  - name: Masses
+    description: Church mass schedules
+  - name: Phones
+    description: Useful phone numbers
+  - name: Tourist
+    description: Tourist attractions
+
+paths:
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      summary: User login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v1/auth/me:
+    get:
+      tags: [Auth]
+      summary: Get current user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current user data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/User'
+
+  /api/v1/events:
+    get:
+      tags: [Events]
+      summary: List events
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/per_page'
+        - name: featured
+          in: query
+          schema:
+            type: boolean
+        - name: category_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: date_from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: date_to
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: List of events
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Event'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+
+  /api/v1/events/{id}:
+    get:
+      tags: [Events]
+      summary: Get single event
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Event details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Event'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/bairros:
+    get:
+      tags: [Bairros]
+      summary: List neighborhoods
+      responses:
+        '200':
+          description: List of neighborhoods
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Bairro'
+
+  # ============ AUTH ============
+  /api/v1/auth/register:
+    post:
+      tags: [Auth]
+      summary: Register new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password, password_confirmation, phone]
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+                password_confirmation:
+                  type: string
+                phone:
+                  type: string
+                bairro_id:
+                  type: string
+                  format: uuid
+      responses:
+        '201':
+          description: User registered
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /api/v1/auth/send-otp:
+    post:
+      tags: [Auth]
+      summary: Send OTP via WhatsApp
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone]
+              properties:
+                phone:
+                  type: string
+      responses:
+        '200':
+          description: OTP sent
+        '429':
+          description: Too many requests
+
+  /api/v1/auth/verify-otp:
+    post:
+      tags: [Auth]
+      summary: Verify OTP code
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone, code]
+              properties:
+                phone:
+                  type: string
+                code:
+                  type: string
+      responses:
+        '200':
+          description: OTP verified
+        '400':
+          description: Invalid or expired OTP
+
+  /api/v1/auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Refresh access token
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: New token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+
+  /api/v1/auth/logout:
+    post:
+      tags: [Auth]
+      summary: Logout user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logged out
+
+  # ============ FORUM ============
+  /api/v1/forum/topics:
+    get:
+      tags: [Forum]
+      summary: List topics
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/per_page'
+        - name: category
+          in: query
+          schema:
+            type: string
+            enum: [sugestao, reclamacao, duvida, elogio, outro]
+        - name: bairro_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of topics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Topic'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+    post:
+      tags: [Forum]
+      summary: Create topic
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, content, category]
+              properties:
+                title:
+                  type: string
+                content:
+                  type: string
+                category:
+                  type: string
+                  enum: [sugestao, reclamacao, duvida, elogio, outro]
+                bairro_id:
+                  type: string
+                  format: uuid
+                images:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '201':
+          description: Topic created
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /api/v1/forum/topics/{id}:
+    get:
+      tags: [Forum]
+      summary: Get topic details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Topic details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Topic'
+    put:
+      tags: [Forum]
+      summary: Update topic
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Topic updated
+    delete:
+      tags: [Forum]
+      summary: Delete topic
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Topic deleted
+
+  /api/v1/forum/topics/{id}/like:
+    post:
+      tags: [Forum]
+      summary: Toggle like on topic
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Like toggled
+
+  /api/v1/forum/topics/{id}/save:
+    post:
+      tags: [Forum]
+      summary: Toggle save topic
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Save toggled
+
+  /api/v1/forum/topics/{id}/comments:
+    get:
+      tags: [Forum]
+      summary: List comments for topic
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of comments
+    post:
+      tags: [Forum]
+      summary: Create comment
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content]
+              properties:
+                content:
+                  type: string
+                parent_id:
+                  type: string
+                  format: uuid
+      responses:
+        '201':
+          description: Comment created
+
+  # ============ EVENTS SPECIAL ============
+  /api/v1/events/featured:
+    get:
+      tags: [Events]
+      summary: Get featured events
+      responses:
+        '200':
+          description: Featured events
+
+  /api/v1/events/today:
+    get:
+      tags: [Events]
+      summary: Get today's events
+      responses:
+        '200':
+          description: Today's events
+
+  /api/v1/events/weekend:
+    get:
+      tags: [Events]
+      summary: Get weekend events
+      responses:
+        '200':
+          description: Weekend events
+
+  /api/v1/events/calendar-summary:
+    get:
+      tags: [Events]
+      summary: Get calendar summary
+      parameters:
+        - name: year
+          in: query
+          schema:
+            type: integer
+        - name: month
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Calendar summary
+
+  /api/v1/events/{id}/rsvp:
+    post:
+      tags: [Events]
+      summary: RSVP to event
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [going, interested]
+      responses:
+        '200':
+          description: RSVP recorded
+
+  /api/v1/events/{id}/favorite:
+    post:
+      tags: [Events]
+      summary: Toggle favorite event
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Favorite toggled
+
+  # ============ REPORTS ============
+  /api/v1/reports:
+    post:
+      tags: [Reports]
+      summary: Create report
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, description, category_id]
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                category_id:
+                  type: string
+                  format: uuid
+                bairro_id:
+                  type: string
+                  format: uuid
+                location:
+                  type: string
+                images:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      base64:
+                        type: string
+                      filename:
+                        type: string
+      responses:
+        '201':
+          description: Report created
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /api/v1/users/me/reports:
+    get:
+      tags: [Reports]
+      summary: List user's reports
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User's reports
+
+  # ============ TOURISM ============
+  /api/v1/tourism:
+    get:
+      tags: [Tourist]
+      summary: List tourist spots
+      responses:
+        '200':
+          description: List of tourist spots
+
+  /api/v1/tourism/{id}:
+    get:
+      tags: [Tourist]
+      summary: Get tourist spot details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Tourist spot details
+
+  # ============ MASSES ============
+  /api/v1/masses:
+    get:
+      tags: [Masses]
+      summary: List mass schedules
+      responses:
+        '200':
+          description: Mass schedules
+
+  /api/v1/masses/churches:
+    get:
+      tags: [Masses]
+      summary: List churches
+      responses:
+        '200':
+          description: List of churches
+
+  # ============ TRASH ============
+  /api/v1/trash-schedules:
+    get:
+      tags: [Trash]
+      summary: List trash collection schedules
+      responses:
+        '200':
+          description: Collection schedules
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        default: 1
+    per_page:
+      name: per_page
+      in: query
+      schema:
+        type: integer
+        default: 15
+        maximum: 100
+
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: Unauthenticated.
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: Resource not found.
+    ValidationError:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              errors:
+                type: object
+                additionalProperties:
+                  type: array
+                  items:
+                    type: string
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        avatar_url:
+          type: string
+          nullable: true
+        bairro_id:
+          type: string
+          format: uuid
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    Event:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        location:
+          type: string
+          nullable: true
+        start_date:
+          type: string
+          format: date-time
+        end_date:
+          type: string
+          format: date-time
+          nullable: true
+        is_featured:
+          type: boolean
+        image_url:
+          type: string
+          nullable: true
+        category:
+          $ref: '#/components/schemas/EventCategory'
+
+    EventCategory:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        color:
+          type: string
+
+    Bairro:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        city_id:
+          type: string
+          format: uuid
+
+    PaginationMeta:
+      type: object
+      properties:
+        current_page:
+          type: integer
+        last_page:
+          type: integer
+        per_page:
+          type: integer
+        total:
+          type: integer

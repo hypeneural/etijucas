@@ -1,0 +1,43 @@
+{
+    "data": [
+        {
+            "id": "550e8400-e29b-41d4-a716-446655440099",
+            "title": "Festival de Verão Tijucas 2026",
+            "description": "O maior festival de verão da região...",
+            "location": "Praça Central",
+            "startDate": "2026-02-15T18:00:00-03:00",
+            "endDate": "2026-02-15T23:00:00-03:00",
+            "isFeatured": true,
+            "isMultiDay": false,
+            "imageUrl": "https://api.etijucas.com.br/storage/events/festival.jpg",
+            "bannerUrl": "https://api.etijucas.com.br/storage/events/festival-banner.jpg",
+            "category": {
+                "id": "550e8400-e29b-41d4-a716-446655440010",
+                "name": "Cultural",
+                "slug": "cultural",
+                "color": "#8B5CF6"
+            },
+            "tags": [
+                {
+                    "id": "1",
+                    "name": "musica",
+                    "slug": "musica"
+                },
+                {
+                    "id": "2",
+                    "name": "gastronomia",
+                    "slug": "gastronomia"
+                }
+            ],
+            "attendeesCount": 42,
+            "isFavorited": false,
+            "userRsvp": null
+        }
+    ],
+    "meta": {
+        "current_page": 1,
+        "last_page": 3,
+        "per_page": 15,
+        "total": 42
+    }
+}

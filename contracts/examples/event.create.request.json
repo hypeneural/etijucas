@@ -1,0 +1,18 @@
+{
+    "title": "Festival de Verão Tijucas 2026",
+    "description": "O maior festival de verão da região com shows, gastronomia e diversão para toda família.",
+    "location": "Praça Central",
+    "startDate": "2026-02-15T18:00:00-03:00",
+    "endDate": "2026-02-15T23:00:00-03:00",
+    "categoryId": "550e8400-e29b-41d4-a716-446655440010",
+    "isFeatured": true,
+    "bannerImage": {
+        "base64": "data:image/jpeg;base64,/9j/4AAQSkZ...",
+        "filename": "festival-banner.jpg"
+    },
+    "tags": [
+        "musica",
+        "gastronomia",
+        "familia"
+    ]
+}
