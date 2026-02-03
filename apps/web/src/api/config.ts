@@ -224,7 +224,7 @@ export const QUERY_KEYS = {
         list: (filters?: Record<string, unknown>) => ['reports', 'list', filters] as const,
         mine: ['reports', 'mine'] as const,
         public: ['reports', 'public'] as const,
-        stats: ['reports', 'stats'] as const,
+        stats: () => ['reports', 'stats'] as const,
         detail: (id: string) => ['reports', 'detail', id] as const,
         categories: ['reports', 'categories'] as const,
     },
