@@ -6,7 +6,7 @@
 // In development, use '/api' which is proxied by Vite to bypass CORS
 // In production, use the full API URL
 const isDev = import.meta.env.DEV;
-const PROD_API_URL = import.meta.env.VITE_API_URL || 'https://api.natalemtijucas.com.br/api/v1';
+const PROD_API_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
 export const API_CONFIG = {
     baseURL: isDev ? '/api' : PROD_API_URL,
@@ -201,7 +201,7 @@ export const QUERY_KEYS = {
     // Reports - simple arrays for query key spreading
     reports: ['reports'] as const,
     myReports: ['reports', 'mine'] as const,
-    
+
     // Topics
     topics: {
         all: ['topics'] as const,
