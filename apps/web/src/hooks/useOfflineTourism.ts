@@ -10,6 +10,22 @@ import { tourismSpotsMock } from '@/data/tourism.mock';
 import { useNetworkStatus } from './useNetworkStatus';
 import { QUERY_KEYS, CACHE_TIMES } from '@/api/config';
 
+// Cache version - increment this to force cache refresh
+const TOURISM_CACHE_VERSION = '2';
+const CACHE_VERSION_KEY = 'etijucas-tourism-cache-version';
+
+// Check and clear cache if version changed
+async function checkCacheVersion() {
+  const storedVersion = localStorage.getItem(CACHE_VERSION_KEY);
+  if (storedVersion !== TOURISM_CACHE_VERSION) {
+    console.log('[Tourism] Cache version changed, clearing IndexedDB...');
+    await tourismDB.clear();
+    localStorage.setItem(CACHE_VERSION_KEY, TOURISM_CACHE_VERSION);
+    return true;
+  }
+  return false;
+}
+
 /**
  * Offline-first hook for tourism spots
  * Features:
@@ -21,39 +37,51 @@ import { QUERY_KEYS, CACHE_TIMES } from '@/api/config';
 export function useOfflineTourism(filters?: TourismFilters) {
   const queryClient = useQueryClient();
   const { isOnline } = useNetworkStatus();
+
   // Main query - fetch all spots
   const { data: rawSpots = [], isLoading, error, refetch } = useQuery({
-    queryKey: [...QUERY_KEYS.tourism.spots(), 'enhanced'],
+    queryKey: [...QUERY_KEYS.tourism.spots(), 'enhanced', TOURISM_CACHE_VERSION],
     queryFn: async () => {
+      // Check cache version first
+      await checkCacheVersion();
+
       // Always try API first when online
       if (isOnline) {
         try {
+          console.log('[Tourism] Fetching from API...');
           const apiSpots = await tourismService.getAll();
+          console.log('[Tourism] API returned:', apiSpots?.length || 0, 'spots');
+
           // Cache to IndexedDB
           if (apiSpots && apiSpots.length > 0) {
             await tourismDB.clear();
             await tourismDB.saveMany(apiSpots as unknown as import('@/types').TourismSpot[]);
+            console.log('[Tourism] Cached to IndexedDB');
           }
           return apiSpots as unknown as TourismSpotEnhanced[];
         } catch (err) {
-          console.warn('[Tourism] API failed, using cache:', err);
+          console.warn('[Tourism] API failed:', err);
         }
       }
 
       // Fallback to IndexedDB
+      console.log('[Tourism] Trying IndexedDB cache...');
       const cached = await tourismDB.getAll();
       if (cached.length > 0) {
+        console.log('[Tourism] Using cached data:', cached.length, 'spots');
         return cached as unknown as TourismSpotEnhanced[];
       }
 
       // Final fallback to mock data (dev only)
       if (import.meta.env.DEV) {
+        console.log('[Tourism] Using mock data (DEV only)');
         return tourismSpotsMock;
       }
 
+      console.log('[Tourism] No data available');
       return [];
     },
-    staleTime: CACHE_TIMES.events, // 1 hour
+    staleTime: 5 * 60 * 1000, // 5 minutes - shorter for more frequent updates
   });
 
   // Apply client-side filters
