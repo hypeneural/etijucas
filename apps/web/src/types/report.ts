@@ -109,6 +109,7 @@ export interface ReportDraft {
 
     // Step 2
     location: LocationData | null;
+    locationNote: string; // Optional observation / reference point
 
     // Step 3
     images: CapturedImage[];
@@ -181,6 +182,7 @@ export const initialReportDraft: ReportDraft = {
     categoryId: null,
     category: null,
     location: null,
+    locationNote: '',
     images: [],
     title: '',
     description: '',

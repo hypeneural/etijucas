@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Console\Commands\MakeAdminCrud;
 use App\Models\Bairro;
 use App\Models\ContentFlag;
 use App\Models\Phone;
@@ -27,7 +28,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->commands([
+            MakeAdminCrud::class,
+        ]);
     }
 
     /**
@@ -60,4 +63,3 @@ class AppServiceProvider extends ServiceProvider
         });
     }
 }
-

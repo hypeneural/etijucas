@@ -96,10 +96,7 @@ export default function ReportWizardPage() {
             toast.error('O título deve ter pelo menos 5 caracteres');
             return;
         }
-        if (!draft.description || draft.description.trim().length < 10) {
-            toast.error('A descrição deve ter pelo menos 10 caracteres');
-            return;
-        }
+        // Description is optional - no validation needed
 
         try {
             // Build payload

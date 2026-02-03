@@ -406,7 +406,14 @@ export function StepLocation({ draft, onUpdate, onNext, onBack }: StepLocationPr
                         <Card className="p-4">
                             <div className="flex items-start justify-between">
                                 <div>
-                                    <p className="font-medium">{draft.location.address || 'Localização capturada'}</p>
+                                    {isReverseGeocoding ? (
+                                        <div className="flex items-center gap-2">
+                                            <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                                            <span className="text-muted-foreground">Buscando endereço...</span>
+                                        </div>
+                                    ) : (
+                                        <p className="font-medium">{draft.location.address || 'Localização capturada'}</p>
+                                    )}
                                     <p className="text-xs text-muted-foreground mt-1">
                                         Coordenadas: {draft.location.latitude.toFixed(4)}, {draft.location.longitude.toFixed(4)}
                                     </p>
@@ -421,6 +428,24 @@ export function StepLocation({ draft, onUpdate, onNext, onBack }: StepLocationPr
                                 </Button>
                             </div>
                         </Card>
+
+                        {/* Observation / Reference Point */}
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium flex items-center gap-2">
+                                <Edit3 className="h-4 w-4 text-muted-foreground" />
+                                Ponto de referência (opcional)
+                            </label>
+                            <Input
+                                placeholder="Ex: Próximo ao Supermercado X"
+                                value={draft.locationNote || ''}
+                                onChange={(e) => onUpdate({ locationNote: e.target.value })}
+                                className="h-12 rounded-xl"
+                                maxLength={100}
+                            />
+                            <p className="text-xs text-muted-foreground">
+                                Ajude a localizar o problema com uma referência
+                            </p>
+                        </div>
                     </motion.div>
                 )}
 

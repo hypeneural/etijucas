@@ -36,6 +36,7 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const cameraInputRef = useRef<HTMLInputElement>(null); // Native camera capture for iOS
 
     const [cameraState, setCameraState] = useState<CameraState>({
         status: 'idle',
@@ -373,6 +374,16 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
                 className="hidden"
             />
 
+            {/* Hidden file input for native camera capture (iOS compatible) */}
+            <input
+                ref={cameraInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handleGalleryUpload}
+                className="hidden"
+            />
+
             {/* Tips Card */}
             <Card className="p-4 bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
                 <div className="flex items-start gap-3">
@@ -432,10 +443,10 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
                                 )}
 
                                 <div className="w-full space-y-2">
-                                    {/* Camera Button - Only if secure context and has camera */}
+                                    {/* Camera Button - Uses native capture for iOS compatibility */}
                                     {isSecureContext && hasCameraDevice !== false && (
                                         <Button
-                                            onClick={startCamera}
+                                            onClick={() => cameraInputRef.current?.click()}
                                             className="w-full"
                                             size="lg"
                                             disabled={hasCameraDevice === null}
@@ -445,7 +456,7 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
                                             ) : (
                                                 <Camera className="h-4 w-4 mr-2" />
                                             )}
-                                            Ativar Câmera
+                                            Tirar Foto
                                         </Button>
                                     )}
 
@@ -683,51 +694,56 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
                                     animate={{ opacity: 1, scale: 1 }}
                                     exit={{ opacity: 0, scale: 0.8 }}
                                     layout
-                                    className="relative aspect-square rounded-xl overflow-hidden bg-muted"
+                                    className="relative aspect-square"
                                 >
+                                    {/* Image */}
                                     <img
                                         src={image.previewUrl}
                                         alt={`Foto ${index + 1}`}
-                                        className="w-full h-full object-cover"
+                                        className="w-full h-full object-cover rounded-xl"
                                     />
 
-                                    <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/70 to-transparent">
-                                        <div className="flex justify-center gap-2">
-                                            <motion.button
-                                                whileTap={{ scale: 0.9 }}
-                                                onClick={() => retakeImage(image.id)}
-                                                className="px-2 py-1 text-xs bg-white/20 text-white rounded-md backdrop-blur-sm flex items-center gap-1"
-                                            >
-                                                <RefreshCw className="h-3 w-3" />
-                                                Refazer
-                                            </motion.button>
-                                            <motion.button
-                                                whileTap={{ scale: 0.9 }}
-                                                onClick={() => removeImage(image.id)}
-                                                className="px-2 py-1 text-xs bg-red-500/80 text-white rounded-md flex items-center gap-1"
-                                            >
-                                                <X className="h-3 w-3" />
-                                                Remover
-                                            </motion.button>
-                                        </div>
-                                    </div>
-
+                                    {/* Number badge */}
                                     <div className="absolute top-2 left-2 h-6 w-6 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center">
                                         {index + 1}
+                                    </div>
+
+                                    {/* Remove button - Outside the box, always visible */}
+                                    <button
+                                        type="button"
+                                        onClick={() => removeImage(image.id)}
+                                        className="absolute -top-2 -right-2 h-7 w-7 rounded-full bg-red-500 text-white flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors z-10"
+                                        aria-label="Remover foto"
+                                    >
+                                        <X className="h-4 w-4" />
+                                    </button>
+
+                                    {/* Retake button at bottom */}
+                                    <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/70 to-transparent rounded-b-xl">
+                                        <button
+                                            type="button"
+                                            onClick={() => retakeImage(image.id)}
+                                            className="w-full px-2 py-1 text-xs bg-white/20 text-white rounded-md backdrop-blur-sm flex items-center justify-center gap-1"
+                                        >
+                                            <RefreshCw className="h-3 w-3" />
+                                            Refazer
+                                        </button>
                                     </div>
                                 </motion.div>
                             ))}
                         </AnimatePresence>
 
-                        {/* Empty slots */}
+                        {/* Empty slots - Now clickable */}
                         {Array.from({ length: MAX_IMAGES - draft.images.length }).map((_, index) => (
-                            <div
+                            <button
                                 key={`empty-${index}`}
-                                className="aspect-square rounded-xl border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center gap-1"
+                                type="button"
+                                onClick={() => cameraInputRef.current?.click()}
+                                className="aspect-square rounded-xl border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center gap-1 hover:border-primary/50 hover:bg-primary/5 transition-colors cursor-pointer"
                             >
-                                <Camera className="h-5 w-5 text-muted-foreground/30" />
-                                <span className="text-xs text-muted-foreground/50">Vazio</span>
-                            </div>
+                                <ImagePlus className="h-5 w-5 text-muted-foreground/50" />
+                                <span className="text-xs text-muted-foreground/50">Adicionar</span>
+                            </button>
                         ))}
                     </div>
                 </div>
