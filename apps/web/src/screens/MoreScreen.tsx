@@ -64,7 +64,7 @@ export default function MoreScreen({ scrollRef }: MoreScreenProps) {
     { id: 'turismo' as ScreenView, label: 'Pontos Turísticos', icon: MapPin, color: 'bg-secondary/10 text-secondary' },
     { id: 'missas' as ScreenView, label: 'Horários das Missas', icon: Church, color: 'bg-primary/10 text-primary' },
     { id: 'telefones' as ScreenView, label: 'Telefones Úteis', icon: Phone, color: 'bg-accent/10 text-accent' },
-    { id: 'envios' as ScreenView, label: 'Meus Envios', icon: FileText, color: 'bg-purple-100 text-purple-600' },
+    { id: 'envios' as ScreenView, label: 'Fiscaliza Tijucas', icon: FileText, color: 'bg-purple-100 text-purple-600' },
   ];
 
   const handleLogout = () => {

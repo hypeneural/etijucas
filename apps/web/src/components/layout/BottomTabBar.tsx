@@ -12,7 +12,7 @@ interface Tab {
 
 const tabs: Tab[] = [
   { id: 'home', label: 'Início', icon: Home },
-  { id: 'reportar', label: 'Denunciar', icon: AlertTriangle },
+  { id: 'reportar', label: 'Fiscaliza', icon: AlertTriangle },
   { id: 'forum', label: 'Trombone', icon: Megaphone },
   { id: 'agenda', label: 'Agenda', icon: Calendar },
   { id: 'mais', label: 'Mais', icon: MoreHorizontal },

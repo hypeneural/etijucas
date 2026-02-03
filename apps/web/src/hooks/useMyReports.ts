@@ -3,12 +3,14 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { reportService, type MyReportsFilters } from '@/services/report.service';
+import { reportService, type MyReportsFilters, type PublicReportsFilters, type ReportsStats } from '@/services/report.service';
 import { useAuthStore } from '@/store/useAuthStore';
 import type { CitizenReport, ReportStatus, CreateReportPayload } from '@/types/report';
 
 const QUERY_KEYS = {
     myReports: ['reports', 'mine'] as const,
+    publicReports: ['reports', 'public'] as const,
+    reportsStats: ['reports', 'stats'] as const,
     reportDetail: (id: string) => ['reports', 'detail', id] as const,
 };
 
@@ -101,6 +103,50 @@ export function useRemoveReportMedia() {
         removeMedia: mutation.mutateAsync,
         isRemoving: mutation.isPending,
         error: mutation.error,
+    };
+}
+
+// ======================================================
+// Public Reports (visible to all users)
+// ======================================================
+
+export function usePublicReports(filters?: PublicReportsFilters) {
+    const query = useQuery({
+        queryKey: [...QUERY_KEYS.publicReports, filters],
+        queryFn: () => reportService.getPublicReports(filters),
+        staleTime: 2 * 60 * 1000, // 2 minutes
+    });
+
+    return {
+        reports: query.data?.data ?? [],
+        meta: query.data?.meta,
+        isLoading: query.isLoading,
+        error: query.error,
+        refetch: query.refetch,
+    };
+}
+
+// ======================================================
+// Reports Stats (KPIs)
+// ======================================================
+
+export function useReportsStats() {
+    const query = useQuery({
+        queryKey: QUERY_KEYS.reportsStats,
+        queryFn: () => reportService.getReportsStats(),
+        staleTime: 5 * 60 * 1000, // 5 minutes
+    });
+
+    return {
+        stats: query.data ?? {
+            total: 0,
+            byStatus: { recebido: 0, em_analise: 0, em_andamento: 0, resolvido: 0, nao_procede: 0 },
+            thisMonth: 0,
+            resolvedThisMonth: 0,
+        },
+        isLoading: query.isLoading,
+        error: query.error,
+        refetch: query.refetch,
     };
 }
 

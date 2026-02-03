@@ -47,6 +47,8 @@ export const ENDPOINTS = {
     reports: {
         categories: '/report-categories',
         create: '/reports',
+        list: '/reports',               // Public list (approved)
+        stats: '/reports/stats',         // KPIs: total, resolved, pending, etc.
         myReports: '/reports/me',
         get: (id: string) => `/reports/${id}`,
         addMedia: (id: string) => `/reports/${id}/media`,

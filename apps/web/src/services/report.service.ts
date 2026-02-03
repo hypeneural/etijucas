@@ -177,6 +177,77 @@ export async function getMyReports(
 }
 
 // ======================================================
+// Public Reports (approved/visible to all)
+// ======================================================
+
+export interface PublicReportsFilters {
+    status?: string;
+    categoryId?: string;
+    search?: string;
+    page?: number;
+    perPage?: number;
+}
+
+export async function getPublicReports(
+    filters?: PublicReportsFilters
+): Promise<MyReportsResponse> {
+    try {
+        const params = new URLSearchParams();
+        if (filters?.status) params.append('status', filters.status);
+        if (filters?.categoryId) params.append('categoryId', filters.categoryId);
+        if (filters?.search) params.append('search', filters.search);
+        if (filters?.page) params.append('page', String(filters.page));
+        if (filters?.perPage) params.append('perPage', String(filters.perPage));
+
+        const queryString = params.toString();
+        const url = queryString
+            ? `${ENDPOINTS.reports.list}?${queryString}`
+            : ENDPOINTS.reports.list;
+
+        const response = await apiClient.get<MyReportsResponse>(url);
+        return response;
+    } catch (error) {
+        console.error('[ReportService] Failed to fetch public reports:', error);
+        throw error;
+    }
+}
+
+// ======================================================
+// Reports Stats (KPIs)
+// ======================================================
+
+export interface ReportsStats {
+    total: number;
+    byStatus: {
+        recebido: number;
+        em_analise: number;
+        em_andamento: number;
+        resolvido: number;
+        nao_procede: number;
+    };
+    thisMonth: number;
+    resolvedThisMonth: number;
+}
+
+export async function getReportsStats(): Promise<ReportsStats> {
+    try {
+        const response = await apiClient.get<{ data: ReportsStats }>(
+            ENDPOINTS.reports.stats
+        );
+        return response.data;
+    } catch (error) {
+        console.error('[ReportService] Failed to fetch reports stats:', error);
+        // Return mock stats on error
+        return {
+            total: 0,
+            byStatus: { recebido: 0, em_analise: 0, em_andamento: 0, resolvido: 0, nao_procede: 0 },
+            thisMonth: 0,
+            resolvedThisMonth: 0,
+        };
+    }
+}
+
+// ======================================================
 // Get Report Detail
 // ======================================================
 
@@ -289,6 +360,8 @@ export const reportService = {
     getCategories,
     createReport,
     getMyReports,
+    getPublicReports,
+    getReportsStats,
     getReportById,
     addReportMedia,
     removeReportMedia,
