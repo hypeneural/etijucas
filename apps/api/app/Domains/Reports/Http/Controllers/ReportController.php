@@ -92,7 +92,7 @@ class ReportController extends Controller
             'category_id' => $validated['categoryId'],
             'bairro_id' => $validated['bairroId'] ?? null,
             'title' => $validated['title'],
-            'description' => strip_tags($validated['description']), // XSS protection
+            'description' => isset($validated['description']) ? strip_tags($validated['description']) : null, // XSS protection
             'status' => ReportStatus::Recebido,
             'address_text' => $validated['addressText'] ?? null,
             'address_source' => $validated['addressSource'] ?? 'manual',

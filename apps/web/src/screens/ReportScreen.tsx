@@ -284,29 +284,44 @@ export default function ReportScreen({ scrollRef }: ReportScreenProps) {
                       </span>
                     </div>
 
-                    {/* Content */}
-                    <div className="p-3">
-                      <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-1 line-clamp-1">
-                        {report.title}
-                      </h3>
-
-                      {/* Location Badge */}
-                      {report.addressText && (
-                        <div className="flex items-center gap-1 text-xs text-slate-500 mb-3">
-                          <MapPin className="w-3 h-3 text-slate-400" />
-                          <span className="line-clamp-1">{report.addressText}</span>
+                    {/* Content with optional Thumbnail */}
+                    <div className="p-3 flex gap-3">
+                      {/* Thumbnail */}
+                      {report.media && report.media.length > 0 && (
+                        <div className="shrink-0">
+                          <img
+                            src={report.media[0].thumbUrl || report.media[0].url}
+                            alt="Foto da denúncia"
+                            className="w-16 h-16 rounded-lg object-cover bg-slate-100 dark:bg-slate-800"
+                            loading="lazy"
+                          />
                         </div>
                       )}
 
-                      {/* Status and Protocol */}
-                      <div className="flex items-center justify-between mt-2">
-                        <Badge variant="secondary" className={cn("text-[10px] px-2 h-5 font-normal", status.color)}>
-                          <StatusIcon className="w-3 h-3 mr-1" />
-                          {status.label}
-                        </Badge>
-                        <span className="text-[10px] font-mono text-slate-400">
-                          #{report.protocol}
-                        </span>
+                      {/* Text content */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-1 line-clamp-2">
+                          {report.title}
+                        </h3>
+
+                        {/* Location Badge */}
+                        {report.addressText && (
+                          <div className="flex items-center gap-1 text-xs text-slate-500 mb-2">
+                            <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                            <span className="line-clamp-1">{report.addressText}</span>
+                          </div>
+                        )}
+
+                        {/* Status and Protocol */}
+                        <div className="flex items-center justify-between">
+                          <Badge variant="secondary" className={cn("text-[10px] px-2 h-5 font-normal", status.color)}>
+                            <StatusIcon className="w-3 h-3 mr-1" />
+                            {status.label}
+                          </Badge>
+                          <span className="text-[10px] font-mono text-slate-400">
+                            #{report.protocol}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </Card>

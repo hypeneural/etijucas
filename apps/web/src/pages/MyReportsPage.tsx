@@ -56,18 +56,27 @@ function ReportCard({ report }: { report: CitizenReport }) {
                 onClick={() => navigate(`/denuncia/${report.id}`)}
             >
                 <div className="flex items-start gap-3">
-                    {/* Category Emoji */}
-                    <div
-                        className="p-3 rounded-xl text-2xl shrink-0"
-                        style={{ backgroundColor: report.category?.color + '20' }}
-                    >
-                        {report.category?.icon || '📋'}
-                    </div>
+                    {/* Thumbnail or Category Emoji */}
+                    {report.media && report.media.length > 0 ? (
+                        <img
+                            src={report.media[0].thumbUrl || report.media[0].url}
+                            alt="Foto da denúncia"
+                            className="w-14 h-14 rounded-xl object-cover bg-muted shrink-0"
+                            loading="lazy"
+                        />
+                    ) : (
+                        <div
+                            className="w-14 h-14 rounded-xl text-2xl shrink-0 flex items-center justify-center"
+                            style={{ backgroundColor: (report.category?.color || '#6b7280') + '20' }}
+                        >
+                            {report.category?.icon || '📋'}
+                        </div>
+                    )}
 
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2">
-                            <h3 className="font-semibold line-clamp-1">{report.title}</h3>
+                            <h3 className="font-semibold line-clamp-2">{report.title}</h3>
                             <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0" />
                         </div>
 
@@ -90,7 +99,7 @@ function ReportCard({ report }: { report: CitizenReport }) {
 
                         {report.addressText && (
                             <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
-                                <MapPin className="h-3 w-3" />
+                                <MapPin className="h-3 w-3 shrink-0" />
                                 <span className="line-clamp-1">{report.addressText}</span>
                             </p>
                         )}

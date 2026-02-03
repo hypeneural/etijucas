@@ -143,8 +143,34 @@ class CitizenReport extends Model implements HasMedia
     public static function generateProtocol(): string
     {
         $year = date('Y');
-        $count = self::whereYear('created_at', $year)->count() + 1;
-        return sprintf('ETJ-%s-%06d', $year, $count);
+        $maxRetries = 10;
+
+        for ($attempt = 0; $attempt < $maxRetries; $attempt++) {
+            // Get the max protocol number for this year, with lock
+            $lastReport = self::whereYear('created_at', $year)
+                ->orderByRaw("CAST(SUBSTRING(protocol, -6) AS UNSIGNED) DESC")
+                ->lockForUpdate()
+                ->first();
+
+            if ($lastReport && preg_match('/ETJ-\d{4}-(\d{6})/', $lastReport->protocol, $matches)) {
+                $nextNum = (int) $matches[1] + 1;
+            } else {
+                $nextNum = self::whereYear('created_at', $year)->count() + 1;
+            }
+
+            $protocol = sprintf('ETJ-%s-%06d', $year, $nextNum);
+
+            // Check if it already exists (race condition check)
+            if (!self::where('protocol', $protocol)->exists()) {
+                return $protocol;
+            }
+
+            // If exists, increment and try again
+            usleep(50000 * ($attempt + 1)); // 50ms, 100ms, 150ms...
+        }
+
+        // Fallback: use timestamp-based unique protocol
+        return sprintf('ETJ-%s-%06d', $year, (int) (microtime(true) * 1000) % 1000000);
     }
 
     // =====================================================
