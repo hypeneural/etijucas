@@ -383,10 +383,11 @@ export default function ReportDetailPage() {
     const StatusIcon = statusInfo.icon;
 
     return (
-        <>
-            <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-24">
+        <div className="relative min-h-screen bg-slate-50 dark:bg-slate-950">
+            {/* Main Content with padding for bottom bar */}
+            <div className="pb-32">
                 {/* Header */}
-                <div className="safe-top bg-white dark:bg-slate-900 border-b sticky top-0 z-20">
+                <div className="safe-top bg-white dark:bg-slate-900 border-b sticky top-0 z-30">
                     <div className="flex items-center justify-between px-4 py-3">
                         <div className="flex items-center gap-3">
                             <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="shrink-0">
@@ -412,7 +413,7 @@ export default function ReportDetailPage() {
                     </div>
                 </div>
 
-                {/* Content */}
+                {/* Body Content */}
                 <div className="p-4 space-y-4">
                     {/* Status Badge */}
                     <div className={cn(
@@ -439,8 +440,8 @@ export default function ReportDetailPage() {
                     {/* Category & Date */}
                     <div className="flex flex-wrap gap-2">
                         {report.category && (
-                            <Badge variant="secondary" className="gap-1.5">
-                                {report.category.icon && <span>{report.category.icon}</span>}
+                            <Badge variant="secondary" className="gap-1.5 pl-2">
+                                <span className="text-lg leading-none">{report.category.icon}</span>
                                 {report.category.name}
                             </Badge>
                         )}
@@ -454,42 +455,56 @@ export default function ReportDetailPage() {
                     </div>
 
                     {/* Location */}
-                    {report.addressText && (
-                        <Card className="p-4">
-                            <div className="flex items-start gap-3">
-                                <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
-                                    <MapPin className="w-5 h-5" />
-                                </div>
-                                <div className="min-w-0">
-                                    <p className="font-medium">Localização</p>
-                                    <p className="text-sm text-muted-foreground">
-                                        {report.addressText}
-                                    </p>
-                                    {report.bairro?.nome && (
-                                        <p className="text-xs text-muted-foreground mt-1">
-                                            {report.bairro.nome}
+                    {report.latitude && report.longitude && (
+                        <Card className="overflow-hidden">
+                            <div className="p-4 border-b">
+                                <div className="flex items-start gap-3">
+                                    <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
+                                        <MapPin className="w-5 h-5" />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="font-medium">Localização</p>
+                                        <p className="text-sm text-muted-foreground">
+                                            {report.addressText || 'Endereço aproximado'}
                                         </p>
-                                    )}
+                                        {report.bairro?.nome && (
+                                            <p className="text-xs text-muted-foreground mt-1">
+                                                {report.bairro.nome}
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* Mini Map - Placeholder for now */}
-                            {report.latitude && report.longitude && (
-                                <div className="mt-4">
-                                    <div className="h-32 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center">
-                                        <a
-                                            href={`https://www.google.com/maps?q=${report.latitude},${report.longitude}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex items-center gap-2 text-primary text-sm font-medium"
-                                        >
-                                            <MapPin className="w-4 h-4" />
-                                            Ver no Google Maps
-                                            <ChevronRight className="w-4 h-4" />
-                                        </a>
-                                    </div>
-                                </div>
-                            )}
+                            {/* Real Leaflet Map (Read Only) */}
+                            <div className="relative z-0">
+                                <LocationMap
+                                    latitude={report.latitude}
+                                    longitude={report.longitude}
+                                    onLocationChange={() => { }} // No-op
+                                    className="h-48 w-full border-none rounded-none"
+                                    readOnly={true}
+                                />
+                            </div>
+
+                            {/* Google Maps Button */}
+                            <div className="p-3 bg-muted/30">
+                                <Button
+                                    variant="outline"
+                                    className="w-full gap-2"
+                                    asChild
+                                >
+                                    <a
+                                        href={`https://www.google.com/maps?q=${report.latitude},${report.longitude}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        <MapPin className="w-4 h-4 text-red-500" />
+                                        Abrir no Google Maps
+                                        <ExternalLink className="w-3 h-3 ml-auto opacity-50" />
+                                    </a>
+                                </Button>
+                            </div>
                         </Card>
                     )}
 
@@ -523,6 +538,14 @@ export default function ReportDetailPage() {
                 </div>
             </div>
 
+            {/* Bottom Tab Bar (Fixed) */}
+            <div className="fixed bottom-0 left-0 right-0 z-50">
+                <BottomTabBar
+                    activeTab="reportar"
+                    onTabChange={handleTabChange}
+                />
+            </div>
+
             {/* Fullscreen Gallery */}
             <AnimatePresence>
                 {galleryOpen && report.media && (
@@ -533,6 +556,6 @@ export default function ReportDetailPage() {
                     />
                 )}
             </AnimatePresence>
-        </>
+        </div>
     );
 }
