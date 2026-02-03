@@ -108,6 +108,20 @@ Route::prefix('v1')->group(function () {
     });
 
     // =====================================================
+    // Citizen Reports Public Routes
+    // =====================================================
+    Route::get('report-categories', [\App\Domains\Reports\Http\Controllers\ReportCategoryController::class, 'index'])
+        ->middleware('cache.headers:static');
+
+    // =====================================================
+    // Geocoding Public Routes (cached proxy)
+    // =====================================================
+    Route::prefix('geocode')->middleware('throttle:30,1')->group(function () {
+        Route::get('autocomplete', [\App\Domains\Geocoding\Http\Controllers\GeocodeController::class, 'autocomplete']);
+        Route::get('reverse', [\App\Domains\Geocoding\Http\Controllers\GeocodeController::class, 'reverse']);
+    });
+
+    // =====================================================
     // Authenticated Routes
     // =====================================================
     Route::middleware('auth:sanctum')->group(function () {
@@ -196,6 +210,35 @@ Route::prefix('v1')->group(function () {
             Route::post('spots/{id}/save', [\App\Domains\Tourism\Http\Controllers\TourismSpotController::class, 'toggleSave']);
             Route::post('spots/{spotId}/reviews', [\App\Domains\Tourism\Http\Controllers\TourismReviewController::class, 'store']);
             Route::delete('reviews/{id}', [\App\Domains\Tourism\Http\Controllers\TourismReviewController::class, 'destroy']);
+        });
+
+        // =====================================================
+        // Citizen Reports Authenticated Routes
+        // =====================================================
+        Route::prefix('reports')->middleware('throttle:5,1')->group(function () {
+            // Create report (with rate limiting)
+            Route::post('/', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'store']);
+
+            // My reports
+            Route::get('/me', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'myReports']);
+
+            // Report details
+            Route::get('/{id}', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'show']);
+
+            // Add/remove media
+            Route::post('/{id}/media', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'addMedia']);
+            Route::delete('/{id}/media/{mediaId}', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'removeMedia']);
+
+            // Update status (admin only)
+            Route::patch('/{id}/status', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'updateStatus'])
+                ->middleware('role:admin|moderator');
+        });
+
+        // =====================================================
+        // Admin Routes (role-protected)
+        // =====================================================
+        Route::prefix('admin')->middleware('role:admin|moderator')->group(function () {
+            Route::get('reports', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'adminIndex']);
         });
     });
 
