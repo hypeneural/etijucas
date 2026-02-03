@@ -42,23 +42,33 @@ export function useOfflineTourism(filters?: TourismFilters) {
   const { data: rawSpots = [], isLoading, error, refetch } = useQuery({
     queryKey: [...QUERY_KEYS.tourism.spots(), 'enhanced'],
     queryFn: async () => {
-      // In production, try API first
-      if (import.meta.env.PROD && isOnline) {
+      // Always try API first when online
+      if (isOnline) {
         try {
           const apiSpots = await tourismService.getAll();
+          // Cache to IndexedDB
+          if (apiSpots && apiSpots.length > 0) {
+            await tourismDB.clear();
+            await tourismDB.saveMany(apiSpots as unknown as import('@/types').TourismSpot[]);
+          }
           return apiSpots as unknown as TourismSpotEnhanced[];
         } catch (err) {
           console.warn('[Tourism] API failed, using cache:', err);
         }
       }
 
-      // Fallback to IndexedDB / mock data
+      // Fallback to IndexedDB
       const cached = await tourismDB.getAll();
       if (cached.length > 0) {
         return cached as unknown as TourismSpotEnhanced[];
       }
 
-      return tourismSpotsMock;
+      // Final fallback to mock data (dev only)
+      if (import.meta.env.DEV) {
+        return tourismSpotsMock;
+      }
+
+      return [];
     },
     staleTime: CACHE_TIMES.events, // 1 hour
     enabled: isInitialized,

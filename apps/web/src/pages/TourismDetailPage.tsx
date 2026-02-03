@@ -42,21 +42,21 @@ import type { TourismMedia, TourismReview, TourismOpeningHours } from '@/types/t
 // ============================================
 
 // Star rating component
-function StarRating({ rating, size = 'md', showValue = true }: { 
-  rating: number; 
+function StarRating({ rating, size = 'md', showValue = true }: {
+  rating: number;
   size?: 'sm' | 'md' | 'lg';
   showValue?: boolean;
 }) {
   const stars = [];
   const fullStars = Math.floor(rating);
   const hasHalf = rating % 1 >= 0.5;
-  
+
   const sizes = {
     sm: 'w-3 h-3',
     md: 'w-4 h-4',
     lg: 'w-5 h-5',
   };
-  
+
   for (let i = 0; i < 5; i++) {
     if (i < fullStars) {
       stars.push(
@@ -66,8 +66,8 @@ function StarRating({ rating, size = 'md', showValue = true }: {
       stars.push(
         <div key={i} className="relative">
           <Star className={`${sizes[size]} text-gray-300`} />
-          <Star 
-            className={`${sizes[size]} fill-yellow-400 text-yellow-400 absolute top-0 left-0`} 
+          <Star
+            className={`${sizes[size]} fill-yellow-400 text-yellow-400 absolute top-0 left-0`}
             style={{ clipPath: 'inset(0 50% 0 0)' }}
           />
         </div>
@@ -78,7 +78,7 @@ function StarRating({ rating, size = 'md', showValue = true }: {
       );
     }
   }
-  
+
   return (
     <div className="flex items-center gap-1.5">
       <div className="flex items-center gap-0.5">{stars}</div>
@@ -92,18 +92,18 @@ function StarRating({ rating, size = 'md', showValue = true }: {
 }
 
 // Image gallery viewer
-function GalleryViewer({ 
-  media, 
+function GalleryViewer({
+  media,
   initialIndex = 0,
-  onClose 
-}: { 
+  onClose
+}: {
   media: TourismMedia[];
   initialIndex?: number;
   onClose: () => void;
 }) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const currentItem = media[currentIndex];
-  
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -120,14 +120,14 @@ function GalleryViewer({
           <X className="w-6 h-6 text-white" />
         </button>
       </div>
-      
+
       {/* Media */}
       <div className="flex-1 flex items-center justify-center p-4">
         {currentItem.type === 'video' ? (
           <div className="relative w-full max-w-lg aspect-video bg-black rounded-lg overflow-hidden">
-            <img 
-              src={currentItem.thumbnailUrl || currentItem.url} 
-              alt="" 
+            <img
+              src={currentItem.thumbnailUrl || currentItem.url}
+              alt=""
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 flex items-center justify-center">
@@ -144,14 +144,14 @@ function GalleryViewer({
           />
         )}
       </div>
-      
+
       {/* Caption */}
       {currentItem.caption && (
         <div className="p-4 text-center">
           <p className="text-white/80 text-sm">{currentItem.caption}</p>
         </div>
       )}
-      
+
       {/* Thumbnails */}
       <ScrollArea className="p-4 safe-bottom">
         <div className="flex gap-2 justify-center">
@@ -187,13 +187,13 @@ function GalleryViewer({
 function OpeningHours({ hours }: { hours: TourismOpeningHours[] }) {
   const today = new Date().getDay();
   const [expanded, setExpanded] = useState(false);
-  
+
   const todayHours = hours.find(h => h.day === today);
   const isOpen = todayHours && !todayHours.isClosed;
-  
+
   return (
     <div className="bg-muted/50 rounded-xl p-4">
-      <button 
+      <button
         onClick={() => setExpanded(!expanded)}
         className="w-full flex items-center justify-between"
       >
@@ -212,7 +212,7 @@ function OpeningHours({ hours }: { hours: TourismOpeningHours[] }) {
         </div>
         <ChevronRight className={`w-5 h-5 text-muted-foreground transition-transform ${expanded ? 'rotate-90' : ''}`} />
       </button>
-      
+
       <AnimatePresence>
         {expanded && (
           <motion.div
@@ -223,7 +223,7 @@ function OpeningHours({ hours }: { hours: TourismOpeningHours[] }) {
           >
             <div className="mt-4 space-y-2 border-t border-border pt-4">
               {hours.map(h => (
-                <div 
+                <div
                   key={h.day}
                   className={`flex justify-between text-sm ${h.day === today ? 'font-medium' : ''}`}
                 >
@@ -244,11 +244,11 @@ function OpeningHours({ hours }: { hours: TourismOpeningHours[] }) {
 // Review card
 function ReviewCard({ review, onLike }: { review: TourismReview; onLike?: () => void }) {
   const date = new Date(review.createdAt);
-  const formattedDate = date.toLocaleDateString('pt-BR', { 
-    month: 'short', 
-    year: 'numeric' 
+  const formattedDate = date.toLocaleDateString('pt-BR', {
+    month: 'short',
+    year: 'numeric'
   });
-  
+
   return (
     <div className="bg-card rounded-xl p-4 shadow-sm">
       {/* Author */}
@@ -272,7 +272,7 @@ function ReviewCard({ review, onLike }: { review: TourismReview; onLike?: () => 
           </div>
         </div>
       </div>
-      
+
       {/* Content */}
       {review.titulo && (
         <h4 className="font-medium text-foreground mb-1">{review.titulo}</h4>
@@ -280,7 +280,7 @@ function ReviewCard({ review, onLike }: { review: TourismReview; onLike?: () => 
       <p className="text-sm text-muted-foreground leading-relaxed">
         {review.texto}
       </p>
-      
+
       {/* Photos */}
       {review.fotos && review.fotos.length > 0 && (
         <div className="flex gap-2 mt-3">
@@ -296,7 +296,7 @@ function ReviewCard({ review, onLike }: { review: TourismReview; onLike?: () => 
           )}
         </div>
       )}
-      
+
       {/* Actions */}
       <div className="flex items-center justify-between mt-4 pt-3 border-t border-border">
         <motion.button
@@ -313,10 +313,10 @@ function ReviewCard({ review, onLike }: { review: TourismReview; onLike?: () => 
 }
 
 // Write review sheet
-function WriteReviewSheet({ 
+function WriteReviewSheet({
   spotName,
-  onSubmit 
-}: { 
+  onSubmit
+}: {
   spotName: string;
   onSubmit: (data: { rating: number; text: string }) => void;
 }) {
@@ -324,7 +324,7 @@ function WriteReviewSheet({
   const [rating, setRating] = useState(0);
   const [text, setText] = useState('');
   const [hoverRating, setHoverRating] = useState(0);
-  
+
   const handleSubmit = () => {
     if (rating > 0 && text.trim()) {
       onSubmit({ rating, text });
@@ -333,10 +333,10 @@ function WriteReviewSheet({
       setText('');
     }
   };
-  
+
   return (
     <>
-      <Button 
+      <Button
         onClick={() => setOpen(true)}
         className="w-full"
         variant="outline"
@@ -344,13 +344,13 @@ function WriteReviewSheet({
         <MessageCircle className="w-4 h-4 mr-2" />
         Escrever avaliação
       </Button>
-      
+
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="bottom" className="h-[85vh] rounded-t-3xl">
           <SheetHeader>
             <SheetTitle>Avaliar {spotName}</SheetTitle>
           </SheetHeader>
-          
+
           <div className="mt-6 space-y-6">
             {/* Rating selector */}
             <div className="text-center">
@@ -367,12 +367,11 @@ function WriteReviewSheet({
                     onClick={() => setRating(star)}
                     className="p-1"
                   >
-                    <Star 
-                      className={`w-10 h-10 ${
-                        star <= (hoverRating || rating)
+                    <Star
+                      className={`w-10 h-10 ${star <= (hoverRating || rating)
                           ? 'fill-yellow-400 text-yellow-400'
                           : 'text-gray-300'
-                      }`}
+                        }`}
                     />
                   </motion.button>
                 ))}
@@ -387,7 +386,7 @@ function WriteReviewSheet({
                 </motion.p>
               )}
             </div>
-            
+
             {/* Text */}
             <div>
               <Textarea
@@ -400,15 +399,15 @@ function WriteReviewSheet({
                 {text.length}/500
               </p>
             </div>
-            
+
             {/* Add photos */}
             <Button variant="outline" className="w-full">
               <Camera className="w-4 h-4 mr-2" />
               Adicionar fotos
             </Button>
-            
+
             {/* Submit */}
-            <Button 
+            <Button
               onClick={handleSubmit}
               disabled={rating === 0 || !text.trim()}
               className="w-full"
@@ -433,11 +432,11 @@ export default function TourismDetailPage() {
   const [showGallery, setShowGallery] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const headerRef = useRef<HTMLDivElement>(null);
-  
+
   const { spot, reviews, isLoading, likeSpot, saveSpot } = useTourismSpot(id || '');
-  
+
   const categoryInfo = spot?.categoria ? TOURISM_CATEGORIES[spot.categoria] : null;
-  
+
   const handleShare = async () => {
     if (navigator.share && spot) {
       try {
@@ -451,12 +450,12 @@ export default function TourismDetailPage() {
       }
     }
   };
-  
+
   const openGallery = (index: number) => {
     setGalleryIndex(index);
     setShowGallery(true);
   };
-  
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -469,7 +468,7 @@ export default function TourismDetailPage() {
       </div>
     );
   }
-  
+
   if (!spot) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -483,22 +482,22 @@ export default function TourismDetailPage() {
       </div>
     );
   }
-  
+
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* Hero image */}
       <div className="relative">
-        <AspectRatio ratio={4/3}>
+        <AspectRatio ratio={4 / 3}>
           <img
             src={spot.imageUrl}
             alt={spot.titulo}
             className="w-full h-full object-cover"
           />
         </AspectRatio>
-        
+
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30" />
-        
+
         {/* Top navigation */}
         <div className="absolute top-0 left-0 right-0 safe-top p-4 flex items-center justify-between">
           <motion.button
@@ -508,7 +507,7 @@ export default function TourismDetailPage() {
           >
             <ArrowLeft className="w-5 h-5" />
           </motion.button>
-          
+
           <div className="flex gap-2">
             <motion.button
               whileTap={{ scale: 0.9 }}
@@ -526,9 +525,9 @@ export default function TourismDetailPage() {
             </motion.button>
           </div>
         </div>
-        
+
         {/* Gallery count badge */}
-        {spot.gallery.length > 1 && (
+        {spot.gallery && spot.gallery.length > 1 && (
           <button
             onClick={() => openGallery(0)}
             className="absolute bottom-4 right-4 px-3 py-1.5 rounded-full bg-black/50 backdrop-blur text-white text-sm flex items-center gap-1.5"
@@ -538,7 +537,7 @@ export default function TourismDetailPage() {
           </button>
         )}
       </div>
-      
+
       {/* Content */}
       <div className="px-4 -mt-6 relative z-10">
         {/* Title card */}
@@ -556,9 +555,9 @@ export default function TourismDetailPage() {
               </div>
             )}
           </div>
-          
+
           <h1 className="text-2xl font-bold text-foreground mb-2">{spot.titulo}</h1>
-          
+
           {/* Rating */}
           <div className="flex items-center gap-3 mb-3">
             <StarRating rating={spot.rating} size="lg" />
@@ -566,13 +565,13 @@ export default function TourismDetailPage() {
               {spot.reviewsCount} avaliações
             </span>
           </div>
-          
+
           {/* Location */}
           <div className="flex items-center gap-2 text-muted-foreground">
             <MapPin className="w-4 h-4 shrink-0" />
             <span className="text-sm">{spot.endereco}</span>
           </div>
-          
+
           {/* Quick info badges */}
           <div className="flex flex-wrap gap-2 mt-4">
             {spot.preco && (
@@ -588,9 +587,9 @@ export default function TourismDetailPage() {
             )}
           </div>
         </div>
-        
+
         {/* Gallery thumbnails */}
-        {spot.gallery.length > 0 && (
+        {spot.gallery && spot.gallery.length > 0 && (
           <ScrollArea className="mb-4 -mx-4 px-4">
             <div className="flex gap-2">
               {spot.gallery.map((item, idx) => (
@@ -615,7 +614,7 @@ export default function TourismDetailPage() {
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
         )}
-        
+
         {/* Description */}
         <div className="bg-card rounded-xl p-4 shadow-sm mb-4">
           <h2 className="font-semibold text-foreground mb-3">Sobre</h2>
@@ -623,18 +622,18 @@ export default function TourismDetailPage() {
             {spot.descLonga || spot.descCurta}
           </div>
         </div>
-        
+
         {/* Opening hours */}
         {spot.horarios && spot.horarios.length > 0 && (
           <div className="mb-4">
             <OpeningHours hours={spot.horarios} />
           </div>
         )}
-        
+
         {/* Contact & links */}
         <div className="bg-card rounded-xl p-4 shadow-sm mb-4 space-y-3">
           {spot.telefone && (
-            <a 
+            <a
               href={`tel:${spot.telefone}`}
               className="flex items-center gap-3 text-foreground"
             >
@@ -643,7 +642,7 @@ export default function TourismDetailPage() {
             </a>
           )}
           {spot.website && (
-            <a 
+            <a
               href={spot.website}
               target="_blank"
               rel="noopener noreferrer"
@@ -654,7 +653,7 @@ export default function TourismDetailPage() {
             </a>
           )}
           {spot.instagram && (
-            <a 
+            <a
               href={`https://instagram.com/${spot.instagram.replace('@', '')}`}
               target="_blank"
               rel="noopener noreferrer"
@@ -665,7 +664,7 @@ export default function TourismDetailPage() {
             </a>
           )}
         </div>
-        
+
         {/* How to get there */}
         {spot.comoChegar && (
           <div className="bg-card rounded-xl p-4 shadow-sm mb-4">
@@ -691,7 +690,7 @@ export default function TourismDetailPage() {
             )}
           </div>
         )}
-        
+
         {/* Tips */}
         {spot.dicasVisita && spot.dicasVisita.length > 0 && (
           <div className="bg-secondary/10 rounded-xl p-4 mb-4">
@@ -706,27 +705,27 @@ export default function TourismDetailPage() {
             </ul>
           </div>
         )}
-        
+
         {/* Reviews section */}
         <div className="mb-4">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold text-foreground">
-              Avaliações ({reviews.length})
+              Avaliações ({reviews?.length || 0})
             </h2>
           </div>
-          
+
           {/* Write review button */}
-          <WriteReviewSheet 
+          <WriteReviewSheet
             spotName={spot.titulo}
             onSubmit={(data) => {
               console.log('New review:', data);
               // TODO: Submit review to API
             }}
           />
-          
+
           {/* Reviews list */}
           <div className="space-y-3 mt-4">
-            {reviews.length === 0 ? (
+            {!reviews || reviews.length === 0 ? (
               <div className="text-center py-8">
                 <MessageCircle className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
                 <p className="text-muted-foreground text-sm">
@@ -740,9 +739,9 @@ export default function TourismDetailPage() {
             )}
           </div>
         </div>
-        
+
         {/* Tags */}
-        {spot.tags.length > 0 && (
+        {spot.tags && spot.tags.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-4">
             {spot.tags.map(tag => (
               <Badge key={tag} variant="outline" className="text-xs">
@@ -752,7 +751,7 @@ export default function TourismDetailPage() {
           </div>
         )}
       </div>
-      
+
       {/* Floating action bar */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur border-t border-border safe-bottom">
         <div className="max-w-md mx-auto flex gap-3">
@@ -761,8 +760,8 @@ export default function TourismDetailPage() {
             onClick={likeSpot}
             className={`
               flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-medium
-              ${spot.liked 
-                ? 'bg-accent/10 text-accent border border-accent' 
+              ${spot.liked
+                ? 'bg-accent/10 text-accent border border-accent'
                 : 'bg-muted text-foreground'
               }
             `}
@@ -770,7 +769,7 @@ export default function TourismDetailPage() {
             <Heart className={`w-5 h-5 ${spot.liked ? 'fill-current' : ''}`} />
             {spot.likesCount}
           </motion.button>
-          
+
           {spot.latitude && spot.longitude && (
             <Button
               className="flex-[2]"
@@ -785,10 +784,10 @@ export default function TourismDetailPage() {
           )}
         </div>
       </div>
-      
+
       {/* Gallery viewer */}
       <AnimatePresence>
-        {showGallery && (
+        {showGallery && spot.gallery && spot.gallery.length > 0 && (
           <GalleryViewer
             media={spot.gallery}
             initialIndex={galleryIndex}
