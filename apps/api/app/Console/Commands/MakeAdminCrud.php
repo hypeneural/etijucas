@@ -41,7 +41,7 @@ class MakeAdminCrud extends Command
         }
 
         if (! $this->option('no-shield')) {
-            $this->runShield($name);
+            $this->runShield("{$name}Resource", $panel);
         }
 
         $media = $this->option('media');
@@ -98,10 +98,11 @@ class MakeAdminCrud extends Command
         $this->outputCommand('make:policy', $exit);
     }
 
-    private function runShield(string $name): void
+    private function runShield(string $resource, string $panel): void
     {
         $exit = Artisan::call('shield:generate', [
-            '--resource' => $name,
+            '--resource' => $resource,
+            '--panel' => $panel,
         ]);
 
         $this->outputCommand('shield:generate', $exit);

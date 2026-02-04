@@ -60,11 +60,12 @@ class ReportMapController
         $reports = $query->limit($limit)->get();
 
         // Transform to lightweight map format
-        $mapReports = $reports->map(function ($report) {
+        $mapReports = $reports->map(function (CitizenReport $report) {
             // Get up to 3 images for carousel
-            $images = $report->media->take(3)->map(fn($m) => [
-                'url' => $m->url,
-                'thumb' => $m->thumb_url ?? $m->url,
+            // Use getMedia() to ensure we get the collection correctly and then map to URLs
+            $images = $report->getMedia('report_images')->take(3)->map(fn($m) => [
+                'url' => $m->getUrl(),
+                'thumb' => $m->hasGeneratedConversion('thumb') ? $m->getUrl('thumb') : $m->getUrl(),
             ])->values()->all();
 
             return [

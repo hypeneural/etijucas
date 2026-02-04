@@ -11,6 +11,14 @@ class TopicPolicy
     use HandlesAuthorization;
 
     /**
+     * Determine if the user can view any topics (admin panel).
+     */
+    public function viewAny(User $user): bool
+    {
+        return $user->hasAnyRole(['admin', 'moderator']);
+    }
+
+    /**
      * Determine if the user can view the topic.
      */
     public function view(?User $user, Topic $topic): bool
