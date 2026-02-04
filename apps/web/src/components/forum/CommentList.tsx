@@ -7,6 +7,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, MessageCircle, ChevronDown, ChevronUp, Image as ImageIcon, Camera, X, Loader2, Send } from 'lucide-react';
 import { Comment } from '@/types';
 import { formatTimeAgo } from '@/lib/formatTimeAgo';
+import { useUploadImage } from '@/hooks/useUploadImage';
+import { toast } from 'sonner';
 
 type CommentSortOption = 'relevantes' | 'recentes';
 
@@ -124,8 +126,10 @@ function CommentThread({ comment, index, depth, onLike, onReply }: CommentThread
     const [replyText, setReplyText] = useState('');
     const [replyIsAnon, setReplyIsAnon] = useState(false);
     const [replyImage, setReplyImage] = useState<string | null>(null);
+    const [replyFile, setReplyFile] = useState<File | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [imageModalOpen, setImageModalOpen] = useState(false);
+    const { uploadAsync } = useUploadImage();
 
     const hasReplies = comment.replies && comment.replies.length > 0;
     const maxDepth = 3;
@@ -159,9 +163,23 @@ function CommentThread({ comment, index, depth, onLike, onReply }: CommentThread
 
         setIsSubmitting(true);
         try {
-            await onReply(comment.id, replyText.trim(), replyIsAnon, replyImage || undefined);
+            let imageUrl: string | undefined;
+
+            if (replyFile) {
+                try {
+                    const result = await uploadAsync(replyFile);
+                    imageUrl = result.url;
+                } catch (error) {
+                    toast.error('Erro ao enviar imagem');
+                    setIsSubmitting(false);
+                    return;
+                }
+            }
+
+            await onReply(comment.id, replyText.trim(), replyIsAnon, imageUrl);
             setReplyText('');
             setReplyImage(null);
+            setReplyFile(null);
             setIsReplying(false);
         } finally {
             setIsSubmitting(false);
@@ -347,6 +365,7 @@ function CommentThread({ comment, index, depth, onLike, onReply }: CommentThread
                                                     onChange={(e) => {
                                                         const file = e.target.files?.[0];
                                                         if (file) {
+                                                            setReplyFile(file);
                                                             const reader = new FileReader();
                                                             reader.onload = () => setReplyImage(reader.result as string);
                                                             reader.readAsDataURL(file);
