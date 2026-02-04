@@ -55,7 +55,7 @@ class ReportsDashboard extends Page implements HasTable
             ->with(['category', 'bairro', 'user'])
             ->whereIn('status', [
                 ReportStatus::Recebido->value,
-                ReportStatus::EmAn?lise->value,
+                ReportStatus::EmAnalise->value,
             ])
             ->latest();
     }
@@ -91,10 +91,10 @@ class ReportsDashboard extends Page implements HasTable
             TextColumn::make('status')
                 ->label('Status')
                 ->badge()
-                ->formatStateUsing(fn (ReportStatus $state): string => $state->label())
-                ->color(fn (ReportStatus $state): string => match ($state) {
+                ->formatStateUsing(fn(ReportStatus $state): string => $state->label())
+                ->color(fn(ReportStatus $state): string => match ($state) {
                     ReportStatus::Recebido => 'info',
-                    ReportStatus::EmAn?lise => 'warning',
+                    ReportStatus::EmAnalise => 'warning',
                     ReportStatus::Resolvido => 'success',
                     ReportStatus::Rejeitado => 'danger',
                 }),
@@ -111,7 +111,7 @@ class ReportsDashboard extends Page implements HasTable
             Action::make('open')
                 ->label('Abrir')
                 ->icon('heroicon-o-arrow-top-right-on-square')
-                ->url(fn (CitizenReport $record) => CitizenReportResource::getUrl('edit', ['record' => $record]))
+                ->url(fn(CitizenReport $record) => CitizenReportResource::getUrl('edit', ['record' => $record]))
                 ->openUrlInNewTab(),
         ];
     }

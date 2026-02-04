@@ -35,7 +35,7 @@ class AdminOverviewStats extends BaseWidget
                     ->where('created_at', '>=', now()->subDay())
                     ->count(),
                 'pendingReports' => CitizenReport::query()
-                    ->whereIn('status', [ReportStatus::Recebido->value, ReportStatus::EmAn?lise->value])
+                    ->whereIn('status', [ReportStatus::Recebido->value, ReportStatus::EmAnalise->value])
                     ->count(),
             ];
         });

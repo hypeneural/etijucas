@@ -30,7 +30,7 @@ class StatusHistoryRelationManager extends RelationManager
                         $status = ReportStatus::tryFrom((string) $state);
                         return match ($status) {
                             ReportStatus::Recebido => 'info',
-                            ReportStatus::EmAn?lise => 'warning',
+                            ReportStatus::EmAnalise => 'warning',
                             ReportStatus::Resolvido => 'success',
                             ReportStatus::Rejeitado => 'danger',
                             default => 'gray',

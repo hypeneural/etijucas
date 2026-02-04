@@ -100,7 +100,7 @@ class ModerationQueue extends Page implements HasTable
             ])
             ->whereIn('citizen_reports.status', [
                 CitizenReportStatus::Recebido->value,
-                CitizenReportStatus::EmAn?lise->value,
+                CitizenReportStatus::EmAnalise->value,
             ]);
 
         $union = $flags
@@ -158,7 +158,7 @@ class ModerationQueue extends Page implements HasTable
                         },
                         'citizen_report' => match (CitizenReportStatus::tryFrom($state)) {
                             CitizenReportStatus::Recebido => 'info',
-                            CitizenReportStatus::EmAn?lise => 'warning',
+                            CitizenReportStatus::EmAnalise => 'warning',
                             CitizenReportStatus::Resolvido => 'success',
                             CitizenReportStatus::Rejeitado => 'danger',
                             default => 'gray',
@@ -225,7 +225,7 @@ class ModerationQueue extends Page implements HasTable
                     FlagStatus::Reviewing->value => FlagStatus::Reviewing->label(),
                     F?rumReportStatus::Pending->value => F?rumReportStatus::Pending->label(),
                     CitizenReportStatus::Recebido->value => CitizenReportStatus::Recebido->label(),
-                    CitizenReportStatus::EmAn?lise->value => CitizenReportStatus::EmAn?lise->label(),
+                    CitizenReportStatus::EmAnalise->value => CitizenReportStatus::EmAnalise->label(),
                 ]),
             SelectFilter::make('priority')
                 ->label('Prioridade')
