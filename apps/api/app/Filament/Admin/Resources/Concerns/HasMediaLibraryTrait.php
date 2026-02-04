@@ -19,14 +19,20 @@ trait HasMediaLibraryTrait
             return $spatieUploadClass::make($field)
                 ->collection($collection)
                 ->maxFiles($maxFiles)
-                ->preserveFilenames();
+                ->preserveFilenames()
+                ->image()
+                ->imageEditor()
+                ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp']);
         }
 
         $upload = FileUpload::make($field)
             ->disk('public')
             ->directory($collection)
             ->maxFiles($maxFiles)
-            ->preserveFilenames();
+            ->preserveFilenames()
+            ->image()
+            ->imageEditor()
+            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp']);
 
         if ($maxFiles > 1) {
             $upload->multiple();

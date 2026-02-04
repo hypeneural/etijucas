@@ -213,3 +213,95 @@ export function getWindDirectionFull(degrees: number): string {
     };
     return map[getWindDirection(degrees)] ?? 'Desconhecido';
 }
+
+// ======================================================
+// Insights
+// ======================================================
+
+export type InsightSeverity = 'success' | 'info' | 'warning' | 'danger';
+export type InsightType = 'rain' | 'rain_window' | 'wind' | 'temperature' | 'uv' | 'sea' | 'beach' | 'warning';
+
+export interface WeatherInsight {
+    type: InsightType;
+    icon: string;
+    severity: InsightSeverity;
+    priority: number;
+    title: string;
+    message: string;
+    detail?: string | null;
+    badge?: string;
+    meta?: {
+        score?: number;
+        positives?: string[];
+        negatives?: string[];
+        condition?: string;
+        wave_m?: number;
+        period_s?: number;
+        sea_temp_c?: number;
+    };
+}
+
+export interface InsightsResponse {
+    location: WeatherLocation;
+    cache: {
+        fetched_at: string;
+        stale: boolean;
+    };
+    insights: WeatherInsight[];
+}
+
+// ======================================================
+// Presets
+// ======================================================
+
+export type PresetType = 'going_out' | 'beach' | 'fishing' | 'hiking';
+
+export interface WeatherPreset {
+    type: 'preset';
+    name: PresetType;
+    title: string;
+    focus: string[];
+    insights: WeatherInsight[];
+}
+
+export interface PresetResponse {
+    location: WeatherLocation;
+    cache: {
+        fetched_at: string;
+        stale: boolean;
+    };
+    preset: WeatherPreset;
+}
+
+// ======================================================
+// Sea Condition Helpers
+// ======================================================
+
+export type SeaCondition = 'calm' | 'moderate' | 'rough';
+
+export function getSeaConditionInfo(condition: SeaCondition): { label: string; emoji: string; color: string } {
+    const map: Record<SeaCondition, { label: string; emoji: string; color: string }> = {
+        calm: { label: 'Calmo', emoji: '✅', color: '#10B981' },
+        moderate: { label: 'Moderado', emoji: '⚠️', color: '#F59E0B' },
+        rough: { label: 'Agitado', emoji: '⛔', color: '#EF4444' },
+    };
+    return map[condition] ?? map.calm;
+}
+
+export function classifySeaCondition(waveHeight: number): SeaCondition {
+    if (waveHeight >= 1.5) return 'rough';
+    if (waveHeight >= 1.0) return 'moderate';
+    return 'calm';
+}
+
+// ======================================================
+// Preset Metadata
+// ======================================================
+
+export const PRESET_INFO: Record<PresetType, { title: string; icon: string; description: string }> = {
+    going_out: { title: 'Vou sair', icon: 'mdi:walk', description: 'Chuva, sensação térmica e vento' },
+    beach: { title: 'Praia', icon: 'mdi:beach', description: 'Mar, vento, UV e cobertura' },
+    fishing: { title: 'Pescar', icon: 'mdi:fish', description: 'Ondas, vento e corrente' },
+    hiking: { title: 'Trilha', icon: 'mdi:hiking', description: 'Chuva, sensação e rajadas' },
+};
+

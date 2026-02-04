@@ -76,6 +76,8 @@ Route::prefix('v1')->group(function () {
         Route::get('home', [\App\Domains\Weather\Http\Controllers\WeatherController::class, 'home']);
         Route::get('forecast', [\App\Domains\Weather\Http\Controllers\WeatherController::class, 'forecast']);
         Route::get('marine', [\App\Domains\Weather\Http\Controllers\WeatherController::class, 'marine']);
+        Route::get('insights', [\App\Domains\Weather\Http\Controllers\WeatherController::class, 'insights']);
+        Route::get('preset/{type}', [\App\Domains\Weather\Http\Controllers\WeatherController::class, 'preset']);
     });
 
     // =====================================================

@@ -7,6 +7,9 @@ import type {
     WeatherHomeResponse,
     WeatherForecastResponse,
     MarineForecastResponse,
+    InsightsResponse,
+    PresetResponse,
+    PresetType,
 } from '@/types/weather';
 
 const BASE_URL = '/weather';
@@ -98,6 +101,24 @@ export async function getMarineForecast(params?: GetMarineForecastParams): Promi
 }
 
 // ======================================================
+// Insights (human-readable weather insights)
+// ======================================================
+
+export async function getWeatherInsights(): Promise<InsightsResponse> {
+    const response = await apiClient.get<InsightsResponse>(`${BASE_URL}/insights`);
+    return response;
+}
+
+// ======================================================
+// Presets (activity-specific forecasts)
+// ======================================================
+
+export async function getWeatherPreset(type: PresetType): Promise<PresetResponse> {
+    const response = await apiClient.get<PresetResponse>(`${BASE_URL}/preset/${type}`);
+    return response;
+}
+
+// ======================================================
 // React Query Hooks
 // ======================================================
 
@@ -108,6 +129,8 @@ export const weatherKeys = {
     home: () => [...weatherKeys.all, 'home'] as const,
     forecast: () => [...weatherKeys.all, 'forecast'] as const,
     marine: () => [...weatherKeys.all, 'marine'] as const,
+    insights: () => [...weatherKeys.all, 'insights'] as const,
+    preset: (type: PresetType) => [...weatherKeys.all, 'preset', type] as const,
 };
 
 export function useWeatherHome(params?: GetWeatherHomeParams) {
@@ -140,6 +163,26 @@ export function useMarineForecast(params?: GetMarineForecastParams) {
     });
 }
 
+export function useWeatherInsights() {
+    return useQuery({
+        queryKey: weatherKeys.insights(),
+        queryFn: () => getWeatherInsights(),
+        staleTime: 1000 * 60 * 5,
+        gcTime: 1000 * 60 * 30,
+        retry: 2,
+    });
+}
+
+export function useWeatherPreset(type: PresetType) {
+    return useQuery({
+        queryKey: weatherKeys.preset(type),
+        queryFn: () => getWeatherPreset(type),
+        staleTime: 1000 * 60 * 5,
+        gcTime: 1000 * 60 * 30,
+        retry: 2,
+    });
+}
+
 // ======================================================
 // Export
 // ======================================================
@@ -148,6 +191,9 @@ export const weatherService = {
     getWeatherHome,
     getWeatherForecast,
     getMarineForecast,
+    getWeatherInsights,
+    getWeatherPreset,
 };
 
 export default weatherService;
+

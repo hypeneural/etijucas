@@ -7,6 +7,7 @@ namespace App\Filament\Admin\Resources;
 use App\Domains\Votes\Enums\StatusVotacao;
 use App\Domains\Votes\Models\Votacao;
 use App\Filament\Admin\Resources\VotacaoResource\Pages;
+use App\Filament\Admin\Resources\VotacaoResource\RelationManagers\CommentsRelationManager;
 use App\Filament\Admin\Resources\VotacaoResource\RelationManagers\VotosRelationManager;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
@@ -295,6 +296,7 @@ class VotacaoResource extends BaseResource
     {
         return [
             VotosRelationManager::class,
+            CommentsRelationManager::class,
         ];
     }
 

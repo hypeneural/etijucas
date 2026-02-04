@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace App\Filament\Admin\Resources\VotacaoResource\RelationManagers;
 
 use App\Domains\Votes\Enums\TipoVoto;
+use App\Domains\Votes\Models\Vereador;
 use App\Domains\Votes\Models\VotoRegistro;
 use Filament\Forms;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Toggle;
+use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
@@ -108,6 +111,76 @@ class VotosRelationManager extends RelationManager
                 Tables\Actions\EditAction::make()
                     ->visible(fn (): bool => auth()->user()?->hasRole('admin') ?? false),
                 Tables\Actions\DeleteAction::make()
+                    ->visible(fn (): bool => auth()->user()?->hasRole('admin') ?? false),
+            ])
+            ->headerActions([
+                Tables\Actions\Action::make('gerarVotos')
+                    ->label('Gerar votos')
+                    ->icon('heroicon-o-plus')
+                    ->form([
+                        Select::make('voto')
+                            ->label('Voto inicial')
+                            ->options(collect(TipoVoto::cases())
+                                ->mapWithKeys(fn (TipoVoto $tipo) => [$tipo->value => $tipo->label()])
+                                ->toArray())
+                            ->default(TipoVoto::NAO_VOTOU->value)
+                            ->required(),
+                        Toggle::make('somente_em_exercicio')
+                            ->label('Somente em exercicio')
+                            ->default(true),
+                        Toggle::make('somente_ativos')
+                            ->label('Somente ativos')
+                            ->default(true),
+                    ])
+                    ->requiresConfirmation()
+                    ->action(function (array $data): void {
+                        $votacao = $this->getOwnerRecord();
+                        if (! $votacao) {
+                            return;
+                        }
+
+                        $query = Vereador::query();
+                        if ($data['somente_ativos'] ?? true) {
+                            $query->where('ativo', true);
+                        }
+
+                        if ($data['somente_em_exercicio'] ?? true) {
+                            $query->whereHas('mandatoAtual');
+                        }
+
+                        $vereadores = $query->get();
+
+                        $created = 0;
+                        $skipped = 0;
+
+                        VotoRegistro::withoutEvents(function () use ($votacao, $vereadores, $data, &$created, &$skipped): void {
+                            foreach ($vereadores as $vereador) {
+                                $exists = $votacao->votos()
+                                    ->where('vereador_id', $vereador->id)
+                                    ->exists();
+
+                                if ($exists) {
+                                    $skipped++;
+                                    continue;
+                                }
+
+                                VotoRegistro::create([
+                                    'votacao_id' => $votacao->id,
+                                    'vereador_id' => $vereador->id,
+                                    'voto' => $data['voto'] ?? TipoVoto::NAO_VOTOU->value,
+                                ]);
+                                $created++;
+                            }
+                        });
+
+                        $votacao->recalcularVotos();
+
+                        Notification::make()
+                            ->title('Registros criados')
+                            ->body("Criados: {$created}. Ignorados: {$skipped}.")
+                            ->success()
+                            ->send();
+                    })
                     ->visible(fn (): bool => auth()->user()?->hasRole('admin') ?? false),
             ])
             ->bulkActions([

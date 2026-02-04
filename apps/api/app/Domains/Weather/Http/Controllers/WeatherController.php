@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domains\Weather\Http\Controllers;
 
 use App\Domains\Weather\Services\OpenMeteoService;
+use App\Domains\Weather\Services\WeatherInsightsService;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -13,7 +14,8 @@ use Illuminate\Http\Response;
 class WeatherController extends Controller
 {
     public function __construct(
-        private OpenMeteoService $weatherService
+        private OpenMeteoService $weatherService,
+        private WeatherInsightsService $insightsService
     ) {
     }
 
@@ -391,6 +393,82 @@ class WeatherController extends Controller
             return response()->json([
                 'error' => 'UPSTREAM_FAILURE',
                 'message' => 'Não foi possível obter dados do mar agora.',
+                'status' => 502,
+            ], 502);
+        }
+    }
+
+    /**
+     * GET /api/v1/weather/insights
+     * Human-readable insights: "vai chover?", "dá praia?", etc
+     */
+    public function insights(Request $request): JsonResponse
+    {
+        try {
+            $allData = $this->weatherService->getAll();
+            $weather = $allData['weather'];
+            $marine = $allData['marine'];
+
+            $insights = $this->insightsService->generateInsights($weather, $marine);
+
+            return response()->json([
+                'location' => OpenMeteoService::getLocation(),
+                'cache' => [
+                    'fetched_at' => $weather['fetched_at'],
+                    'stale' => $weather['stale'] || $marine['stale'],
+                ],
+                'insights' => $insights,
+            ]);
+
+        } catch (\Throwable $e) {
+            \Log::error('[WeatherController] insights failed', ['error' => $e->getMessage()]);
+
+            return response()->json([
+                'error' => 'UPSTREAM_FAILURE',
+                'message' => 'Não foi possível gerar insights agora.',
+                'status' => 502,
+            ], 502);
+        }
+    }
+
+    /**
+     * GET /api/v1/weather/preset/{type}
+     * Activity-specific forecasts: going_out, beach, fishing, hiking
+     */
+    public function preset(Request $request, string $type): JsonResponse
+    {
+        $validPresets = ['going_out', 'beach', 'fishing', 'hiking'];
+
+        if (!in_array($type, $validPresets)) {
+            return response()->json([
+                'error' => 'INVALID_PRESET',
+                'message' => 'Preset inválido. Use: ' . implode(', ', $validPresets),
+                'status' => 400,
+            ], 400);
+        }
+
+        try {
+            $allData = $this->weatherService->getAll();
+            $weather = $allData['weather'];
+            $marine = $allData['marine'];
+
+            $preset = $this->insightsService->generatePreset($type, $weather, $marine);
+
+            return response()->json([
+                'location' => OpenMeteoService::getLocation(),
+                'cache' => [
+                    'fetched_at' => $weather['fetched_at'],
+                    'stale' => $weather['stale'] || $marine['stale'],
+                ],
+                'preset' => $preset,
+            ]);
+
+        } catch (\Throwable $e) {
+            \Log::error('[WeatherController] preset failed', ['error' => $e->getMessage(), 'type' => $type]);
+
+            return response()->json([
+                'error' => 'UPSTREAM_FAILURE',
+                'message' => 'Não foi possível gerar preset agora.',
                 'status' => 502,
             ], 502);
         }

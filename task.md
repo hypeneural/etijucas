@@ -26,6 +26,7 @@
   - [x] default sort por vereador (nome).
   - [x] filtros rapidos por tipo de voto.
   - [x] actions em lote (ex: marcar como NAO_VOTOU).
+  - [x] action "Gerar votos" para criar registros faltantes (em lote).
 - [x] ViewAction com resumo (counts, resultado, total votos).
 - [x] Botao rapido "Recalcular Votos" na votacao (Action).
 - [x] Filtro por ano em `VotacaoResource` (data).
@@ -35,6 +36,8 @@
 - [x] Action para importar foto do vereador a partir de `foto_url` (Media Library).
 - [x] Melhorar grid de `PartidoResource` com logo + cor (ColorColumn).
 - [x] Bulk action para importar fotos de vereadores via URL (Media Library).
+- [x] RelationManager de comentarios dentro de `VotacaoResource`.
+- [x] Padronizar uploads com `image()` + `imageEditor()` + tipos aceitos no `HasMediaLibraryTrait`.
 
 ## Prioridade Media (cadastros auxiliares)
 - [x] Criar `PartidoResource` (sigla, nome, cor, logo).
@@ -60,14 +63,14 @@
 ## Verificacao e Qualidade
 - [x] Validar permissoes em todos os Resources (admin/moderator).
 - [x] Rodar `php artisan db:seed --class=RolesAndPermissionsSeeder` (apos novos resources).
-- [ ] Testar fluxo completo:
-  - [ ] criar vereador com foto.
+- [x] Testar fluxo completo (script `apps/api/scripts/admin_votes_smoke.php`):
+  - [x] criar vereador com foto.
   - [x] criar votacao + registrar votos.
   - [x] validar contadores e status automatico.
-  - [ ] criar/moderar comentario de votacao.
-- [ ] Testar CRUD auxiliar:
-  - [ ] criar partido e legislatura (admin).
-  - [ ] adicionar mandato em vereador (relation manager).
+  - [x] criar/moderar comentario de votacao.
+- [x] Testar CRUD auxiliar (script `apps/api/scripts/admin_votes_smoke.php`):
+  - [x] criar partido e legislatura (admin).
+  - [x] adicionar mandato em vereador (relation manager).
 - [x] Performance:
   - [x] `with/withCount` nos Resources.
   - [x] indices para filtros (status, data, vereador_id).
