@@ -137,6 +137,7 @@ class PasswordlessAuthController extends Controller
         if (!$user) {
             $isNewUser = true;
             $user = User::create([
+                'nome' => 'Usuário', // Default nome - will be updated in onboarding
                 'phone' => $phone,
                 'password' => Hash::make(Str::random(32)), // Random password, won't be used
                 'phone_verified' => true,

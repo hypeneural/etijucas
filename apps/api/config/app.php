@@ -54,6 +54,12 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    /**
+     * Frontend URL for magic links (defaults to APP_URL if not set).
+     * Used by WhatsApp OTP buttons to generate links back to the app.
+     */
+    'frontend_url' => env('FRONTEND_URL', env('APP_URL', 'https://etijucas.com.br')),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone
