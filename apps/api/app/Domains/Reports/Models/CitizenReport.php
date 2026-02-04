@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Domains\Reports\Models;
 
@@ -222,3 +222,4 @@ class CitizenReport extends Model implements HasMedia
         });
     }
 }
+

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 declare(strict_types=1);
 
@@ -6,6 +6,8 @@ namespace App\Filament\Admin\Resources;
 
 use App\Domain\Forum\Enums\TopicCategory;
 use App\Domain\Forum\Enums\TopicStatus;
+use App\Domains\Forum\Actions\HideTopicAction;
+use App\Domains\Forum\Actions\RestoreTopicAction;
 use App\Filament\Admin\Resources\Concerns\HasMediaLibraryTrait;
 use App\Filament\Admin\Resources\TopicResource\Pages;
 use App\Filament\Admin\Resources\TopicResource\RelationManagers\CommentsRelationManager;
@@ -96,7 +98,7 @@ class TopicResource extends BaseResource
                             ->label('URL da Foto (legado)')
                             ->url()
                             ->maxLength(500)
-                            ->helperText('Opcional. Use o upload acima sempre que possivel.'),
+                            ->helperText('Opcional. Use o upload acima sempre que possível.'),
                     ]),
                 Section::make('Autor')
                     ->columns(2)
@@ -143,7 +145,7 @@ class TopicResource extends BaseResource
                     ->sortable()
                     ->toggleable(),
                 IconColumn::make('is_anon')
-                    ->label('Anon')
+                    ->label('Anônimo')
                     ->boolean()
                     ->toggleable(),
                 TextColumn::make('status')
@@ -160,7 +162,7 @@ class TopicResource extends BaseResource
                     ->sortable()
                     ->alignCenter(),
                 TextColumn::make('comments_count')
-                    ->label('Comments')
+                    ->label('Comentários')
                     ->sortable()
                     ->alignCenter(),
                 TextColumn::make('reports_count')
@@ -220,7 +222,7 @@ class TopicResource extends BaseResource
                         }
 
                         Notification::make()
-                            ->title('Importacao concluida')
+                            ->title('Importação concluída')
                             ->body("Importados: {$imported}. Ignorados: {$skipped}. Falhas: {$failed}.")
                             ->success()
                             ->send();
@@ -233,14 +235,22 @@ class TopicResource extends BaseResource
                     ->requiresConfirmation()
                     ->modalHeading('Ocultar Tópico')
                     ->modalDescription('Este tópico ficará invisível para usuários comuns.')
-                    ->action(fn(Topic $record) => $record->update(['status' => TopicStatus::Hidden]))
+                    ->form([
+                        Textarea::make('motivo')
+                            ->label('Motivo')
+                            ->rows(3)
+                            ->required(),
+                    ])
+                    ->action(function (Topic $record, array $data): void {
+                        app(HideTopicAction::class)->execute($record, auth()->user(), $data['motivo']);
+                    })
                     ->visible(fn(Topic $record): bool => $record->status === TopicStatus::Active),
                 Action::make('restore')
                     ->label('Restaurar')
                     ->icon('heroicon-o-eye')
                     ->color('success')
                     ->requiresConfirmation()
-                    ->action(fn(Topic $record) => $record->update(['status' => TopicStatus::Active]))
+                    ->action(fn(Topic $record) => app(RestoreTopicAction::class)->execute($record, auth()->user()))
                     ->visible(fn(Topic $record): bool => $record->status === TopicStatus::Hidden),
                 DeleteAction::make()
                     ->requiresConfirmation()
@@ -252,7 +262,18 @@ class TopicResource extends BaseResource
                     ->icon('heroicon-o-eye-slash')
                     ->color('warning')
                     ->requiresConfirmation()
-                    ->action(fn($records) => $records->each->update(['status' => TopicStatus::Hidden])),
+                    ->form([
+                        Textarea::make('motivo')
+                            ->label('Motivo')
+                            ->rows(3)
+                            ->required(),
+                    ])
+                    ->action(function ($records, array $data): void {
+                        $action = app(HideTopicAction::class);
+                        foreach ($records as $record) {
+                            $action->execute($record, auth()->user(), $data['motivo']);
+                        }
+                    }),
             ]);
     }
 

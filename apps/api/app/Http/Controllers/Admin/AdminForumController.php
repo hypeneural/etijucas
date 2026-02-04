@@ -1,8 +1,8 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers\Admin;
 
-use App\Domain\Forum\Enums\TopicStatus;
+use App\Domains\Forum\Actions\HideTopicAction;
 use App\Http\Controllers\Controller;
 use App\Models\Topic;
 use App\Models\User;
@@ -14,10 +14,10 @@ class AdminForumController extends Controller
 {
     /**
      * Hide a topic (moderation).
-     * 
+     *
      * POST /api/v1/admin/forum/topics/{topic}/hide
      */
-    public function hideTopic(Request $request, Topic $topic): JsonResponse
+    public function hideTopic(Request $request, Topic $topic, HideTopicAction $action): JsonResponse
     {
         $request->validate([
             'motivo' => ['required', 'string', 'max:500'],
@@ -27,16 +27,7 @@ class AdminForumController extends Controller
 
         $this->authorize('hide', $topic);
 
-        $topic->update(['status' => TopicStatus::Hidden]);
-
-        // Log activity
-        activity()
-            ->causedBy($request->user())
-            ->performedOn($topic)
-            ->withProperties([
-                'motivo' => $request->input('motivo'),
-            ])
-            ->log('topic_hidden');
+        $action->execute($topic, $request->user(), $request->input('motivo'));
 
         return response()->json([
             'success' => true,
@@ -46,7 +37,7 @@ class AdminForumController extends Controller
 
     /**
      * Suspend a user from the forum.
-     * 
+     *
      * POST /api/v1/admin/forum/users/{user}/suspend
      */
     public function suspendUser(Request $request, User $user): JsonResponse
