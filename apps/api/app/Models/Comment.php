@@ -99,6 +99,11 @@ class Comment extends Model
         return $query->whereNull('parent_id');
     }
 
+    public function scopeVotacao($query)
+    {
+        return $query->where('commentable_type', \App\Domains\Votes\Models\Votacao::class);
+    }
+
     public function scopeWithUserLiked($query, ?string $userId)
     {
         if (!$userId) {

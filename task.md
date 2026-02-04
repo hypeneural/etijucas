@@ -1,42 +1,54 @@
-# Checklist - Admin (Filament)
+﻿# Task - Admin (Filament) Votacoes / Vereadores
 
-## Prioridade Alta (fundacao e consistencia)
-- [ ] Centralizar regras de negocio em `app/Domains/*/Actions` ou `Services` e usar as mesmas Actions no Filament e na API.
-- [ ] Remover logica duplicada entre Controllers e Resources (migrar `mutateFormData` e Actions para Services).
-- [x] Padronizar acoes de moderacao com helpers reutilizaveis (ex: `ModerationActionService`).
-- [x] Migrar `Topic` para upload via Media Library (form + sync de `foto_url`).
-- [x] Migrar `Organizer` para upload via Media Library (avatar).
-- [x] Migrar `TourismSpot` para upload via Media Library (cover + gallery).
-- [x] Migrar `Event` para upload via Media Library (cover + banner + gallery).
+## Prioridade Alta (fundacao e CRUDs essenciais)
+- [x] Criar `VereadorResource` (Filament) com campos principais e validacoes.
+- [x] Implementar upload de foto do vereador via Media Library:
+  - [x] `Vereador` implementar `HasMedia` + collection `vereador_avatar`.
+  - [x] Form com `SpatieMediaLibraryFileUpload`.
+  - [x] Sync `foto_url` para compatibilidade (legado).
+- [x] Criar `VotacaoResource` com form completo (titulo, subtitulo, descricao, ementa, tipo, status, data, sessao, links, tags).
+- [x] Criar `VotoRegistro` RelationManager dentro de `VotacaoResource`:
+  - [x] selecionar `vereador_id` (searchable/preload).
+  - [x] `voto` (SIM/NAO/ABSTENCAO/NAO_VOTOU), `justificativa`, `url_video`.
+  - [x] ao salvar/deletar, garantir `recalcularVotos()`.
+- [ ] Adicionar politicas/roles para admin/moderator:
+  - [ ] admin: CRUD completo.
+  - [ ] moderator: moderacao de comentarios e leitura de votacoes.
+- [x] Resource de comentarios (Votacao): filtrar `commentable_type = Votacao`.
 
-## Prioridade Media (padroes de UI e organizacao)
-- [ ] Padronizar `form()` e `table()` usando `BaseResource` e Traits onde ainda houver inconsistencias.
-- [ ] Revisar e unificar labels PT-BR em Resources/Pages/Widgets (sem mistura EN/PT).
-- [ ] Revisar queries de pages customizadas para `with/withCount` e filtros alinhados a indices.
-- [x] Ajustar `media_count` de eventos para refletir Media Library (com legado).
+## Prioridade Media (UX/UI e fluxo operacional)
+- [ ] Padrao de UX no form de votação:
+  - [ ] Sections separadas: Identificacao, Descricao, Sessao, Resultado, Midia/Links.
+  - [ ] `tags` com `TagsInput` e helper text.
+  - [ ] `status` com badges e cores.
+- [ ] VotoRegistro RelationManager:
+  - [ ] default sort por vereador (nome) e voto.
+  - [ ] filtros rapidos por tipo de voto.
+  - [ ] actions em lote (ex: marcar como NAO_VOTOU).
+- [ ] ViewAction com resumo (counts, resultado, total votos).
+- [ ] Botao rapido "Recalcular Votos" na votacao (Action).
 
-## Prioridade Media (performance e confiabilidade)
-- [ ] Aplicar `getEloquentQuery()` com `with/withCount` em todos os Resources (auditar N+1).
-- [ ] Garantir indices para filtros comuns (status, created_at, category_id, bairro_id).
-- [ ] Usar `->deferLoading()` em tabelas pesadas quando fizer sentido.
-- [ ] Cache curto (30-120s) para widgets de KPI.
+## Prioridade Media (comentarios / moderacao)
+- [ ] `VotacaoCommentResource`:
+  - [ ] listagem com usuario, texto, likes, is_anon, created_at.
+  - [ ] filtros por `has_image`, `is_anon`, `likes_count`.
+  - [ ] actions: remover, ocultar (soft delete), resetar likes.
+- [ ] Se usar `Comment` global, criar scope `votacao()` no model para facilitar.
 
-## Prioridade Baixa (evolucao do admin)
-- [ ] Criar pagina de configuracoes do sistema se existirem parametros globais.
-- [ ] Criar widgets operacionais por dominio (KPIs de moderacao, eventos, turismo).
-
-## Alinhamento API x Admin (acoes compartilhadas)
-- [x] Definir Actions por dominio (Reports, Forum) e usar em Controllers + Filament.
-- [ ] Definir Actions por dominio (Events) e usar em Controllers + Filament.
-- [ ] Documentar o fluxo de cada Action no admin (entrada/saida/efeitos colaterais).
-
-## Upload de imagens (migracao gradual)
-- [ ] Definir colecoes Media Library por dominio: Events (`event_cover`, `event_banner`, `event_gallery`), Tourism (`tourism_cover`, `tourism_gallery`), Organizer (`organizer_avatar`), Topic (`topic_image`).
-- [ ] Substituir campos `*_url` por `SpatieMediaLibraryFileUpload` via `HasMediaLibraryTrait`.
-- [x] Criar Action "Importar da URL" usando `addMediaFromUrl` para dados legados.
-- [ ] Remover campos `*_url` depois da migracao e atualizar frontend/Resources.
+## Prioridade Baixa (estatisticas e dashboards)
+- [x] Widget KPI de votacoes:
+  - [x] total votacoes, aprovadas, rejeitadas, em andamento.
+  - [ ] grafico por ano.
+- [ ] Widget de engajamento:
+  - [ ] likes, dislikes, comments.
 
 ## Verificacao e Qualidade
-- [ ] Testar `ModerationQueue` com dados reais e links corretos.
-- [ ] Testes de moderacao (forum) e publicacao de eventos.
-- [ ] Verificar performance com dados volumosos (N+1, indices, pagination).
+- [ ] Validar permissoes em todos os Resources (admin/moderator).
+- [ ] Testar fluxo completo:
+  - [ ] criar vereador com foto.
+  - [ ] criar votacao + registrar votos.
+  - [ ] validar contadores e status automatico.
+  - [ ] criar/moderar comentario de votacao.
+- [ ] Performance:
+  - [ ] `with/withCount` nos Resources.
+  - [ ] indices para filtros (status, data, vereador_id).

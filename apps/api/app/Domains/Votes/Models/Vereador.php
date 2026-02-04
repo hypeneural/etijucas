@@ -11,10 +11,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class Vereador extends Model
+class Vereador extends Model implements HasMedia
 {
-    use HasFactory, HasUuids, SoftDeletes;
+    use HasFactory, HasUuids, SoftDeletes, InteractsWithMedia;
 
     protected $table = 'vereadores';
 
@@ -151,5 +153,31 @@ class Vereador extends Model
             'ausencias' => $ausente,
             'presenca_percent' => $presenca,
         ];
+    }
+
+    // =========================================
+    // Media Library
+    // =========================================
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('vereador_avatar')
+            ->singleFile()
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
+    }
+
+    public function registerMediaConversions(\Spatie\MediaLibrary\MediaCollections\Models\Media $media = null): void
+    {
+        $this->addMediaConversion('thumb')
+            ->width(400)
+            ->height(400)
+            ->performOnCollections('vereador_avatar')
+            ->nonQueued();
+
+        $this->addMediaConversion('web')
+            ->width(1200)
+            ->height(1200)
+            ->performOnCollections('vereador_avatar')
+            ->nonQueued();
     }
 }

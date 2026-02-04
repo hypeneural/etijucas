@@ -44,6 +44,7 @@ class AdminPanelProvider extends PanelProvider
             ->navigationGroups([
                 'Acesso & Usuarios',
                 'Moderacao',
+                'Votacoes',
                 'Conteudo',
                 'Sistema & Auditoria',
             ])
