@@ -5,11 +5,11 @@
  * - Fullscreen Leaflet map
  * - Custom pins with category icons (SVG)
  * - Bottom sheet preview with full details
- * - Filter chips
+ * - Advanced filter drawer
  * - GPS recenter
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
@@ -18,7 +18,7 @@ import {
     ArrowLeft,
     Plus,
     Crosshair,
-    Filter,
+    SlidersHorizontal,
     ChevronRight,
     Clock,
     MapPin,
@@ -28,10 +28,17 @@ import {
     RefreshCw,
     Image as ImageIcon,
     FileText,
-    ExternalLink,
+    Calendar,
+    Tag,
+    CheckCircle2,
+    X,
+    Sparkles,
+    Map as MapIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import {
     Drawer,
     DrawerContent,
@@ -39,13 +46,21 @@ import {
     DrawerTitle,
     DrawerDescription,
 } from '@/components/ui/drawer';
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+    SheetDescription,
+} from '@/components/ui/sheet';
 import { useQuery } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
-import { formatDistanceToNow, format } from 'date-fns';
+import { formatDistanceToNow, format, subDays, subWeeks, subMonths, startOfDay, endOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { CategoryIcon } from '@/components/report/CategoryIcon';
 import { BottomTabBar } from '@/components/layout/BottomTabBar';
+import { useReportsStats } from '@/hooks/useMyReports';
 import 'leaflet/dist/leaflet.css';
 
 // ============================================
@@ -76,6 +91,14 @@ interface MapBounds {
     maxLon: number;
 }
 
+interface ReportCategory {
+    id: string;
+    name: string;
+    slug: string;
+    icon: string;
+    color: string;
+}
+
 // ============================================
 // STATUS CONFIG
 // ============================================
@@ -88,7 +111,19 @@ const statusConfig: Record<string, { label: string; color: string; bgClass: stri
 };
 
 // ============================================
-// MDI ICON PATHS (simplified SVG paths for common icons)
+// DATE PERIOD CONFIG
+// ============================================
+
+const periodConfig = [
+    { id: 'all', label: 'Todos os períodos', getRange: () => null },
+    { id: 'today', label: 'Hoje', getRange: () => ({ from: startOfDay(new Date()), to: endOfDay(new Date()) }) },
+    { id: 'week', label: 'Última semana', getRange: () => ({ from: subWeeks(new Date(), 1), to: new Date() }) },
+    { id: 'month', label: 'Último mês', getRange: () => ({ from: subMonths(new Date(), 1), to: new Date() }) },
+    { id: '3months', label: 'Últimos 3 meses', getRange: () => ({ from: subMonths(new Date(), 3), to: new Date() }) },
+];
+
+// ============================================
+// MDI ICON PATHS
 // ============================================
 
 const mdiIconPaths: Record<string, string> = {
@@ -103,13 +138,12 @@ const mdiIconPaths: Record<string, string> = {
     'mdi:dots-horizontal': 'M16 12C16 10.9 16.9 10 18 10S20 10.9 20 12 19.1 14 18 14 16 13.1 16 12M10 12C10 10.9 10.9 10 12 10S14 10.9 14 12 13.1 14 12 14 10 13.1 10 12M4 12C4 10.9 4.9 10 6 10S8 10.9 8 12 7.1 14 6 14 4 13.1 4 12Z',
 };
 
-// Get SVG path for icon
 function getIconPath(icon: string): string {
     return mdiIconPaths[icon] || mdiIconPaths['mdi:dots-horizontal'];
 }
 
 // ============================================
-// CREATE CUSTOM MARKER ICON WITH EMBEDDED SVG
+// CREATE CUSTOM MARKER ICON
 // ============================================
 
 function createMarkerIcon(icon: string, color: string, isSelected: boolean = false): L.DivIcon {
@@ -145,7 +179,7 @@ function createMarkerIcon(icon: string, color: string, isSelected: boolean = fal
 }
 
 // ============================================
-// MAP INITIALIZER - TRIGGERS INITIAL BOUNDS
+// MAP INITIALIZER
 // ============================================
 
 function MapInitializer({ onBoundsChange, onZoomChange }: {
@@ -154,7 +188,6 @@ function MapInitializer({ onBoundsChange, onZoomChange }: {
 }) {
     const map = useMap();
 
-    // Trigger initial bounds on mount
     useEffect(() => {
         const bounds = map.getBounds();
         onBoundsChange({
@@ -166,7 +199,6 @@ function MapInitializer({ onBoundsChange, onZoomChange }: {
         onZoomChange(map.getZoom());
     }, [map, onBoundsChange, onZoomChange]);
 
-    // Listen for map events
     useMapEvents({
         moveend: () => {
             const bounds = map.getBounds();
@@ -187,7 +219,7 @@ function MapInitializer({ onBoundsChange, onZoomChange }: {
 }
 
 // ============================================
-// RECENTER BUTTON
+// RECENTER CONTROL
 // ============================================
 
 function RecenterControl({ lat, lon }: { lat: number; lon: number }) {
@@ -214,6 +246,7 @@ export default function ReportsMapScreen() {
     const [zoom, setZoom] = useState(14);
     const [selectedReport, setSelectedReport] = useState<MapReport | null>(null);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [recenterTo, setRecenterTo] = useState<{ lat: number; lon: number } | null>(null);
 
     // GPS state
@@ -222,16 +255,34 @@ export default function ReportsMapScreen() {
 
     // Filters
     const [statusFilter, setStatusFilter] = useState<string[]>([]);
+    const [categoryFilter, setCategoryFilter] = useState<string[]>([]);
+    const [periodFilter, setPeriodFilter] = useState<string>('all');
 
     // Default center (Tijucas, SC)
     const defaultCenter: [number, number] = [-27.2381, -48.6356];
+
+    // Get total stats
+    const { stats } = useReportsStats();
+    const totalReports = stats?.total ?? 0;
+
+    // Fetch categories
+    const { data: categoriesData } = useQuery({
+        queryKey: ['report-categories'],
+        queryFn: async () => {
+            const response = await fetch('/api/v1/report-categories');
+            if (!response.ok) throw new Error('Failed to fetch');
+            return response.json();
+        },
+        staleTime: 5 * 60 * 1000,
+    });
+    const categories: ReportCategory[] = categoriesData?.data || [];
 
     // Build bbox string for API
     const bboxString = bounds
         ? `${bounds.minLat},${bounds.minLon},${bounds.maxLat},${bounds.maxLon}`
         : null;
 
-    // Memoize callbacks to prevent re-renders
+    // Memoize callbacks
     const handleBoundsChange = useCallback((newBounds: MapBounds) => {
         setBounds(newBounds);
     }, []);
@@ -242,13 +293,14 @@ export default function ReportsMapScreen() {
 
     // Fetch reports for current viewport
     const { data, isLoading, refetch, isFetching } = useQuery({
-        queryKey: ['reports', 'map', bboxString, zoom, statusFilter],
+        queryKey: ['reports', 'map', bboxString, zoom, statusFilter, categoryFilter, periodFilter],
         queryFn: async () => {
             const params = new URLSearchParams();
             if (bboxString) params.set('bbox', bboxString);
             params.set('zoom', String(zoom));
             params.set('limit', '300');
             if (statusFilter.length) params.set('status', statusFilter.join(','));
+            if (categoryFilter.length) params.set('category', categoryFilter.join(','));
 
             const response = await fetch(`/api/v1/reports/map?${params.toString()}`);
             if (!response.ok) throw new Error('Failed to fetch');
@@ -259,7 +311,33 @@ export default function ReportsMapScreen() {
         refetchOnWindowFocus: false,
     });
 
-    const reports: MapReport[] = data?.reports || [];
+    // Filter by period on client side (for now)
+    const reports: MapReport[] = useMemo(() => {
+        let filtered = data?.reports || [];
+
+        if (periodFilter !== 'all') {
+            const period = periodConfig.find(p => p.id === periodFilter);
+            const range = period?.getRange();
+            if (range) {
+                filtered = filtered.filter((r: MapReport) => {
+                    const date = new Date(r.createdAt);
+                    return date >= range.from && date <= range.to;
+                });
+            }
+        }
+
+        return filtered;
+    }, [data?.reports, periodFilter]);
+
+    // Count active filters
+    const activeFiltersCount = statusFilter.length + categoryFilter.length + (periodFilter !== 'all' ? 1 : 0);
+
+    // Clear all filters
+    const clearFilters = () => {
+        setStatusFilter([]);
+        setCategoryFilter([]);
+        setPeriodFilter('all');
+    };
 
     // Get user location
     const handleGetLocation = useCallback(() => {
@@ -313,7 +391,7 @@ export default function ReportsMapScreen() {
         }
     };
 
-    // Handle routes (open in maps)
+    // Handle routes
     const handleRoutes = () => {
         if (!selectedReport) return;
         const url = `https://www.google.com/maps/dir/?api=1&destination=${selectedReport.lat},${selectedReport.lon}`;
@@ -329,20 +407,55 @@ export default function ReportsMapScreen() {
                         <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="shrink-0 -ml-1">
                             <ArrowLeft className="w-5 h-5" />
                         </Button>
-                        <div>
-                            <h1 className="font-bold text-lg leading-tight">Mapa de Denúncias</h1>
-                            <p className="text-xs text-muted-foreground">
-                                {isFetching ? 'Atualizando...' : `${reports.length} denúncia${reports.length !== 1 ? 's' : ''} visível${reports.length !== 1 ? 'eis' : ''}`}
-                            </p>
+                        <div className="flex items-center gap-2">
+                            <motion.div
+                                initial={{ rotate: -10, scale: 0.8 }}
+                                animate={{ rotate: 0, scale: 1 }}
+                                transition={{ type: 'spring', stiffness: 200 }}
+                            >
+                                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-md">
+                                    <MapIcon className="w-5 h-5 text-white" />
+                                </div>
+                            </motion.div>
+                            <div>
+                                <h1 className="font-bold text-lg leading-tight flex items-center gap-1.5">
+                                    Mapa
+                                    <Sparkles className="w-4 h-4 text-amber-500" />
+                                </h1>
+                                <p className="text-xs text-muted-foreground">
+                                    {isFetching ? (
+                                        <span className="flex items-center gap-1">
+                                            <Loader2 className="w-3 h-3 animate-spin" />
+                                            Atualizando...
+                                        </span>
+                                    ) : (
+                                        <span>
+                                            <strong>{reports.length}</strong> de <strong>{totalReports}</strong> denúncias
+                                        </span>
+                                    )}
+                                </p>
+                            </div>
                         </div>
                     </div>
                     <div className="flex items-center gap-1">
+                        <Button
+                            variant={activeFiltersCount > 0 ? "default" : "ghost"}
+                            size="icon"
+                            onClick={() => setIsFilterOpen(true)}
+                            className="relative"
+                        >
+                            <SlidersHorizontal className="w-5 h-5" />
+                            {activeFiltersCount > 0 && (
+                                <span className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground text-xs rounded-full flex items-center justify-center font-bold">
+                                    {activeFiltersCount}
+                                </span>
+                            )}
+                        </Button>
                         <Button
                             variant="ghost"
                             size="icon"
                             onClick={handleGetLocation}
                             disabled={isLocating}
-                            className="relative"
                         >
                             {isLocating ? (
                                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -363,7 +476,7 @@ export default function ReportsMapScreen() {
                     zoomControl={false}
                 >
                     <TileLayer
-                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+                        attribution='&copy; OSM'
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     />
 
@@ -441,9 +554,8 @@ export default function ReportsMapScreen() {
                 </AnimatePresence>
             </div>
 
-            {/* Filter Bar */}
+            {/* Quick Filter Bar */}
             <div className="shrink-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t px-3 py-2.5 flex gap-2 overflow-x-auto z-10">
-                {/* Quick status filters */}
                 {Object.entries(statusConfig).map(([status, config]) => (
                     <Button
                         key={status}
@@ -479,12 +591,145 @@ export default function ReportsMapScreen() {
             {/* Bottom Tab Bar */}
             <BottomTabBar />
 
+            {/* Advanced Filter Sheet */}
+            <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+                <SheetContent side="bottom" className="max-h-[85vh] rounded-t-3xl">
+                    <SheetHeader className="pb-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                                    <SlidersHorizontal className="w-5 h-5 text-primary" />
+                                </div>
+                                <div>
+                                    <SheetTitle className="text-lg">Filtros Avançados</SheetTitle>
+                                    <SheetDescription>
+                                        {activeFiltersCount > 0
+                                            ? `${activeFiltersCount} filtro${activeFiltersCount > 1 ? 's' : ''} ativo${activeFiltersCount > 1 ? 's' : ''}`
+                                            : 'Nenhum filtro ativo'
+                                        }
+                                    </SheetDescription>
+                                </div>
+                            </div>
+                            {activeFiltersCount > 0 && (
+                                <Button variant="ghost" size="sm" onClick={clearFilters}>
+                                    <X className="w-4 h-4 mr-1" />
+                                    Limpar
+                                </Button>
+                            )}
+                        </div>
+                    </SheetHeader>
+
+                    <div className="space-y-6 pb-6 overflow-y-auto">
+                        {/* Status Filter */}
+                        <div>
+                            <div className="flex items-center gap-2 mb-3">
+                                <CheckCircle2 className="w-4 h-4 text-muted-foreground" />
+                                <h3 className="font-semibold">Situação</h3>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                                {Object.entries(statusConfig).map(([status, config]) => (
+                                    <label
+                                        key={status}
+                                        className={cn(
+                                            "flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all",
+                                            statusFilter.includes(status)
+                                                ? "border-primary bg-primary/5"
+                                                : "border-muted bg-muted/30 hover:border-muted-foreground/30"
+                                        )}
+                                    >
+                                        <Checkbox
+                                            checked={statusFilter.includes(status)}
+                                            onCheckedChange={(checked) => {
+                                                setStatusFilter(prev =>
+                                                    checked
+                                                        ? [...prev, status]
+                                                        : prev.filter(s => s !== status)
+                                                );
+                                            }}
+                                        />
+                                        <span className="font-medium text-sm">{config.label}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Category Filter */}
+                        <div>
+                            <div className="flex items-center gap-2 mb-3">
+                                <Tag className="w-4 h-4 text-muted-foreground" />
+                                <h3 className="font-semibold">Categoria</h3>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                                {categories.map((cat) => (
+                                    <label
+                                        key={cat.id}
+                                        className={cn(
+                                            "flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all",
+                                            categoryFilter.includes(cat.slug)
+                                                ? "border-primary bg-primary/5"
+                                                : "border-muted bg-muted/30 hover:border-muted-foreground/30"
+                                        )}
+                                    >
+                                        <Checkbox
+                                            checked={categoryFilter.includes(cat.slug)}
+                                            onCheckedChange={(checked) => {
+                                                setCategoryFilter(prev =>
+                                                    checked
+                                                        ? [...prev, cat.slug]
+                                                        : prev.filter(s => s !== cat.slug)
+                                                );
+                                            }}
+                                        />
+                                        <CategoryIcon icon={cat.icon} color={cat.color} size="sm" />
+                                        <span className="font-medium text-sm truncate">{cat.name}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Period Filter */}
+                        <div>
+                            <div className="flex items-center gap-2 mb-3">
+                                <Calendar className="w-4 h-4 text-muted-foreground" />
+                                <h3 className="font-semibold">Período</h3>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                {periodConfig.map((period) => (
+                                    <Button
+                                        key={period.id}
+                                        variant={periodFilter === period.id ? "default" : "outline"}
+                                        size="sm"
+                                        className="rounded-full"
+                                        onClick={() => setPeriodFilter(period.id)}
+                                    >
+                                        {period.label}
+                                    </Button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Apply Button */}
+                        <Button
+                            className="w-full h-12 text-base font-semibold"
+                            onClick={() => setIsFilterOpen(false)}
+                        >
+                            Aplicar Filtros
+                            {activeFiltersCount > 0 && (
+                                <Badge variant="secondary" className="ml-2">
+                                    {activeFiltersCount}
+                                </Badge>
+                            )}
+                        </Button>
+                    </div>
+                </SheetContent>
+            </Sheet>
+
             {/* Report Preview Drawer */}
             <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
                 <DrawerContent className="max-h-[85vh]">
                     <DrawerHeader className="pb-2">
                         <DrawerTitle className="sr-only">Detalhes da Denúncia</DrawerTitle>
-                        <DrawerDescription className="sr-only">Preview da denúncia selecionada no mapa</DrawerDescription>
+                        <DrawerDescription className="sr-only">Preview da denúncia selecionada</DrawerDescription>
                     </DrawerHeader>
 
                     {selectedReport && (
@@ -531,20 +776,16 @@ export default function ReportsMapScreen() {
 
                             {/* Details */}
                             <div className="bg-muted/50 rounded-2xl p-4 space-y-3">
-                                {/* Address */}
                                 <div className="flex items-start gap-3">
                                     <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                                         <MapPin className="w-4 h-4 text-primary" />
                                     </div>
                                     <div>
                                         <p className="text-xs text-muted-foreground uppercase font-medium">Localização</p>
-                                        <p className="text-sm font-medium">
-                                            {selectedReport.addressShort || 'Tijucas, SC'}
-                                        </p>
+                                        <p className="text-sm font-medium">{selectedReport.addressShort || 'Tijucas, SC'}</p>
                                     </div>
                                 </div>
 
-                                {/* Date */}
                                 <div className="flex items-start gap-3">
                                     <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                                         <Clock className="w-4 h-4 text-primary" />
@@ -554,35 +795,25 @@ export default function ReportsMapScreen() {
                                         <p className="text-sm font-medium">
                                             {format(new Date(selectedReport.createdAt), "d 'de' MMMM 'de' yyyy", { locale: ptBR })}
                                             <span className="text-muted-foreground"> • </span>
-                                            {formatDistanceToNow(new Date(selectedReport.createdAt), {
-                                                addSuffix: true,
-                                                locale: ptBR,
-                                            })}
+                                            {formatDistanceToNow(new Date(selectedReport.createdAt), { addSuffix: true, locale: ptBR })}
                                         </p>
                                     </div>
                                 </div>
 
-                                {/* Photo indicator */}
                                 <div className="flex items-start gap-3">
                                     <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                                         <ImageIcon className="w-4 h-4 text-primary" />
                                     </div>
                                     <div>
                                         <p className="text-xs text-muted-foreground uppercase font-medium">Mídia</p>
-                                        <p className="text-sm font-medium">
-                                            {selectedReport.thumbUrl ? 'Com foto anexada' : 'Sem foto'}
-                                        </p>
+                                        <p className="text-sm font-medium">{selectedReport.thumbUrl ? 'Com foto anexada' : 'Sem foto'}</p>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Actions */}
                             <div className="space-y-2">
-                                <Button
-                                    onClick={handleViewDetails}
-                                    className="w-full h-12 text-base font-semibold shadow-md"
-                                    size="lg"
-                                >
+                                <Button onClick={handleViewDetails} className="w-full h-12 text-base font-semibold shadow-md" size="lg">
                                     <FileText className="w-5 h-5 mr-2" />
                                     Ver Detalhes Completos
                                     <ChevronRight className="w-5 h-5 ml-auto" />
