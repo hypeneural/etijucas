@@ -20,6 +20,8 @@ import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { SimpleWeatherView } from '@/components/weather/SimpleWeatherView';
 import { PresetChips } from '@/components/weather/PresetChips';
+import { TempRainChart, WindChart, WeatherExplainers } from '@/components/weather/WeatherCharts';
+import { SeaConditionHero, ExplainableMetric, CoastalPrecisionBanner } from '@/components/weather/MarineExplainer';
 import { haptic } from '@/hooks/useHaptic';
 
 type ViewMode = 'simple' | 'detailed';
@@ -212,7 +214,19 @@ export default function WeatherPage() {
                                         {loadingForecast ? (
                                             <HourlyLoadingSkeleton />
                                         ) : forecast?.hourly ? (
-                                            <HourlyForecast hours={forecast.hourly} />
+                                            <div className="space-y-4">
+                                                {/* Interactive Temperature & Rain Chart */}
+                                                <TempRainChart hours={forecast.hourly} />
+
+                                                {/* Interactive Wind Chart */}
+                                                <WindChart hours={forecast.hourly} />
+
+                                                {/* Explainer Chips */}
+                                                <WeatherExplainers />
+
+                                                {/* Hourly Timeline (existing) */}
+                                                <HourlyForecast hours={forecast.hourly} />
+                                            </div>
                                         ) : (
                                             <EmptyState message="Dados não disponíveis" />
                                         )}
@@ -487,9 +501,6 @@ function DailyForecast({ days }: { days: WeatherDayPoint[] }) {
 // ======================================================
 
 function MarineForecast({ hours }: { hours: MarineHourPoint[] }) {
-    // Lazy import to avoid circular deps
-    const { SeaConditionHero, ExplainableMetric, CoastalPrecisionBanner } = require('@/components/weather/MarineExplainer');
-
     const current = hours[0];
     if (!current) return <EmptyState message="Dados do mar indisponíveis" />;
 
