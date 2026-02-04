@@ -372,6 +372,151 @@ class EventResource extends BaseResource
                             ->send();
                     })
                     ->visible(fn(): bool => auth()->user()?->hasRole('admin') ?? false),
+                Action::make('publish')
+                    ->label('Publicar')
+                    ->icon('heroicon-o-arrow-up-tray')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->action(function (Event $record): void {
+                        $record->update([
+                            'status' => EventStatus::Published,
+                            'published_at' => now(),
+                        ]);
+                    })
+                    ->visible(fn (Event $record): bool => $record->status !== EventStatus::Published
+                        && (auth()->user()?->hasRole('admin') ?? false)),
+                Action::make('unpublish')
+                    ->label('Despublicar')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('warning')
+                    ->requiresConfirmation()
+                    ->action(function (Event $record): void {
+                        $record->update([
+                            'status' => EventStatus::Draft,
+                            'published_at' => null,
+                        ]);
+                    })
+                    ->visible(fn (Event $record): bool => $record->status === EventStatus::Published
+                        && (auth()->user()?->hasRole('admin') ?? false)),
+                Action::make('toggleFeatured')
+                    ->label(fn (Event $record): string => $record->is_featured ? 'Remover destaque' : 'Destacar')
+                    ->icon('heroicon-o-star')
+                    ->color(fn (Event $record): string => $record->is_featured ? 'gray' : 'warning')
+                    ->requiresConfirmation()
+                    ->action(function (Event $record): void {
+                        $record->update(['is_featured' => ! $record->is_featured]);
+                    })
+                    ->visible(fn (): bool => auth()->user()?->hasRole('admin') ?? false),
+                Action::make('duplicate')
+                    ->label('Duplicar')
+                    ->icon('heroicon-o-squares-2x2')
+                    ->requiresConfirmation()
+                    ->action(function (Event $record): void {
+                        $record->loadMissing(['tags', 'links', 'days', 'schedules', 'ticket.lots']);
+
+                        $copy = $record->replicate([
+                            'slug',
+                            'status',
+                            'published_at',
+                            'is_featured',
+                            'popularity_score',
+                            'confirmed_attendance',
+                        ]);
+
+                        $copy->title = $record->title . ' (Copia)';
+                        $baseSlug = Str::slug($copy->title);
+                        $slug = $baseSlug;
+                        $suffix = 1;
+                        while (Event::where('slug', $slug)->exists()) {
+                            $slug = $baseSlug . '-' . $suffix++;
+                        }
+
+                        $copy->slug = $slug;
+                        $copy->status = EventStatus::Draft;
+                        $copy->published_at = null;
+                        $copy->is_featured = false;
+                        $copy->popularity_score = 0;
+                        $copy->confirmed_attendance = 0;
+                        $copy->save();
+
+                        if ($record->relationLoaded('tags')) {
+                            $copy->tags()->sync($record->tags->pluck('id')->all());
+                        }
+
+                        $dayMap = [];
+                        foreach ($record->days as $day) {
+                            $newDay = $copy->days()->create($day->only([
+                                'day_number',
+                                'date',
+                                'title',
+                                'start_time',
+                                'end_time',
+                                'description',
+                                'cover_image_url',
+                            ]));
+                            $dayMap[$day->id] = $newDay->id;
+                        }
+
+                        foreach ($record->schedules as $schedule) {
+                            $data = $schedule->only([
+                                'event_day_id',
+                                'time',
+                                'date',
+                                'title',
+                                'description',
+                                'stage',
+                                'performer',
+                                'display_order',
+                            ]);
+
+                            if (! empty($data['event_day_id']) && array_key_exists($data['event_day_id'], $dayMap)) {
+                                $data['event_day_id'] = $dayMap[$data['event_day_id']];
+                            } else {
+                                $data['event_day_id'] = null;
+                            }
+
+                            $copy->schedules()->create($data);
+                        }
+
+                        foreach ($record->links as $link) {
+                            $copy->links()->create($link->only([
+                                'link_type',
+                                'url',
+                                'label',
+                            ]));
+                        }
+
+                        if ($record->ticket) {
+                            $ticket = $copy->ticket()->create($record->ticket->only([
+                                'ticket_type',
+                                'min_price',
+                                'max_price',
+                                'currency',
+                                'purchase_url',
+                                'purchase_info',
+                            ]));
+
+                            foreach ($record->ticket->lots as $lot) {
+                                $ticket->lots()->create($lot->only([
+                                    'name',
+                                    'price',
+                                    'quantity_total',
+                                    'quantity_sold',
+                                    'available_from',
+                                    'available_until',
+                                    'is_active',
+                                    'display_order',
+                                ]));
+                            }
+                        }
+
+                        Notification::make()
+                            ->title('Evento duplicado')
+                            ->body('Duplicado com sucesso. Midias devem ser ajustadas manualmente.')
+                            ->success()
+                            ->send();
+                    })
+                    ->visible(fn (): bool => auth()->user()?->hasRole('admin') ?? false),
                 ...static::baseTableActions(),
             ]);
     }

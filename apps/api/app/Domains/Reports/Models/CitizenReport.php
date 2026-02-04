@@ -23,6 +23,7 @@ class CitizenReport extends Model implements HasMedia
 
     protected $fillable = [
         'user_id',
+        'assigned_to',
         'category_id',
         'bairro_id',
         'title',
@@ -36,6 +37,7 @@ class CitizenReport extends Model implements HasMedia
         'longitude',
         'location_accuracy_m',
         'resolved_at',
+        'assigned_at',
     ];
 
     protected $casts = [
@@ -45,6 +47,7 @@ class CitizenReport extends Model implements HasMedia
         'longitude' => 'decimal:7',
         'location_accuracy_m' => 'integer',
         'resolved_at' => 'datetime',
+        'assigned_at' => 'datetime',
     ];
 
     // =====================================================
@@ -54,6 +57,11 @@ class CitizenReport extends Model implements HasMedia
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function assignedTo(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'assigned_to');
     }
 
     public function category(): BelongsTo
@@ -222,4 +230,3 @@ class CitizenReport extends Model implements HasMedia
         });
     }
 }
-

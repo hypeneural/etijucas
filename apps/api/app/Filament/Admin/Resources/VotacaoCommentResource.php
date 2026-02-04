@@ -173,11 +173,23 @@ class VotacaoCommentResource extends BaseResource
                     ->requiresConfirmation()
                     ->using(function (Comment $record): bool {
                         $commentable = $record->commentable;
-                        if ($commentable instanceof Votacao) {
+                        if (! $record->trashed() && $commentable instanceof Votacao) {
                             $commentable->decrement('comments_count');
                         }
 
-                        return (bool) $record->delete();
+                        $deleted = (bool) $record->delete();
+
+                        if ($deleted && function_exists('activity')) {
+                            activity()
+                                ->causedBy(auth()->user())
+                                ->performedOn($record)
+                                ->withProperties([
+                                    'votacao_id' => $record->commentable_id,
+                                ])
+                                ->log('votacao_comment_deleted');
+                        }
+
+                        return $deleted;
                     })
                     ->visible(fn(): bool => auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false),
                 RestoreAction::make()
@@ -186,6 +198,16 @@ class VotacaoCommentResource extends BaseResource
                         $restored = (bool) $record->restore();
                         if ($restored && $record->commentable instanceof Votacao) {
                             $record->commentable->increment('comments_count');
+                        }
+
+                        if ($restored && function_exists('activity')) {
+                            activity()
+                                ->causedBy(auth()->user())
+                                ->performedOn($record)
+                                ->withProperties([
+                                    'votacao_id' => $record->commentable_id,
+                                ])
+                                ->log('votacao_comment_restored');
                         }
 
                         return $restored;

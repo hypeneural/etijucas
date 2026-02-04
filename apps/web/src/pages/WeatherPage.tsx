@@ -4,7 +4,7 @@
  * Modo Detalhado: 3 abas (Hoje, 10 Dias, Mar)
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Icon } from '@iconify/react';
@@ -20,6 +20,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { SimpleWeatherView } from '@/components/weather/SimpleWeatherView';
 import { PresetChips } from '@/components/weather/PresetChips';
+import { haptic } from '@/hooks/useHaptic';
 
 type ViewMode = 'simple' | 'detailed';
 
@@ -50,10 +51,21 @@ export default function WeatherPage() {
 
     const isLoading = loadingForecast || loadingMarine;
 
-    const handleRefresh = () => {
-        refetchForecast();
-        refetchMarine();
-    };
+    // Handlers with haptic feedback
+    const handleRefresh = useCallback(async () => {
+        haptic('light');
+        await Promise.all([refetchForecast(), refetchMarine()]);
+    }, [refetchForecast, refetchMarine]);
+
+    const handleModeChange = useCallback((mode: ViewMode) => {
+        haptic('selection');
+        setViewMode(mode);
+    }, []);
+
+    const handleTabChange = useCallback((tab: string) => {
+        haptic('selection');
+        setActiveTab(tab);
+    }, []);
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-sky-100 via-blue-50 to-white dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
@@ -99,7 +111,7 @@ export default function WeatherPage() {
                 <div className="px-4 py-3">
                     <div className="flex items-center justify-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl p-1 max-w-[280px] mx-auto">
                         <motion.button
-                            onClick={() => setViewMode('simple')}
+                            onClick={() => handleModeChange('simple')}
                             className={cn(
                                 "flex-1 py-2 px-4 text-sm font-medium rounded-lg transition-all relative",
                                 viewMode === 'simple'
@@ -120,7 +132,7 @@ export default function WeatherPage() {
                             </span>
                         </motion.button>
                         <motion.button
-                            onClick={() => setViewMode('detailed')}
+                            onClick={() => handleModeChange('detailed')}
                             className={cn(
                                 "flex-1 py-2 px-4 text-sm font-medium rounded-lg transition-all relative",
                                 viewMode === 'detailed'
@@ -168,7 +180,7 @@ export default function WeatherPage() {
                             transition={{ duration: 0.2 }}
                         >
                             {/* Tabs for detailed view */}
-                            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
                                 <div className="sticky top-[120px] z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl px-4 py-2 border-b border-gray-200/50 dark:border-gray-700/50">
                                     <TabsList className="grid w-full grid-cols-3 bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
                                         <TabsTrigger
@@ -471,17 +483,22 @@ function DailyForecast({ days }: { days: WeatherDayPoint[] }) {
 }
 
 // ======================================================
-// Marine Forecast Tab
+// Marine Forecast Tab (Didactic Version)
 // ======================================================
 
 function MarineForecast({ hours }: { hours: MarineHourPoint[] }) {
-    // Group by day
-    const grouped: Record<string, MarineHourPoint[]> = {};
-    hours.forEach(hour => {
-        const date = hour.t.split('T')[0];
-        if (!grouped[date]) grouped[date] = [];
-        grouped[date].push(hour);
-    });
+    // Lazy import to avoid circular deps
+    const { SeaConditionHero, ExplainableMetric, CoastalPrecisionBanner } = require('@/components/weather/MarineExplainer');
+
+    const current = hours[0];
+    if (!current) return <EmptyState message="Dados do mar indisponíveis" />;
+
+    // Classify sea condition
+    const getConditionColor = (waveM: number) => {
+        if (waveM >= 1.5) return 'text-red-500';
+        if (waveM >= 0.8) return 'text-amber-500';
+        return 'text-emerald-500';
+    };
 
     return (
         <motion.div
@@ -490,51 +507,86 @@ function MarineForecast({ hours }: { hours: MarineHourPoint[] }) {
             exit={{ opacity: 0 }}
             className="space-y-4"
         >
-            {/* Current marine conditions */}
-            {hours[0] && (
-                <Card className="p-4 bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/30 dark:to-blue-900/30">
-                    <h3 className="text-sm font-medium mb-3 text-cyan-800 dark:text-cyan-300">Condições Atuais do Mar</h3>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="text-center p-3 bg-white/60 dark:bg-gray-800/60 rounded-xl">
-                            <Icon icon="mdi:waves" className="h-8 w-8 mx-auto text-cyan-600" />
-                            <div className="text-2xl font-bold mt-1">{hours[0].wave_m.toFixed(1)}m</div>
-                            <div className="text-xs text-muted-foreground">Altura das ondas</div>
-                        </div>
-                        <div className="text-center p-3 bg-white/60 dark:bg-gray-800/60 rounded-xl">
-                            <Icon icon="mdi:timer-outline" className="h-8 w-8 mx-auto text-cyan-600" />
-                            <div className="text-2xl font-bold mt-1">{hours[0].wave_period_s.toFixed(0)}s</div>
+            {/* Sea Condition Hero Card */}
+            <SeaConditionHero
+                waveHeight={current.wave_m}
+                wavePeriod={current.wave_period_s}
+                seaTemp={current.sea_temp_c}
+            />
+
+            {/* Coastal Precision Warning */}
+            <CoastalPrecisionBanner />
+
+            {/* Detailed Metrics with Explanations */}
+            <Card className="p-4">
+                <h3 className="text-sm font-medium mb-4 flex items-center gap-2">
+                    <Icon icon="mdi:information-outline" className="h-4 w-4 text-muted-foreground" />
+                    Toque para entender cada métrica
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                    <ExplainableMetric
+                        metricKey="wave_height"
+                        value={current.wave_m.toFixed(1)}
+                        unit="m"
+                        size="lg"
+                    />
+                    <ExplainableMetric
+                        metricKey="wave_period"
+                        value={current.wave_period_s.toFixed(0)}
+                        unit="s"
+                        size="lg"
+                    />
+                    <ExplainableMetric
+                        metricKey="wave_direction"
+                        value={getWindDirection(current.wave_dir_deg)}
+                        size="lg"
+                    />
+                    {current.sea_temp_c !== undefined && (
+                        <ExplainableMetric
+                            metricKey="sea_temp"
+                            value={Math.round(current.sea_temp_c)}
+                            unit="°C"
+                            size="lg"
+                        />
+                    )}
+                </div>
+            </Card>
+
+            {/* Swell info with explanation */}
+            {current.swell_m !== undefined && current.swell_m > 0 && (
+                <Card className="p-4">
+                    <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
+                        <Icon icon="mdi:wave" className="h-4 w-4 text-blue-500" />
+                        Swell (Ondulação de alto mar)
+                    </h3>
+                    <div className="grid grid-cols-3 gap-3">
+                        <ExplainableMetric
+                            metricKey="swell"
+                            value={current.swell_m.toFixed(1)}
+                            unit="m"
+                            size="md"
+                        />
+                        <div className="text-center">
+                            <div className="text-lg font-bold">{current.swell_period_s?.toFixed(0) ?? '-'}s</div>
                             <div className="text-xs text-muted-foreground">Período</div>
                         </div>
-                        {hours[0].sea_temp_c && (
-                            <div className="text-center p-3 bg-white/60 dark:bg-gray-800/60 rounded-xl">
-                                <Icon icon="mdi:thermometer" className="h-8 w-8 mx-auto text-cyan-600" />
-                                <div className="text-2xl font-bold mt-1">{Math.round(hours[0].sea_temp_c)}°C</div>
-                                <div className="text-xs text-muted-foreground">Temp. do mar</div>
-                            </div>
-                        )}
-                        {hours[0].current_ms !== undefined && hours[0].current_ms > 0 && (
-                            <div className="text-center p-3 bg-white/60 dark:bg-gray-800/60 rounded-xl">
-                                <Icon icon="mdi:current-ac" className="h-8 w-8 mx-auto text-cyan-600" />
-                                <div className="text-2xl font-bold mt-1">{hours[0].current_ms.toFixed(1)} m/s</div>
-                                <div className="text-xs text-muted-foreground">Corrente</div>
-                            </div>
-                        )}
+                        <div className="text-center">
+                            <div className="text-lg font-bold">{getWindDirection(current.swell_dir_deg ?? 0)}</div>
+                            <div className="text-xs text-muted-foreground">Direção</div>
+                        </div>
                     </div>
                 </Card>
             )}
 
-            {/* Swell info */}
-            {hours[0]?.swell_m !== undefined && hours[0].swell_m > 0 && (
+            {/* Current info */}
+            {current.current_ms !== undefined && current.current_ms > 0 && (
                 <Card className="p-4">
-                    <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
-                        <Icon icon="mdi:wave" className="h-4 w-4 text-blue-500" />
-                        Swell (Ondulação)
-                    </h3>
-                    <div className="flex items-center justify-between">
-                        <span>Altura: <strong>{hours[0].swell_m.toFixed(1)}m</strong></span>
-                        <span>Período: <strong>{hours[0].swell_period_s?.toFixed(0) ?? '-'}s</strong></span>
-                        <span>Direção: <strong>{getWindDirection(hours[0].swell_dir_deg ?? 0)}</strong></span>
-                    </div>
+                    <ExplainableMetric
+                        metricKey="current"
+                        value={current.current_ms.toFixed(2)}
+                        unit=" m/s"
+                        size="lg"
+                    />
                 </Card>
             )}
 
@@ -544,17 +596,23 @@ function MarineForecast({ hours }: { hours: MarineHourPoint[] }) {
                 <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
                     {hours.slice(0, 12).map((hour, idx) => {
                         const time = new Date(hour.t);
+                        const conditionColor = getConditionColor(hour.wave_m);
 
                         return (
-                            <div
+                            <motion.div
                                 key={hour.t}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: idx * 0.05 }}
                                 className="flex-shrink-0 text-center p-3 rounded-xl bg-cyan-50 dark:bg-cyan-900/20 min-w-[70px]"
                             >
                                 <div className="text-xs font-medium mb-1">{time.getHours()}h</div>
-                                <Icon icon="mdi:waves" className="h-5 w-5 mx-auto text-cyan-600" />
-                                <div className="text-sm font-bold mt-1">{hour.wave_m.toFixed(1)}m</div>
+                                <Icon icon="mdi:waves" className={cn("h-5 w-5 mx-auto", conditionColor)} />
+                                <div className={cn("text-sm font-bold mt-1", conditionColor)}>
+                                    {hour.wave_m.toFixed(1)}m
+                                </div>
                                 <div className="text-xs text-muted-foreground">{hour.wave_period_s.toFixed(0)}s</div>
-                            </div>
+                            </motion.div>
                         );
                     })}
                 </div>

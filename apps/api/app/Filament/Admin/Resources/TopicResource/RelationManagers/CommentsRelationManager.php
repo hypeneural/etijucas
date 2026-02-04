@@ -10,8 +10,11 @@ use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\TrashedFilter;
 
 class CommentsRelationManager extends RelationManager
 {
@@ -52,6 +55,7 @@ class CommentsRelationManager extends RelationManager
                 Tables\Filters\Filter::make('is_anon')
                     ->label('Anônimos')
                     ->query(fn($query) => $query->where('is_anon', true)),
+                TrashedFilter::make(),
             ])
             ->actions([
                 Action::make('viewFull')
@@ -63,7 +67,53 @@ class CommentsRelationManager extends RelationManager
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Fechar'),
                 DeleteAction::make()
-                    ->label('Remover'),
+                    ->label('Remover')
+                    ->requiresConfirmation()
+                    ->using(function (Comment $record): bool {
+                        if (! $record->trashed() && $record->topic) {
+                            $record->topic->decrementComments();
+                        }
+
+                        $deleted = (bool) $record->delete();
+
+                        if ($deleted && function_exists('activity')) {
+                            activity()
+                                ->causedBy(auth()->user())
+                                ->performedOn($record)
+                                ->withProperties([
+                                    'topic_id' => $record->topic_id,
+                                ])
+                                ->log('forum_comment_deleted');
+                        }
+
+                        return $deleted;
+                    })
+                    ->visible(fn(): bool => auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false),
+                RestoreAction::make()
+                    ->requiresConfirmation()
+                    ->using(function (Comment $record): bool {
+                        $restored = (bool) $record->restore();
+
+                        if ($restored && $record->topic) {
+                            $record->topic->incrementComments();
+                        }
+
+                        if ($restored && function_exists('activity')) {
+                            activity()
+                                ->causedBy(auth()->user())
+                                ->performedOn($record)
+                                ->withProperties([
+                                    'topic_id' => $record->topic_id,
+                                ])
+                                ->log('forum_comment_restored');
+                        }
+
+                        return $restored;
+                    })
+                    ->visible(fn(): bool => auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false),
+                ForceDeleteAction::make()
+                    ->requiresConfirmation()
+                    ->visible(fn(): bool => auth()->user()?->hasRole('admin') ?? false),
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),

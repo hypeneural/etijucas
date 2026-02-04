@@ -1,5 +1,6 @@
 /**
  * WeatherHomeCard - Card compacto para a Home
+ * Com hero state, frase humana e haptic feedback
  */
 
 import { motion } from 'framer-motion';
@@ -10,10 +11,45 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useWeatherHome } from '@/services/weather.service';
 import { getWeatherInfo, getWindDirection } from '@/types/weather';
 import { cn } from '@/lib/utils';
+import { haptic } from '@/hooks/useHaptic';
+
+// Generate human-readable phrase based on conditions
+function getHeroPhrase(
+    temp: number,
+    feelsLike: number,
+    rainProbNextHours: boolean,
+    weatherCode: number,
+    humidity?: number
+): string {
+    // Rain conditions
+    if (weatherCode >= 61 && weatherCode <= 67) return '🌧️ Chovendo agora';
+    if (weatherCode >= 80 && weatherCode <= 82) return '🌦️ Pancadas de chuva';
+    if (weatherCode >= 95) return '⛈️ Tempestade!';
+    if (rainProbNextHours) return '🌧️ Chuva à tarde';
+
+    // Temperature/feel conditions
+    if (feelsLike >= 35) return '🥵 Muito quente!';
+    if (feelsLike >= 30 && (humidity ?? 0) > 70) return '😓 Abafado';
+    if (feelsLike >= 28) return '☀️ Dia quente';
+    if (feelsLike <= 15) return '🧥 Dia frio';
+    if (feelsLike <= 18) return '🍃 Fresco';
+
+    // Clear/cloudy
+    if (weatherCode === 0) return '☀️ Céu limpo';
+    if (weatherCode <= 3) return '⛅ Parcialmente nublado';
+    if (weatherCode >= 45 && weatherCode <= 48) return '🌫️ Nevoeiro';
+
+    return '🌤️ Tempo bom';
+}
 
 export function WeatherHomeCard() {
     const navigate = useNavigate();
     const { data, isLoading, error } = useWeatherHome({ hours: 6 });
+
+    const handleCardClick = () => {
+        haptic('light');
+        navigate('/previsao');
+    };
 
     if (isLoading) {
         return <WeatherHomeCardSkeleton />;
@@ -23,7 +59,7 @@ export function WeatherHomeCard() {
         return (
             <Card
                 className="p-4 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 cursor-pointer"
-                onClick={() => navigate('/previsao')}
+                onClick={handleCardClick}
             >
                 <div className="flex items-center gap-3 text-muted-foreground">
                     <Icon icon="mdi:weather-cloudy-alert" className="h-8 w-8" />
@@ -40,6 +76,15 @@ export function WeatherHomeCard() {
     // Calculate rain in next hours
     const rainNextHours = next_hours?.some(h => h.rain_prob_pct > 50);
 
+    // Get hero phrase (no humidity in current type, use feels_like vs temp diff)
+    const heroPhrase = getHeroPhrase(
+        current.temp_c,
+        current.feels_like_c,
+        rainNextHours ?? false,
+        current.weather_code,
+        current.feels_like_c > current.temp_c + 3 ? 80 : 50 // Estimate humidity from feels_like diff
+    );
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -54,7 +99,7 @@ export function WeatherHomeCard() {
                         ? "from-indigo-900 via-purple-900 to-slate-900 text-white"
                         : "from-sky-400 via-blue-500 to-indigo-600 text-white"
                 )}
-                onClick={() => navigate('/previsao')}
+                onClick={handleCardClick}
             >
                 {/* Background decoration */}
                 <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -86,8 +131,8 @@ export function WeatherHomeCard() {
                                 <div className="text-4xl font-bold tracking-tight">
                                     {Math.round(current.temp_c)}°
                                 </div>
-                                <div className="text-sm text-white/80">
-                                    Sensação {Math.round(current.feels_like_c)}°
+                                <div className="text-sm font-medium text-white/90 mt-0.5">
+                                    {heroPhrase}
                                 </div>
                             </div>
                         </div>

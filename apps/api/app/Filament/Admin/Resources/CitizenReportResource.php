@@ -6,12 +6,14 @@ namespace App\Filament\Admin\Resources;
 
 use App\Domains\Reports\Enums\LocationQuality;
 use App\Domains\Reports\Enums\ReportStatus;
+use App\Domains\Reports\Actions\AssignReportAction;
 use App\Domains\Reports\Actions\UpdateReportStatusAction;
 use App\Domains\Reports\Models\CitizenReport;
 use App\Filament\Admin\Resources\CitizenReportResource\Pages;
 use App\Filament\Admin\Resources\CitizenReportResource\RelationManagers\MediaRelationManager;
 use App\Filament\Admin\Resources\CitizenReportResource\RelationManagers\StatusHistoryRelationManager;
 use App\Filament\Admin\Resources\Concerns\HasMediaLibraryTrait;
+use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Section;
@@ -22,6 +24,7 @@ use Filament\Tables;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Illuminate\Database\Eloquent\Builder;
 
 class CitizenReportResource extends BaseResource
 {
@@ -37,9 +40,11 @@ class CitizenReportResource extends BaseResource
 
     protected static ?int $navigationSort = 6;
 
-    protected static array $defaultEagerLoad = ['user', 'category', 'bairro'];
+    protected static array $defaultEagerLoad = ['user', 'category', 'bairro', 'assignedTo'];
 
     protected static array $defaultWithCount = ['media'];
+
+    private const SLA_DAYS = 7;
 
     public static function form(Forms\Form $form): Forms\Form
     {
@@ -80,6 +85,21 @@ class CitizenReportResource extends BaseResource
                             ->relationship('user', 'nome')
                             ->searchable()
                             ->preload()
+                            ->disabled()
+                            ->dehydrated(false),
+                        Select::make('assigned_to')
+                            ->label('Responsavel')
+                            ->options(fn () => User::role(['admin', 'moderator'])
+                                ->orderBy('nome')
+                                ->pluck('nome', 'id')
+                                ->toArray())
+                            ->searchable()
+                            ->preload()
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->visible(fn (): bool => auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false),
+                        DateTimePicker::make('assigned_at')
+                            ->label('Atribuido em')
                             ->disabled()
                             ->dehydrated(false),
                     ]),
@@ -143,6 +163,9 @@ class CitizenReportResource extends BaseResource
                 TextColumn::make('user.nome')
                     ->label('Usuario')
                     ->toggleable(),
+                TextColumn::make('assignedTo.nome')
+                    ->label('Responsavel')
+                    ->toggleable(),
                 TextColumn::make('status')
                     ->label('Status')
                     ->badge()
@@ -157,6 +180,32 @@ class CitizenReportResource extends BaseResource
                     ->label('Midias')
                     ->sortable()
                     ->alignCenter(),
+                TextColumn::make('tempo_aberto')
+                    ->label('Em aberto')
+                    ->getStateUsing(function (CitizenReport $record): string {
+                        $end = $record->resolved_at ?? now();
+                        $days = $record->created_at?->diffInDays($end) ?? 0;
+                        $hours = $record->created_at?->diffInHours($end) ?? 0;
+                        $hoursRemainder = $hours % 24;
+
+                        if ($days > 0) {
+                            return "{$days}d {$hoursRemainder}h";
+                        }
+
+                        return "{$hours}h";
+                    })
+                    ->color(function (CitizenReport $record): string {
+                        $end = $record->resolved_at ?? now();
+                        $days = $record->created_at?->diffInDays($end) ?? 0;
+
+                        if (in_array($record->status, [ReportStatus::Recebido, ReportStatus::EmAnalise], true)
+                            && $days >= self::SLA_DAYS) {
+                            return 'danger';
+                        }
+
+                        return 'gray';
+                    })
+                    ->tooltip(fn (): string => 'SLA padrao: ' . self::SLA_DAYS . ' dias'),
                 ...static::baseTableColumns(),
             ])
             ->filters([
@@ -173,9 +222,71 @@ class CitizenReportResource extends BaseResource
                     ->label('Bairro')
                     ->relationship('bairro', 'nome')
                     ->preload(),
+                SelectFilter::make('assigned_to')
+                    ->label('Responsavel')
+                    ->options(fn () => User::role(['admin', 'moderator'])
+                        ->orderBy('nome')
+                        ->pluck('nome', 'id')
+                        ->toArray()),
+                Tables\Filters\Filter::make('sem_responsavel')
+                    ->label('Sem responsavel')
+                    ->query(fn (Builder $query): Builder => $query->whereNull('assigned_to')),
+                Tables\Filters\Filter::make('sla_atrasado')
+                    ->label('SLA atrasado')
+                    ->query(function (Builder $query): Builder {
+                        return $query->whereIn('status', [
+                                ReportStatus::Recebido->value,
+                                ReportStatus::EmAnalise->value,
+                            ])
+                            ->where('created_at', '<=', now()->subDays(self::SLA_DAYS));
+                    }),
                 ...static::baseTableFilters(),
             ])
             ->actions([
+                Action::make('assignMe')
+                    ->label('Assumir')
+                    ->icon('heroicon-o-user-plus')
+                    ->color('info')
+                    ->requiresConfirmation()
+                    ->action(function (CitizenReport $record): void {
+                        $user = auth()->user();
+                        if (!$user) {
+                            return;
+                        }
+
+                        app(AssignReportAction::class)->execute(
+                            $record,
+                            $user,
+                            $user
+                        );
+                    })
+                    ->visible(fn (): bool => auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false),
+                Action::make('assign')
+                    ->label('Atribuir')
+                    ->icon('heroicon-o-user-group')
+                    ->form([
+                        Select::make('assigned_to')
+                            ->label('Responsavel')
+                            ->options(fn () => User::role(['admin', 'moderator'])
+                                ->orderBy('nome')
+                                ->pluck('nome', 'id')
+                                ->toArray())
+                            ->searchable()
+                            ->required(),
+                        Textarea::make('note')
+                            ->label('Nota')
+                            ->rows(3),
+                    ])
+                    ->action(function (CitizenReport $record, array $data): void {
+                        $assignee = User::find($data['assigned_to']);
+                        app(AssignReportAction::class)->execute(
+                            $record,
+                            $assignee,
+                            auth()->user(),
+                            $data['note'] ?? null
+                        );
+                    })
+                    ->visible(fn (): bool => auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false),
                 Action::make('updateStatus')
                     ->label('Alterar status')
                     ->icon('heroicon-o-adjustments-horizontal')

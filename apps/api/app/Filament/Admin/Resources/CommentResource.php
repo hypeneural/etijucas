@@ -17,6 +17,8 @@ use Filament\Forms\Components\Toggle;
 use Filament\Tables;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -160,7 +162,52 @@ class CommentResource extends BaseResource
                 EditAction::make()->requiresConfirmation(),
                 DeleteAction::make()
                     ->requiresConfirmation()
+                    ->using(function (Comment $record): bool {
+                        if (! $record->trashed() && $record->topic) {
+                            $record->topic->decrementComments();
+                        }
+
+                        $deleted = (bool) $record->delete();
+
+                        if ($deleted && function_exists('activity')) {
+                            activity()
+                                ->causedBy(auth()->user())
+                                ->performedOn($record)
+                                ->withProperties([
+                                    'topic_id' => $record->topic_id,
+                                    'commentable_type' => $record->commentable_type,
+                                ])
+                                ->log('forum_comment_deleted');
+                        }
+
+                        return $deleted;
+                    })
                     ->visible(fn(): bool => auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false),
+                RestoreAction::make()
+                    ->requiresConfirmation()
+                    ->using(function (Comment $record): bool {
+                        $restored = (bool) $record->restore();
+
+                        if ($restored && $record->topic) {
+                            $record->topic->incrementComments();
+                        }
+
+                        if ($restored && function_exists('activity')) {
+                            activity()
+                                ->causedBy(auth()->user())
+                                ->performedOn($record)
+                                ->withProperties([
+                                    'topic_id' => $record->topic_id,
+                                ])
+                                ->log('forum_comment_restored');
+                        }
+
+                        return $restored;
+                    })
+                    ->visible(fn(): bool => auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false),
+                ForceDeleteAction::make()
+                    ->requiresConfirmation()
+                    ->visible(fn(): bool => auth()->user()?->hasRole('admin') ?? false),
             ]);
     }
 
