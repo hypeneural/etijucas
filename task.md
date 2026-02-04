@@ -38,9 +38,9 @@
 ## Prioridade Baixa (estatisticas e dashboards)
 - [x] Widget KPI de votacoes:
   - [x] total votacoes, aprovadas, rejeitadas, em andamento.
-  - [ ] grafico por ano.
+  - [x] grafico por ano.
 - [ ] Widget de engajamento:
-  - [ ] likes, dislikes, comments.
+  - [x] likes, dislikes, comments.
 
 ## Verificacao e Qualidade
 - [ ] Validar permissoes em todos os Resources (admin/moderator).
