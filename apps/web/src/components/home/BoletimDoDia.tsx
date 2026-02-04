@@ -25,9 +25,16 @@ import { BoletimDoDiaPayload } from '@/types/home.types';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
+interface StreakData {
+    current: number;
+    longest: number;
+    checked_in_today: boolean;
+}
+
 interface BoletimDoDiaProps {
     data?: BoletimDoDiaPayload;
     isLoading?: boolean;
+    streak?: StreakData | null;
     onMarkAsRead?: () => void;
     className?: string;
 }
@@ -77,7 +84,7 @@ function BoletimSkeleton() {
     );
 }
 
-export function BoletimDoDia({ data, isLoading, onMarkAsRead, className }: BoletimDoDiaProps) {
+export function BoletimDoDia({ data, isLoading, streak, onMarkAsRead, className }: BoletimDoDiaProps) {
     const [isExpanded, setIsExpanded] = useState(false);
     const [hasBeenRead, setHasBeenRead] = useState(false);
 
@@ -167,9 +174,16 @@ export function BoletimDoDia({ data, isLoading, onMarkAsRead, className }: Bolet
                             <h3 className="text-sm font-semibold text-foreground">
                                 📋 Boletim do Dia
                             </h3>
-                            <p className="text-xs text-muted-foreground capitalize">
-                                {formatDate(data.date)}
-                            </p>
+                            <div className="flex items-center gap-2">
+                                <p className="text-xs text-muted-foreground capitalize">
+                                    {formatDate(data.date)}
+                                </p>
+                                {streak && streak.current > 0 && (
+                                    <span className="inline-flex items-center gap-0.5 rounded-full bg-orange-500/20 px-1.5 py-0.5 text-[10px] font-bold text-orange-600">
+                                        🔥 Dia {streak.current}
+                                    </span>
+                                )}
+                            </div>
                         </div>
                     </div>
 

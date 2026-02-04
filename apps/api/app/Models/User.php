@@ -164,6 +164,26 @@ class User extends Authenticatable implements HasMedia, FilamentUser, HasName, H
             ->withPivot('created_at');
     }
 
+    /**
+     * Get the user's streak record.
+     */
+    public function streak(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(UserStreak::class);
+    }
+
+    /**
+     * Get or create the user's streak record.
+     */
+    public function getOrCreateStreak(): UserStreak
+    {
+        return $this->streak ?? $this->streak()->create([
+            'current_streak' => 0,
+            'longest_streak' => 0,
+            'total_check_ins' => 0,
+        ]);
+    }
+
     // =====================================================
     // Tourism Relationships
     // =====================================================

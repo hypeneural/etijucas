@@ -279,6 +279,14 @@ Route::prefix('v1')->group(function () {
         Route::get('users/me/favorites/events', [\App\Http\Controllers\Api\Events\UserEventController::class, 'myFavorites']);
 
         // =====================================================
+        // User Gamification Routes (Streak/Check-in)
+        // =====================================================
+        Route::prefix('user')->group(function () {
+            Route::post('check-in', [\App\Http\Controllers\Api\CheckInController::class, 'checkIn']);
+            Route::get('streak', [\App\Http\Controllers\Api\CheckInController::class, 'getStreak']);
+        });
+
+        // =====================================================
         // Tourism Authenticated Routes
         // =====================================================
         Route::prefix('tourism')->group(function () {

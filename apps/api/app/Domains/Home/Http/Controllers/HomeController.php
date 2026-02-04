@@ -46,6 +46,17 @@ class HomeController extends Controller
 
         $data = $this->aggregator->getHomeData($bairroId, $include, $version);
 
+        // Add user-specific data outside of cache
+        $user = $request->user();
+        if ($user) {
+            $streak = $user->getOrCreateStreak();
+            $data['meta']['user'] = [
+                'id' => $user->id,
+                'nome' => $user->nome,
+                'streak' => $streak->getStreakData(),
+            ];
+        }
+
         return response()->json($data);
     }
 
