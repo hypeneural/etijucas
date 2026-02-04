@@ -16,17 +16,28 @@ Fornecer um caminho robusto, rapido e seguro para criar CRUDs no painel Filament
 - Recursos Filament existentes em `apps/api/app/Filament/Admin/Resources`:
 - `ActivityLogResource`
 - `BairroResource`
+- `CommentResource`
 - `CommentReportResource`
 - `ContentFlagResource`
+- `EventCategoryResource`
+- `EventResource`
 - `PhoneResource`
+- `TagResource`
 - `TopicReportResource`
 - `TopicResource`
+- `TourismReviewResource`
+- `TourismSpotResource`
 - `UserResource`
 - `UserRestrictionResource`
+- `VenueResource`
+- `CitizenReportResource`
 - Paginas e widgets em `apps/api/app/Filament/Admin/Pages` e `apps/api/app/Filament/Admin/Widgets`:
 - `Dashboard`
 - `ModerationQueue`
 - `AdminOverviewStats`
+- `ReportsDashboard`
+- `GeoIssues`
+- `ReportsOverviewStats`
 
 ## Endpoints e dominios (resumo da API)
 - Rotas publicas: auth OTP, bairros, forum (read), eventos (read), turismo (read), reports (read), geocode. `apps/api/routes/api.php`
@@ -35,10 +46,9 @@ Fornecer um caminho robusto, rapido e seguro para criar CRUDs no painel Filament
 - Observacao: o painel Filament opera direto nos Models e Policies, nao consome os endpoints da API.
 
 ## Lacunas de cobertura no painel
-- Eventos: `Event`, `EventCategory`, `Tag`, `Organizer`, `Venue`, `EventSchedule`, `TicketLot`, `EventMedia`, `EventRsvp`.
-- Turismo: `TourismSpot`, `TourismReview`, categorias.
-- Denuncias cidadas: `CitizenReport`, `ReportCategory`, `ReportStatusHistory`.
-- Forum: `Comment` (nao ha Resource dedicado para CRUD/moderacao).
+- Eventos: `Organizer`, `EventRsvp` (ainda sem CRUD dedicado).
+- Turismo: categorias (se virar entidade propria).
+- Denuncias cidadas: `ReportCategory` (catalogo).
 - Outros CRUDs operacionais que hoje so existem via API ou seeders.
 
 ## Estrategia robusta para CRUDs no Filament
@@ -243,7 +253,9 @@ Em todos:
 - [x] CRUD principal: `Event`.
 - [x] CRUD principal: `TourismSpot`.
 - [x] CRUD principal: `CitizenReport`.
-- [ ] CRUDs moderacao: `Review`, `Comment`, `Flags/Reports`.
+- [x] CRUD moderacao: `Comment` (Forum).
+- [x] CRUD moderacao: `TourismReview` (Turismo).
+- [x] CRUD moderacao: `Flags/Reports` (TopicReport, CommentReport, ContentFlag).
 - [ ] CRUDs sistema: `Settings`, `FeatureFlags` (se existirem).
 
 ## Fase 3 - RelationManagers e operacao

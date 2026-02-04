@@ -102,11 +102,26 @@ class RolesAndPermissionsSeeder extends Seeder
             'view_any_content_flag',
             'view_content_flag',
             'update_content_flag',
+            // Topic Reports
+            'view_any_topic_report',
+            'view_topic_report',
+            'update_topic_report',
+            // Comment Reports
+            'view_any_comment_report',
+            'view_comment_report',
+            'update_comment_report',
+            // Comments
+            'view_any_comment',
+            'view_comment',
+            'update_comment',
+            'delete_comment',
             // Activity log
             'view_any_activity_log',
             'view_activity_log',
             // Moderation queue page
             'page_moderation_queue',
+            'page_reports_dashboard',
+            'page_geo_issues',
             // Citizen Reports
             'view_any_citizen_report',
             'view_citizen_report',
@@ -175,6 +190,11 @@ class RolesAndPermissionsSeeder extends Seeder
             'create_tourism_spot',
             'update_tourism_spot',
             'delete_tourism_spot',
+            // Tourism Reviews
+            'view_any_tourism_review',
+            'view_tourism_review',
+            'update_tourism_review',
+            'delete_tourism_review',
         ];
 
         $availableOperatorFilamentPermissions = Permission::query()
