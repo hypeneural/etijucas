@@ -10,6 +10,7 @@ import {
     ArrowRight,
     Sparkles,
     Lock,
+    MessageCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -209,6 +210,30 @@ export default function LoginPage() {
                                 </Link>
                             </p>
                         </div>
+
+                        {/* Divider */}
+                        <div className="relative my-4">
+                            <div className="absolute inset-0 flex items-center">
+                                <div className="w-full border-t border-border" />
+                            </div>
+                            <div className="relative flex justify-center text-xs uppercase">
+                                <span className="bg-background px-2 text-muted-foreground">ou</span>
+                            </div>
+                        </div>
+
+                        {/* WhatsApp Login Link */}
+                        <Link
+                            to="/login/otp"
+                            className={cn(
+                                'flex items-center justify-center gap-2 w-full h-12 rounded-2xl font-semibold',
+                                'bg-gradient-to-r from-green-500 to-green-600 text-white',
+                                'shadow-lg shadow-green-500/30',
+                                'hover:shadow-xl hover:shadow-green-500/40 transition-all'
+                            )}
+                        >
+                            <MessageCircle className="h-5 w-5" />
+                            Entrar via WhatsApp
+                        </Link>
                     </form>
                 </Card>
             </motion.div>
