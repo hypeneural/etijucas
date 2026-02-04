@@ -126,6 +126,9 @@ class RolesAndPermissionsSeeder extends Seeder
             'view_any_citizen_report',
             'view_citizen_report',
             'update_citizen_report',
+            // Report Categories
+            'view_any_report_category',
+            'view_report_category',
         ];
 
         $availableFilamentPermissions = Permission::query()

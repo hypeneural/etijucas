@@ -22,6 +22,7 @@ Fornecer um caminho robusto, rapido e seguro para criar CRUDs no painel Filament
 - `EventCategoryResource`
 - `EventResource`
 - `PhoneResource`
+- `ReportCategoryResource`
 - `TagResource`
 - `TopicReportResource`
 - `TopicResource`
@@ -48,7 +49,6 @@ Fornecer um caminho robusto, rapido e seguro para criar CRUDs no painel Filament
 ## Lacunas de cobertura no painel
 - Eventos: `Organizer`, `EventRsvp` (ainda sem CRUD dedicado).
 - Turismo: categorias (se virar entidade propria).
-- Denuncias cidadas: `ReportCategory` (catalogo).
 - Outros CRUDs operacionais que hoje so existem via API ou seeders.
 
 ## Estrategia robusta para CRUDs no Filament
@@ -250,6 +250,7 @@ Em todos:
 - [x] Catalogo: `Tag`.
 - [x] Catalogo: `Bairro` (ja existente).
 - [x] Catalogo: `Venue`.
+- [x] Catalogo: `ReportCategory` (Denuncias).
 - [x] CRUD principal: `Event`.
 - [x] CRUD principal: `TourismSpot`.
 - [x] CRUD principal: `CitizenReport`.
