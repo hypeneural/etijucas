@@ -20,17 +20,19 @@ import {
     Crosshair,
     SlidersHorizontal,
     ChevronRight,
+    ChevronLeft,
     Clock,
     MapPin,
     Share2,
     Loader2,
     Navigation,
     RefreshCw,
-    Image as ImageIcon,
     FileText,
     Calendar,
     Tag,
     CheckCircle2,
+    Hash,
+    AlignLeft,
     X,
     Sparkles,
     Map as MapIcon,
@@ -79,7 +81,11 @@ interface MapReport {
     } | null;
     status: string;
     title: string;
+    description: string | null;
+    protocol: string | null;
+    address: string | null;
     addressShort: string;
+    images: { url: string; thumb: string }[];
     thumbUrl: string | null;
     createdAt: string;
 }
@@ -232,6 +238,184 @@ function RecenterControl({ lat, lon }: { lat: number; lon: number }) {
     }, [lat, lon, map]);
 
     return null;
+}
+
+// ============================================
+// PREVIEW DRAWER CONTENT
+// ============================================
+
+function ReportPreviewContent({
+    report,
+    statusConfig,
+    onViewDetails,
+    onRoutes,
+    onShare
+}: {
+    report: MapReport;
+    statusConfig: any;
+    onViewDetails: () => void;
+    onRoutes: () => void;
+    onShare: () => void;
+}) {
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+    const nextImage = () => {
+        setCurrentImageIndex((prev) => (prev + 1) % report.images.length);
+    };
+
+    const prevImage = () => {
+        setCurrentImageIndex((prev) => (prev - 1 + report.images.length) % report.images.length);
+    };
+
+    return (
+        <div className="px-4 pb-6 space-y-5 overflow-y-auto h-full">
+            {/* Header with Title & Badges */}
+            <div className="space-y-3">
+                <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                        <Badge className={cn(statusConfig[report.status]?.bgClass, "mb-2")}>
+                            {statusConfig[report.status]?.label}
+                        </Badge>
+                        <h3 className="font-bold text-xl leading-tight text-slate-900 dark:text-slate-100">
+                            {report.title}
+                        </h3>
+                    </div>
+                    <div className="flex flex-col items-end gap-1">
+                        <Badge variant="outline" className="font-medium shrink-0">
+                            {report.category?.name || 'Outros'}
+                        </Badge>
+                        {report.protocol && (
+                            <span className="text-[10px] text-muted-foreground font-mono bg-muted px-1.5 py-0.5 rounded">
+                                #{report.protocol}
+                            </span>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* Image Carousel (if images exist) */}
+            {report.images.length > 0 ? (
+                <div className="relative aspect-video rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 shadow-sm group">
+                    <AnimatePresence mode="wait">
+                        <motion.img
+                            key={currentImageIndex}
+                            src={report.images[currentImageIndex].url}
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            className="w-full h-full object-cover"
+                            alt={`Evidência ${currentImageIndex + 1}`}
+                        />
+                    </AnimatePresence>
+
+                    {report.images.length > 1 && (
+                        <>
+                            <div className="absolute inset-0 flex items-center justify-between p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button size="icon" variant="ghost" className="h-8 w-8 bg-black/20 hover:bg-black/40 text-white rounded-full backdrop-blur-sm" onClick={(e) => { e.stopPropagation(); prevImage(); }}>
+                                    <ChevronLeft className="w-4 h-4" />
+                                </Button>
+                                <Button size="icon" variant="ghost" className="h-8 w-8 bg-black/20 hover:bg-black/40 text-white rounded-full backdrop-blur-sm" onClick={(e) => { e.stopPropagation(); nextImage(); }}>
+                                    <ChevronRight className="w-4 h-4" />
+                                </Button>
+                            </div>
+                            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
+                                {report.images.map((_, idx) => (
+                                    <div
+                                        key={idx}
+                                        className={cn(
+                                            "w-1.5 h-1.5 rounded-full transition-all shadow-sm",
+                                            idx === currentImageIndex ? "bg-white w-3" : "bg-white/50"
+                                        )}
+                                    />
+                                ))}
+                            </div>
+                        </>
+                    )}
+                </div>
+            ) : (
+                <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800">
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+                        style={{ backgroundColor: `${report.category?.color || '#64748b'}20` }}
+                    >
+                        <CategoryIcon
+                            icon={report.category?.icon || 'mdi:dots-horizontal'}
+                            color={report.category?.color || '#64748b'}
+                            size="lg"
+                        />
+                    </div>
+                    <p className="text-sm text-muted-foreground italic">
+                        Esta denúncia não possui fotos anexadas.
+                    </p>
+                </div>
+            )}
+
+            {/* Info Cards */}
+            <div className="grid gap-3">
+                {/* Description */}
+                {report.description && (
+                    <div className="bg-muted/30 rounded-xl p-3.5 border border-muted/50">
+                        <div className="flex items-center gap-2 mb-2">
+                            <AlignLeft className="w-4 h-4 text-primary" />
+                            <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Descrição</h4>
+                        </div>
+                        <p className="text-sm text-foreground/90 leading-relaxed">
+                            {report.description}
+                        </p>
+                    </div>
+                )}
+
+                {/* Meta Data Grid */}
+                <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-muted/30 rounded-xl p-3 border border-muted/50">
+                        <div className="flex items-center gap-2 mb-1">
+                            <MapPin className="w-3.5 h-3.5 text-primary" />
+                            <span className="text-[10px] font-bold uppercase text-muted-foreground">Local</span>
+                        </div>
+                        <p className="text-xs font-medium line-clamp-2" title={report.address || report.addressShort}>
+                            {report.address || report.addressShort}
+                        </p>
+                    </div>
+
+                    <div className="bg-muted/30 rounded-xl p-3 border border-muted/50">
+                        <div className="flex items-center gap-2 mb-1">
+                            <Clock className="w-3.5 h-3.5 text-primary" />
+                            <span className="text-[10px] font-bold uppercase text-muted-foreground">Data</span>
+                        </div>
+                        <p className="text-xs font-medium">
+                            {format(new Date(report.createdAt), "dd/MM/yyyy", { locale: ptBR })}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground">
+                            há {formatDistanceToNow(new Date(report.createdAt), { locale: ptBR })}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="pt-2 space-y-2">
+                <Button
+                    onClick={onViewDetails}
+                    className="w-full h-12 font-semibold shadow-md bg-gradient-to-r from-primary to-primary/90 hover:to-primary"
+                    size="lg"
+                >
+                    <FileText className="w-5 h-5 mr-2" />
+                    Ver Detathes Completos
+                    <ChevronRight className="w-5 h-5 ml-auto opacity-50" />
+                </Button>
+
+                <div className="grid grid-cols-2 gap-3">
+                    <Button variant="outline" onClick={onRoutes} className="h-11 border-muted-foreground/20 hover:bg-muted/50">
+                        <Navigation className="w-4 h-4 mr-2 text-blue-500" />
+                        Rotas
+                    </Button>
+                    <Button variant="outline" onClick={onShare} className="h-11 border-muted-foreground/20 hover:bg-muted/50">
+                        <Share2 className="w-4 h-4 mr-2 text-green-600" />
+                        Compartilhar
+                    </Button>
+                </div>
+            </div>
+        </div>
+    );
 }
 
 // ============================================
@@ -726,111 +910,20 @@ export default function ReportsMapScreen() {
 
             {/* Report Preview Drawer */}
             <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
-                <DrawerContent className="max-h-[85vh]">
-                    <DrawerHeader className="pb-2">
+                <DrawerContent className="max-h-[90vh]">
+                    <DrawerHeader className="pb-0 pt-2">
                         <DrawerTitle className="sr-only">Detalhes da Denúncia</DrawerTitle>
                         <DrawerDescription className="sr-only">Preview da denúncia selecionada</DrawerDescription>
                     </DrawerHeader>
 
                     {selectedReport && (
-                        <div className="px-4 pb-6 space-y-4 overflow-y-auto">
-                            {/* Photo or Icon Header */}
-                            <div className="flex gap-4">
-                                {selectedReport.thumbUrl ? (
-                                    <motion.img
-                                        initial={{ opacity: 0, scale: 0.9 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        src={selectedReport.thumbUrl}
-                                        alt=""
-                                        className="w-24 h-24 rounded-2xl object-cover bg-muted shrink-0 shadow-md"
-                                    />
-                                ) : (
-                                    <motion.div
-                                        initial={{ opacity: 0, scale: 0.9 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        className="w-24 h-24 rounded-2xl shrink-0 flex items-center justify-center shadow-md"
-                                        style={{ backgroundColor: `${selectedReport.category?.color || '#64748b'}20` }}
-                                    >
-                                        <CategoryIcon
-                                            icon={selectedReport.category?.icon || 'mdi:dots-horizontal'}
-                                            color={selectedReport.category?.color || '#64748b'}
-                                            size="xl"
-                                        />
-                                    </motion.div>
-                                )}
-
-                                <div className="flex-1 min-w-0">
-                                    <h3 className="font-bold text-xl leading-tight line-clamp-2">
-                                        {selectedReport.title}
-                                    </h3>
-                                    <div className="flex flex-wrap items-center gap-2 mt-2">
-                                        <Badge className={cn(statusConfig[selectedReport.status]?.bgClass, "font-medium")}>
-                                            {statusConfig[selectedReport.status]?.label}
-                                        </Badge>
-                                        <Badge variant="outline" className="font-medium">
-                                            {selectedReport.category?.name || 'Outros'}
-                                        </Badge>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Details */}
-                            <div className="bg-muted/50 rounded-2xl p-4 space-y-3">
-                                <div className="flex items-start gap-3">
-                                    <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                                        <MapPin className="w-4 h-4 text-primary" />
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-muted-foreground uppercase font-medium">Localização</p>
-                                        <p className="text-sm font-medium">{selectedReport.addressShort || 'Tijucas, SC'}</p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-start gap-3">
-                                    <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                                        <Clock className="w-4 h-4 text-primary" />
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-muted-foreground uppercase font-medium">Data</p>
-                                        <p className="text-sm font-medium">
-                                            {format(new Date(selectedReport.createdAt), "d 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                                            <span className="text-muted-foreground"> • </span>
-                                            {formatDistanceToNow(new Date(selectedReport.createdAt), { addSuffix: true, locale: ptBR })}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-start gap-3">
-                                    <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                                        <ImageIcon className="w-4 h-4 text-primary" />
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-muted-foreground uppercase font-medium">Mídia</p>
-                                        <p className="text-sm font-medium">{selectedReport.thumbUrl ? 'Com foto anexada' : 'Sem foto'}</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Actions */}
-                            <div className="space-y-2">
-                                <Button onClick={handleViewDetails} className="w-full h-12 text-base font-semibold shadow-md" size="lg">
-                                    <FileText className="w-5 h-5 mr-2" />
-                                    Ver Detalhes Completos
-                                    <ChevronRight className="w-5 h-5 ml-auto" />
-                                </Button>
-
-                                <div className="grid grid-cols-2 gap-2">
-                                    <Button variant="outline" onClick={handleRoutes} className="h-11">
-                                        <Navigation className="w-4 h-4 mr-2" />
-                                        Rotas
-                                    </Button>
-                                    <Button variant="outline" onClick={handleShare} className="h-11">
-                                        <Share2 className="w-4 h-4 mr-2" />
-                                        Compartilhar
-                                    </Button>
-                                </div>
-                            </div>
-                        </div>
+                        <ReportPreviewContent
+                            report={selectedReport}
+                            statusConfig={statusConfig}
+                            onViewDetails={handleViewDetails}
+                            onRoutes={handleRoutes}
+                            onShare={handleShare}
+                        />
                     )}
                 </DrawerContent>
             </Drawer>

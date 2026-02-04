@@ -61,7 +61,11 @@ class ReportMapController
 
         // Transform to lightweight map format
         $mapReports = $reports->map(function ($report) {
-            $thumb = $report->media->first();
+            // Get up to 3 images for carousel
+            $images = $report->media->take(3)->map(fn($m) => [
+                'url' => $m->url,
+                'thumb' => $m->thumb_url ?? $m->url,
+            ])->values()->all();
 
             return [
                 'id' => $report->id,
@@ -75,8 +79,12 @@ class ReportMapController
                 ] : null,
                 'status' => $report->status,
                 'title' => $report->title,
+                'description' => $report->description ? mb_substr($report->description, 0, 200) : null,
+                'protocol' => $report->protocol,
+                'address' => $report->address,
                 'addressShort' => $this->shortenAddress($report->address),
-                'thumbUrl' => $thumb?->thumb_url ?? $thumb?->url,
+                'images' => $images,
+                'thumbUrl' => $images[0]['thumb'] ?? null,
                 'createdAt' => $report->created_at->toISOString(),
             ];
         });

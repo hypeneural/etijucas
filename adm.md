@@ -109,176 +109,47 @@ Sistema
 - Continuar com `ActivityLogResource`, `UserResource`, `UserRestrictionResource`.
 - Adicionar pagina de configuracoes gerais se houver parametros globais.
 
-## Checklist por CRUD
-- Model com `fillable`, `casts`, `softDeletes` quando necessario.
-- Policy registrada e permissoes geradas com Shield.
-- Resource com form, table, filters e actions criticas.
-- RelationManagers para 1:N e N:N.
-- `getEloquentQuery()` otimizada.
-- Logs de auditoria e validacao server-side.
+## Analise atual do admin (Filament)
+- BaseResource centraliza sort, colunas padrao, filtros e eager loading por Resource.
+- Traits adicionadas para media, status badge e auditoria de acoes sensiveis.
+- `make:admin-crud` e stubs internos aceleram o bootstrap de novos CRUDs.
+- CRUDs principais de conteudo, moderacao e sistema estao cobertos no painel.
+- ModerationQueue unifica flags, reports do forum e denuncias cidadas.
+- Pages operacionais para denuncias com KPIs e foco em qualidade de geolocalizacao.
+- Shield gerou permissoes para resources, pages e widgets; roles base seedadas.
 
----
+## Analise das denuncias no admin
+- `CitizenReportResource` com action dedicada para update de status e registro no historico.
+- RelationManagers para historico de status e midias (Media Library).
+- `ReportCategoryResource` para gerenciar categorias e dicas.
+- `ReportsDashboard` e `GeoIssues` como funis operacionais.
+- `ModerationQueue` inclui denuncias com status Recebido e Em Analise.
+- Atualizacao de status cria `ReportStatusHistory` e registra `resolved_at`.
 
-## Checklist detalhado (padrao para todos os CRUDs)
+## Inconsistencias atuais de Denuncias (documento vs implementacao)
+- `denuncias.md` descreve `status_history` JSON e tabela `report_media`, mas a implementacao usa `report_status_history` e Spatie Media Library.
+- `denuncias.md` cita `user_id` nullable e `is_anonymous`, mas a migration exige `user_id` e nao possui `is_anonymous`.
+- `denuncias.md` usa `address` e `status_history`, mas o schema real usa `address_text`, `address_source`, `location_quality` e `location_accuracy_m`.
+- `report_categories.tips` esta como `text` no banco e `array` no model, sem coluna JSON.
 
-## 1) Regra base: Filament nao consome a API
-- Filament opera sobre Models + Policies, nao sobre endpoints.
-- API continua sendo a fonte da verdade do contrato (OpenAPI, Requests, Resources).
-- Filament e a interface administrativa usando os mesmos Models e as mesmas regras.
-- Nao duplique regra de negocio em Controller e Filament.
-- Coloque regra de negocio em `app/Domains/*/Actions/*` ou `app/Domains/*/Services/*`.
-- Filament chama essas Actions/Services.
+## Checklist de melhorias (prioridade alta)
+- Definir fonte unica de policies (app/Policies vs app/Domains/*/Policies) e remover duplicadas.
+- Registrar policies faltantes no `AppServiceProvider` para recursos de moderacao.
+- Ajustar `make:admin-crud` para chamar `shield:generate` com o nome do Resource e `--panel=admin`.
+- Rever permissoes de widgets (`widget_*`) e definir se serao restringidos por role.
+- Adicionar auditoria nas acoes de moderacao (TopicReport, CommentReport, ContentFlag).
+- Restringir acoes destrutivas e delete de midia por role/permissao.
 
-## 2) Kit CRUD Filament interno (templates + helpers)
-Objetivo: 1 comando cria tudo e registra o basico.
-- Criar gerador de Admin CRUD (Resource + Policy + Shield).
-- Comando alvo: `php artisan make:admin-crud CitizenReport --domain=Reports --media=report_images --soft-deletes`
+## Checklist de melhorias (prioridade media)
+- Adicionar RelationManager de RSVPs dentro de `EventResource`.
+- Incluir RelationManagers para `EventLinks` e `EventDays` se fizerem parte do modelo.
+- Melhorar `GeoIssues` com acao rapida de ajuste de localizacao.
+- Atualizar `denuncias.md` para refletir o schema real e o fluxo do admin.
+- Migrar `report_categories.tips` para coluna JSON.
 
-Saidas esperadas:
-- `app/Filament/Admin/Resources/CitizenReportResource/*`
-- `app/Policies/CitizenReportPolicy.php`
-- Registrar Policy se nao houver auto-discovery.
-- Rodar ou sugerir `php artisan shield:generate --resource=CitizenReport`
- - Stubs internos em `apps/api/stubs/filament-admin/*` para padronizar novos CRUDs
-
-MVP do kit (script simples):
-- `php artisan make:filament-resource Model --generate`
-- `php artisan make:policy ModelPolicy --model=Model`
-- `php artisan shield:generate --resource=Model`
-
-## 3) Padrao unico para regra de negocio
-- Controller API valida request, chama Action/Service, retorna Resource.
-- Filament chama a mesma Action/Service em Actions ou `mutateFormData*`.
-
-Exemplos:
-- `UpdateReportStatusAction` (Reports)
-- `ApproveEventAction` (Events)
-- `ModerateCommentAction` (Forum)
-
-## 4) BaseResource e Traits reutilizaveis
-
-## 4.1) BaseResource (defaults)
-- `defaultSort('created_at', 'desc')`
-- `created_at` e `updated_at` toggleable
-- Filtro de soft deletes quando aplicavel
-- `TextColumn::make('id')->toggleable()->copyable()`
-- Actions padrao com `requiresConfirmation()`
-
-## 4.2) Traits sugeridos
-- `HasAuditActionsTrait` para logar mudancas sensiveis
-- `HasStatusBadgeTrait` para badge de enum de status
-- `HasMediaLibraryTrait` para upload + preview + conversoes
-
-## 5) RelationManagers agressivamente
-Denuncias (CitizenReport)
-- `CitizenReportResource`
-- `ReportStatusHistoryRelationManager`
-- `MediaRelationManager` (ou integrar no form)
-- Action: alterar status (modal com note)
-- Action: marcar como publico/privado (se existir)
-
-Eventos
-- `EventResource`
-- RelationManagers: schedules, ticket lots, media, tags, organizers, venue
-- Actions: publicar/despublicar, destacar, duplicar evento
-
-## 6) Permissoes padronizadas (Shield + Policies)
-- Policy obrigatoria: `viewAny`, `view`, `create`, `update`, `delete`
-- Shield gera permissoes `resource_*`
-- Roles padrao:
-- `admin`: tudo
-- `moderator`: denuncias + forum (moderacao)
-- `operator`: eventos + turismo
-
-## 7) Performance: padrao de query para evitar N+1
-Todo Resource deve ter:
-- `getEloquentQuery()` com `with()` e `withCount()`
-
-Exemplos:
-- Denuncias: `with(['user','category','bairro'])->withCount('media')`
-- Eventos: `with(['venue','organizer'])->withCount(['rsvps','media'])`
-
-Filtros devem seguir indices:
-- `status`, `category_id`, `bairro_id`, `created_at`
-
-## 8) Pages e Widgets para operacao (nao CRUD)
-Ampliar a ideia de:
-- `ModerationQueue`: fila unificada (denuncias pendentes + reports do forum)
-- `ReportsDashboard`: KPIs + graficos + ultimos pendentes
-- `GeoIssues`: denuncias sem localizacao ou baixa qualidade
-
-## 9) Estrategia pratica para criar 10 CRUDs em 1 dia
-Ordem recomendada:
-- CRUDs catalogo: `Category`, `Tag`, `Bairro`, `Venue`
-- CRUDs principais: `Event`, `TourismSpot`, `CitizenReport`
-- CRUDs moderacao: `Review`, `Comment`, `Flags/Reports`
-- CRUDs sistema: `Settings`, `FeatureFlags` (se houver)
-
-Em todos:
-- Comecar com `--generate`, depois refinar form/table
-
-## 10) Ritual de 15 minutos por CRUD
-- Model + migration + relations
-- Policy (admin/moderator/operator)
-- `make:filament-resource --generate`
-- `shield:generate --resource=Model`
-- Ajustar `form()` com `Section` + `relationship()->searchable()->preload()`
-- Ajustar `table()` com filtros + badge de status
-- Ajustar `getEloquentQuery()` com `with/withCount`
-- Adicionar RelationManagers
-- Se operacao sensivel: Action chama DomainAction + log
-
----
-
-## Plano de melhorias (checklist executavel)
-
-## Fase 0 - Fundacao e padronizacao
-- [x] Definir estrutura padrao de dominio para `Actions` e `Services` por modulo.
-- [x] Criar `BaseResource` com defaults de tabela, filtros e actions.
-- [x] Criar Traits reutilizaveis: `HasAuditActionsTrait`, `HasStatusBadgeTrait`, `HasMediaLibraryTrait`.
-- [x] Padronizar `getEloquentQuery()` com `with/withCount` em todos os Resources existentes.
-- [x] Definir roles base `admin`, `moderator`, `operator` e mapear permissoes por modulo.
-- [x] Atualizar Policies existentes para refletir as roles base.
-
-## Fase 1 - Kit CRUD Filament
-- [x] Implementar script/command `make:admin-crud` (Resource + Policy + Shield).
-- [x] Criar stubs internos para Resource, Policy e RelationManager.
-- [x] Garantir que o kit roda `shield:generate --resource=Model`.
-- [x] Documentar o uso do kit no repo e incluir no `CONTRIBUTING.md` se necessario.
-
-## Fase 2 - CRUDs prioritarios
-- [x] Catalogo: `EventCategory` (Categorias de Eventos).
-- [x] Catalogo: `Tag`.
-- [x] Catalogo: `Bairro` (ja existente).
-- [x] Catalogo: `Venue`.
-- [x] Catalogo: `ReportCategory` (Denuncias).
-- [x] CRUD principal: `Event`.
-- [x] CRUD principal: `Organizer`.
-- [x] CRUD principal: `EventRsvp`.
-- [x] CRUD principal: `TourismSpot`.
-- [x] CRUD principal: `CitizenReport`.
-- [x] Gerar permissoes Shield para novos resources e rodar seeder de roles.
-- [x] Gerar permissoes Shield para todos os resources/pages/widgets do painel.
-- [x] CRUD moderacao: `Comment` (Forum).
-- [x] CRUD moderacao: `TourismReview` (Turismo).
-- [x] CRUD moderacao: `Flags/Reports` (TopicReport, CommentReport, ContentFlag).
-- [ ] CRUDs sistema: `Settings`, `FeatureFlags` (se existirem).
-
-## Fase 3 - RelationManagers e operacao
-- [x] `EventResource`: RelationManagers para schedules, media, tags.
-- [x] `EventResource`: Ticket lots (via `EventTicket` + repeater).
-- [x] `TourismSpotResource`: RelationManager para reviews.
-- [x] `CitizenReportResource`: RelationManagers para status history e media.
-- [x] Action operacional: alterar status com nota (CitizenReport).
-
-## Fase 4 - Pages e Widgets operacionais
-- [x] Unificar a fila em `ModerationQueue` (forum + reports + flags).
-- [x] Criar `ReportsDashboard` com KPIs e ultimos pendentes.
-- [x] Criar `GeoIssues` para itens sem localizacao ou baixa qualidade.
-
-## Fase 5 - Performance e qualidade
-- [x] Revisar indices para filtros padrao (`status`, `category_id`, `bairro_id`, `created_at`).
-- [x] Garantir `with/withCount` em todos os Resources criados.
-- [x] Auditar actions sensiveis com Activity Log (status de denuncias).
-- [x] Teste minimo: alteracao de status de denuncias (CitizenReport).
-- [ ] Testes para acoes de moderacao (forum) e publicacao (events).
+## Checklist de verificacao (operacao e qualidade)
+- Validar acesso por role em todos os Resources, Pages e Widgets do painel.
+- Verificar `ModerationQueue` com dados reais e links corretos para cada tipo.
+- Validar update de status de denuncia com historico e audit log.
+- Validar serializacao de `tips` em `ReportCategoryResource`.
+- Verificar performance das queries com dados volumosos e N+1.
