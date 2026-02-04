@@ -17,6 +17,8 @@ import {
     MinusCircle,
     Clock,
     Calendar,
+    ChevronRight,
+    ExternalLink,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -34,7 +36,8 @@ import { QUERY_KEYS } from '@/api/config';
 import { vereadoresService } from '@/services/votes.service';
 
 // Types
-import type { VotacaoList } from '@/types/votes';
+import type { VotacaoList, VoteType } from '@/types/votes';
+import { VOTE_CONFIG } from '@/types/votes';
 
 export default function VereadorDetailPage() {
     const { slug } = useParams<{ slug: string }>();
@@ -165,7 +168,7 @@ export default function VereadorDetailPage() {
                                             {vereador.nome}
                                         </h2>
 
-                                        <div className="flex items-center justify-center gap-2">
+                                        <div className="flex items-center justify-center gap-2 flex-wrap">
                                             {partido && (
                                                 <Badge
                                                     className="px-3 py-1"
@@ -246,9 +249,9 @@ export default function VereadorDetailPage() {
                                     {vereador.email && (
                                         <a
                                             href={`mailto:${vereador.email}`}
-                                            className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                                            className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors break-all"
                                         >
-                                            <Mail className="h-4 w-4 text-primary" />
+                                            <Mail className="h-4 w-4 text-primary flex-shrink-0" />
                                             {vereador.email}
                                         </a>
                                     )}
@@ -262,6 +265,7 @@ export default function VereadorDetailPage() {
                                         >
                                             <Globe className="h-4 w-4 text-primary" />
                                             Site Oficial
+                                            <ExternalLink className="h-3 w-3 ml-auto" />
                                         </a>
                                     )}
 
@@ -329,14 +333,14 @@ export default function VereadorDetailPage() {
                                         {/* Attendance */}
                                         <div className="space-y-2">
                                             <div className="flex items-center justify-between text-sm">
-                                                <span className="text-muted-foreground">Presença</span>
+                                                <span className="text-muted-foreground">Presença nas votações</span>
                                                 <span className="font-semibold">{stats.presencaPercent}%</span>
                                             </div>
                                             <Progress value={stats.presencaPercent} className="h-2" />
                                         </div>
 
                                         {/* Vote breakdown */}
-                                        <div className="grid grid-cols-2 gap-4 pt-2">
+                                        <div className="grid grid-cols-2 gap-3 pt-2">
                                             <StatCard
                                                 icon={<CheckCircle2 className="h-4 w-4 text-green-500" />}
                                                 label="Votou Sim"
@@ -367,7 +371,7 @@ export default function VereadorDetailPage() {
                             </motion.section>
                         )}
 
-                        {/* Recent Votações */}
+                        {/* Voting Timeline */}
                         {votacoes && votacoes.length > 0 && (
                             <motion.section
                                 initial={{ opacity: 0, y: 20 }}
@@ -376,31 +380,54 @@ export default function VereadorDetailPage() {
                             >
                                 <Card>
                                     <CardHeader className="pb-2">
-                                        <CardTitle className="text-base flex items-center gap-2">
-                                            <Calendar className="h-4 w-4 text-primary" />
-                                            Últimas Votações
-                                        </CardTitle>
+                                        <div className="flex items-center justify-between">
+                                            <CardTitle className="text-base flex items-center gap-2">
+                                                <Calendar className="h-4 w-4 text-primary" />
+                                                Histórico de Votos
+                                            </CardTitle>
+                                            <Badge variant="secondary" className="text-xs">
+                                                {votacoes.length} votações
+                                            </Badge>
+                                        </div>
                                     </CardHeader>
-                                    <CardContent className="space-y-3">
-                                        <AnimatePresence>
-                                            {votacoes.slice(0, 5).map((votacao: VotacaoList) => (
-                                                <VotacaoMiniCard
-                                                    key={votacao.id}
-                                                    votacao={votacao}
-                                                    onClick={() => navigate(`/votacoes/${votacao.id}`)}
-                                                />
-                                            ))}
-                                        </AnimatePresence>
+                                    <CardContent className="pt-2">
+                                        {/* Timeline */}
+                                        <div className="relative">
+                                            {/* Timeline line */}
+                                            <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary via-muted to-muted" />
 
-                                        {votacoes.length > 5 && (
-                                            <Button
-                                                variant="ghost"
-                                                className="w-full text-primary"
-                                                onClick={() => navigate(`/votacoes?vereador=${slug}`)}
-                                            >
-                                                Ver todas ({votacoes.length})
-                                            </Button>
-                                        )}
+                                            <AnimatePresence>
+                                                <div className="space-y-0">
+                                                    {votacoes.map((votacao: VotacaoList & { votoDoVereador?: VoteType }, index: number) => (
+                                                        <VotingTimelineItem
+                                                            key={votacao.id}
+                                                            votacao={votacao}
+                                                            index={index}
+                                                            isLast={index === votacoes.length - 1}
+                                                            onClick={() => navigate(`/votacoes/${votacao.id}`)}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            </AnimatePresence>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </motion.section>
+                        )}
+
+                        {/* Empty voting history */}
+                        {(!votacoes || votacoes.length === 0) && (
+                            <motion.section
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.2 }}
+                            >
+                                <Card>
+                                    <CardContent className="py-8 text-center">
+                                        <Calendar className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
+                                        <p className="text-sm text-muted-foreground">
+                                            Nenhuma votação registrada ainda
+                                        </p>
                                     </CardContent>
                                 </Card>
                             </motion.section>
@@ -445,35 +472,81 @@ function StatCard({ icon, label, value, color }: StatCardProps) {
     );
 }
 
-interface VotacaoMiniCardProps {
-    votacao: VotacaoList;
+interface VotingTimelineItemProps {
+    votacao: VotacaoList & { votoDoVereador?: VoteType };
+    index: number;
+    isLast: boolean;
     onClick: () => void;
 }
 
-function VotacaoMiniCard({ votacao, onClick }: VotacaoMiniCardProps) {
+function VotingTimelineItem({ votacao, index, isLast, onClick }: VotingTimelineItemProps) {
+    // Get the councilor's vote from the API response
+    const voto = (votacao as any).votoDoVereador as VoteType || 'NAO_VOTOU';
+    const voteConfig = VOTE_CONFIG[voto] || VOTE_CONFIG.NAO_VOTOU;
+
+    const formatDate = (dateString: string) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+        });
+    };
+
     return (
         <motion.div
-            layout
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: index * 0.05 }}
+            className="relative pl-10 pb-4"
             onClick={onClick}
-            className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 cursor-pointer hover:bg-muted transition-colors"
         >
+            {/* Timeline dot with vote color */}
             <div
                 className={cn(
-                    'w-2 h-8 rounded-full',
-                    votacao.status === 'APROVADO' && 'bg-green-500',
-                    votacao.status === 'REJEITADO' && 'bg-red-500',
-                    votacao.status === 'EM_ANDAMENTO' && 'bg-blue-500',
-                    votacao.status === 'ARQUIVADO' && 'bg-gray-400'
+                    "absolute left-2 top-1 w-5 h-5 rounded-full border-2 border-background flex items-center justify-center",
+                    voteConfig.bgColor
                 )}
-            />
-            <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{votacao.titulo}</p>
-                <p className="text-xs text-muted-foreground">
-                    {new Date(votacao.data).toLocaleDateString('pt-BR')} • {votacao.statusLabel}
-                </p>
+            >
+                {voto === 'SIM' && <CheckCircle2 className="h-3 w-3 text-white" />}
+                {voto === 'NAO' && <XCircle className="h-3 w-3 text-white" />}
+                {voto === 'ABSTENCAO' && <MinusCircle className="h-3 w-3 text-white" />}
+                {voto === 'NAO_VOTOU' && <Clock className="h-3 w-3 text-white" />}
+            </div>
+
+            {/* Card */}
+            <div
+                className={cn(
+                    "rounded-lg p-3 cursor-pointer transition-all hover:shadow-md",
+                    "bg-gradient-to-r",
+                    voto === 'SIM' && "from-green-50 to-green-50/50 dark:from-green-900/20 dark:to-green-900/10 border-l-4 border-green-500",
+                    voto === 'NAO' && "from-red-50 to-red-50/50 dark:from-red-900/20 dark:to-red-900/10 border-l-4 border-red-500",
+                    voto === 'ABSTENCAO' && "from-amber-50 to-amber-50/50 dark:from-amber-900/20 dark:to-amber-900/10 border-l-4 border-amber-500",
+                    voto === 'NAO_VOTOU' && "from-gray-50 to-gray-50/50 dark:from-gray-900/20 dark:to-gray-900/10 border-l-4 border-gray-400"
+                )}
+            >
+                <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium line-clamp-2 leading-tight">
+                            {votacao.titulo}
+                        </p>
+                        <div className="flex items-center gap-2 mt-1.5">
+                            <span className="text-xs text-muted-foreground">
+                                {formatDate(votacao.data)}
+                            </span>
+                            <Badge
+                                className={cn(
+                                    "text-[10px] px-1.5 py-0",
+                                    voteConfig.color
+                                )}
+                                style={{ backgroundColor: `${voteConfig.bgColor.replace('bg-', '')}20` }}
+                            >
+                                {voteConfig.label}
+                            </Badge>
+                        </div>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+                </div>
             </div>
         </motion.div>
     );

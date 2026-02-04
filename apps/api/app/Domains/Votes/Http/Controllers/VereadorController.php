@@ -72,19 +72,45 @@ class VereadorController extends Controller
 
     /**
      * GET /api/v1/vereadores/{slug}/votacoes
-     * Get councilor's voting history
+     * Get councilor's voting history with their votes
      */
-    public function votacoes(Request $request, string $slug): AnonymousResourceCollection
+    public function votacoes(Request $request, string $slug): JsonResponse
     {
         $vereador = Vereador::where('slug', $slug)->firstOrFail();
 
-        $votacoes = $vereador->votos()
+        $votos = $vereador->votos()
             ->with('votacao')
             ->orderByDesc('created_at')
-            ->get()
-            ->pluck('votacao')
-            ->unique('id');
+            ->get();
 
-        return VotacaoListResource::collection($votacoes);
+        $votacoesComVoto = $votos->map(function ($votoRegistro) {
+            $votacao = $votoRegistro->votacao;
+
+            return [
+                'id' => $votacao->id,
+                'protocolo' => $votacao->protocolo,
+                'titulo' => $votacao->titulo,
+                'subtitulo' => $votacao->subtitulo,
+                'tipo' => $votacao->tipo,
+                'status' => $votacao->status->value,
+                'statusLabel' => $votacao->status->label(),
+                'data' => $votacao->data->format('Y-m-d'),
+                'tags' => $votacao->tags ?? [],
+                'counts' => [
+                    'sim' => $votacao->votos_sim,
+                    'nao' => $votacao->votos_nao,
+                    'abstencao' => $votacao->votos_abstencao,
+                    'naoVotou' => $votacao->votos_ausente,
+                ],
+                'resultado' => $votacao->votos_sim > $votacao->votos_nao ? 'approved' : 'rejected',
+                'votoDoVereador' => $votoRegistro->voto->value,
+                'justificativaVoto' => $votoRegistro->justificativa,
+            ];
+        })->unique('id')->values();
+
+        return response()->json([
+            'success' => true,
+            'data' => $votacoesComVoto,
+        ]);
     }
 }
