@@ -61,7 +61,7 @@ class CommentReportResource extends BaseResource
                             ->columnSpanFull()
                             ->disabled(),
                     ]),
-                Section::make('Comentário Denunciado')
+                Section::make('Comentário Den?nciado')
                     ->schema([
                         Forms\Components\Placeholder::make('comment_texto')
                             ->label('Texto')
@@ -80,11 +80,19 @@ class CommentReportResource extends BaseResource
                 TextColumn::make('comment.texto')
                     ->label('Comentário')
                     ->searchable()
-                    ->limit(40),
+                    ->limit(40)
+                    ->url(fn($record) => $record->comment_id
+                        ? CommentResource::getUrl('view', ['record' => $record->comment_id])
+                        : null)
+                    ->openUrlInNewTab(),
                 TextColumn::make('comment.topic.titulo')
                     ->label('Tópico')
                     ->limit(25)
-                    ->toggleable(),
+                    ->toggleable()
+                    ->url(fn($record) => $record->comment?->topic_id
+                        ? TopicResource::getUrl('view', ['record' => $record->comment->topic_id])
+                        : null)
+                    ->openUrlInNewTab(),
                 TextColumn::make('user.nome')
                     ->label('Denunciante')
                     ->searchable(),
@@ -139,12 +147,12 @@ class CommentReportResource extends BaseResource
                     ->visible(fn (CommentReport $record) => $record->status === ReportStatus::Pending
                         && (auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false)),
                 Action::make('deleteComment')
-                    ->label('Remover Comentario')
+                    ->label('Remover Coment?rio')
                     ->icon('heroicon-o-trash')
                     ->color('danger')
                     ->requiresConfirmation()
-                    ->modalHeading('Remover Comentario')
-                    ->modalDescription('O comentario sera removido permanentemente.')
+                    ->modalHeading('Remover Coment?rio')
+                    ->modalDescription('O coment?rio ser? removido permanentemente.')
                     ->action(function (CommentReport $record): void {
                         app(ModerationActionService::class)
                             ->deleteCommentFromReport($record, auth()->user());

@@ -27,7 +27,7 @@ class ModerationQueue extends Page implements HasTable
 
     protected static ?string $navigationIcon = 'heroicon-o-queue-list';
 
-    protected static ?string $navigationLabel = 'Fila de Moderacao';
+    protected static ?string $navigationLabel = 'Fila de Modera??o';
 
     protected static ?string $navigationGroup = 'Moderacao';
 
@@ -113,9 +113,9 @@ class ModerationQueue extends Page implements HasTable
                 ->badge()
                 ->formatStateUsing(fn (string $state): string => match ($state) {
                     'flag' => 'Flag',
-                    'topic_report' => 'Topico',
-                    'comment_report' => 'Comentario',
-                    'citizen_report' => 'Denuncia',
+                    'topic_report' => 'T?pico',
+                    'comment_report' => 'Coment?rio',
+                    'citizen_report' => 'Den?ncia',
                     default => $state,
                 })
                 ->color(fn (string $state): string => match ($state) {
@@ -160,7 +160,7 @@ class ModerationQueue extends Page implements HasTable
                     };
                 }),
             TextColumn::make('title')
-                ->label('Titulo')
+                ->label('T?tulo')
                 ->limit(40)
                 ->searchable()
                 ->toggleable(),
@@ -201,9 +201,9 @@ class ModerationQueue extends Page implements HasTable
                 ->label('Tipo')
                 ->options([
                     'flag' => 'Flag',
-                    'topic_report' => 'Topico',
-                    'comment_report' => 'Comentario',
-                    'citizen_report' => 'Denuncia',
+                    'topic_report' => 'T?pico',
+                    'comment_report' => 'Coment?rio',
+                    'citizen_report' => 'Den?ncia',
                 ]),
             SelectFilter::make('status')
                 ->label('Status')
@@ -214,6 +214,21 @@ class ModerationQueue extends Page implements HasTable
                     CitizenReportStatus::Recebido->value => CitizenReportStatus::Recebido->label(),
                     CitizenReportStatus::EmAnalise->value => CitizenReportStatus::EmAnalise->label(),
                 ]),
+            SelectFilter::make('priority')
+                ->label('Prioridade')
+                ->options([
+                    'overdue' => 'Atrasados (7d+)',
+                    'week' => 'Últimos 7 dias',
+                    'day' => 'Últimas 24h',
+                ])
+                ->query(function (Builder $query, array $data): Builder {
+                    return match ($data['value'] ?? null) {
+                        'overdue' => $query->where('created_at', '<', now()->subDays(7)),
+                        'week' => $query->where('created_at', '>=', now()->subDays(7)),
+                        'day' => $query->where('created_at', '>=', now()->subDay()),
+                        default => $query,
+                    };
+                }),
         ];
     }
 

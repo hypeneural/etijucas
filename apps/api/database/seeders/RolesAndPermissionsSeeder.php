@@ -42,10 +42,18 @@ class RolesAndPermissionsSeeder extends Seeder
             'alerts.manage',
             'users.manage',
             'bairros.manage',
+            // Filament Pages
+            'page_EventsCalendar',
+            'page_Dashboard',
+            'page_ModerationQueue',
+            'page_ReportsDashboard',
+            'page_GeoIssues',
             // Moderacao
             'flags.manage',
             'restrictions.manage',
             // Widgets (Filament)
+            'widget_AdminOverviewStats',
+            'widget_ReportsOverviewStats',
             'widget_VotesOverviewStats',
             'widget_VotesEngagementStats',
             'widget_VotesByYearChart',

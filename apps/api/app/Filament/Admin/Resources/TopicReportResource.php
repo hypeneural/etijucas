@@ -61,7 +61,7 @@ class TopicReportResource extends BaseResource
                             ->columnSpanFull()
                             ->disabled(),
                     ]),
-                Section::make('Tópico Denunciado')
+                Section::make('Tópico Den?nciado')
                     ->schema([
                         Forms\Components\Placeholder::make('topic_titulo')
                             ->label('Título')
@@ -82,6 +82,10 @@ class TopicReportResource extends BaseResource
                     ->searchable()
                     ->limit(30)
                     ->url(fn($record) => TopicResource::getUrl('view', ['record' => $record->topic_id])),
+                TextColumn::make('topic.texto')
+                    ->label('Trecho')
+                    ->limit(40)
+                    ->toggleable(),
                 TextColumn::make('user.nome')
                     ->label('Denunciante')
                     ->searchable(),
@@ -136,12 +140,12 @@ class TopicReportResource extends BaseResource
                     ->visible(fn (TopicReport $record) => $record->status === ReportStatus::Pending
                         && (auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false)),
                 Action::make('hideTopic')
-                    ->label('Ocultar Topico')
+                    ->label('Ocultar T?pico')
                     ->icon('heroicon-o-eye-slash')
                     ->color('danger')
                     ->requiresConfirmation()
-                    ->modalHeading('Ocultar Topico')
-                    ->modalDescription('O topico sera ocultado e a denuncia marcada como processada.')
+                    ->modalHeading('Ocultar T?pico')
+                    ->modalDescription('O t?pico ser? ocultado e a den?ncia marcada como processada.')
                     ->action(function (TopicReport $record): void {
                         app(ModerationActionService::class)
                             ->hideTopicFromReport($record, auth()->user());

@@ -34,11 +34,11 @@ class CommentResource extends BaseResource
 
     protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-left-right';
 
-    protected static ?string $navigationLabel = 'Comentarios';
+    protected static ?string $navigationLabel = 'Coment?rios';
 
-    protected static ?string $modelLabel = 'Comentario';
+    protected static ?string $modelLabel = 'Coment?rio';
 
-    protected static ?string $pluralModelLabel = 'Comentarios';
+    protected static ?string $pluralModelLabel = 'Coment?rios';
 
     protected static ?int $navigationSort = 2;
 
@@ -50,7 +50,7 @@ class CommentResource extends BaseResource
     {
         return $form
             ->schema([
-                Section::make('Comentario')
+                Section::make('Coment?rio')
                     ->columns(2)
                     ->schema([
                         Textarea::make('texto')
@@ -63,9 +63,9 @@ class CommentResource extends BaseResource
                             ->url()
                             ->maxLength(500),
                         Toggle::make('is_anon')
-                            ->label('Anonimo'),
+                            ->label('An?nimo'),
                         TextInput::make('depth')
-                            ->label('Nivel')
+                            ->label('N?vel')
                             ->numeric()
                             ->disabled()
                             ->dehydrated(false),
@@ -79,7 +79,7 @@ class CommentResource extends BaseResource
                     ->columns(2)
                     ->schema([
                         Select::make('topic_id')
-                            ->label('Topico')
+                            ->label('T?pico')
                             ->relationship('topic', 'titulo')
                             ->searchable()
                             ->preload()
@@ -105,12 +105,12 @@ class CommentResource extends BaseResource
         return $table
             ->columns([
                 TextColumn::make('topic.titulo')
-                    ->label('Topico')
+                    ->label('T?pico')
                     ->searchable()
                     ->limit(40)
                     ->sortable(),
                 TextColumn::make('texto')
-                    ->label('Comentario')
+                    ->label('Coment?rio')
                     ->searchable()
                     ->limit(50),
                 TextColumn::make('user.nome')
@@ -118,11 +118,11 @@ class CommentResource extends BaseResource
                     ->searchable()
                     ->toggleable(),
                 IconColumn::make('is_anon')
-                    ->label('Anon')
+                    ->label('An?nimo')
                     ->boolean()
                     ->toggleable(),
                 TextColumn::make('depth')
-                    ->label('Nivel')
+                    ->label('N?vel')
                     ->sortable()
                     ->alignCenter(),
                 TextColumn::make('replies_count')
@@ -130,7 +130,7 @@ class CommentResource extends BaseResource
                     ->sortable()
                     ->alignCenter(),
                 TextColumn::make('reports_count')
-                    ->label('Denuncias')
+                    ->label('Den?ncias')
                     ->sortable()
                     ->alignCenter()
                     ->color(fn(int $state): string => $state > 0 ? 'danger' : 'gray'),
@@ -142,7 +142,7 @@ class CommentResource extends BaseResource
             ])
             ->filters([
                 SelectFilter::make('topic_id')
-                    ->label('Topico')
+                    ->label('T?pico')
                     ->relationship('topic', 'titulo')
                     ->preload(),
                 SelectFilter::make('user_id')
@@ -150,10 +150,10 @@ class CommentResource extends BaseResource
                     ->relationship('user', 'nome')
                     ->preload(),
                 Tables\Filters\Filter::make('has_reports')
-                    ->label('Com denuncias')
+                    ->label('Com den?ncias')
                     ->query(fn(Builder $query): Builder => $query->has('reports')),
                 Tables\Filters\Filter::make('is_anon')
-                    ->label('Anonimos')
+                    ->label('An?nimos')
                     ->query(fn(Builder $query): Builder => $query->where('is_anon', true)),
                 ...static::baseTableFilters(),
             ])

@@ -36,7 +36,7 @@ class CommentsRelationManager extends RelationManager
                     ->limit(50)
                     ->wrap(),
                 IconColumn::make('is_anon')
-                    ->label('Anon')
+                    ->label('An?nimo')
                     ->boolean(),
                 TextColumn::make('depth')
                     ->label('Nível')
