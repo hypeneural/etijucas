@@ -8,6 +8,8 @@ use App\Domains\Reports\Enums\LocationQuality;
 use App\Domains\Reports\Enums\ReportStatus;
 use App\Domains\Reports\Models\CitizenReport;
 use App\Filament\Admin\Resources\CitizenReportResource\Pages;
+use App\Filament\Admin\Resources\CitizenReportResource\RelationManagers\MediaRelationManager;
+use App\Filament\Admin\Resources\CitizenReportResource\RelationManagers\StatusHistoryRelationManager;
 use App\Filament\Admin\Resources\Concerns\HasMediaLibraryTrait;
 use Filament\Forms;
 use Filament\Forms\Components\DateTimePicker;
@@ -205,6 +207,14 @@ class CitizenReportResource extends BaseResource
         return [
             'index' => Pages\ListCitizenReports::route('/'),
             'edit' => Pages\EditCitizenReport::route('/{record}/edit'),
+        ];
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            StatusHistoryRelationManager::class,
+            MediaRelationManager::class,
         ];
     }
 

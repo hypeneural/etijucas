@@ -247,15 +247,16 @@ Em todos:
 - [ ] CRUDs sistema: `Settings`, `FeatureFlags` (se existirem).
 
 ## Fase 3 - RelationManagers e operacao
-- [ ] `EventResource`: RelationManagers para schedules, ticket lots, media, tags, organizers, venue.
-- [ ] `TourismSpotResource`: RelationManager para reviews.
-- [ ] `CitizenReportResource`: RelationManager para status history e media.
-- [ ] Actions operacionais: publicar/despublicar, destacar, duplicar, alterar status com nota.
+- [x] `EventResource`: RelationManagers para schedules, media, tags.
+- [x] `EventResource`: Ticket lots (via `EventTicket` + repeater).
+- [x] `TourismSpotResource`: RelationManager para reviews.
+- [x] `CitizenReportResource`: RelationManagers para status history e media.
+- [x] Action operacional: alterar status com nota (CitizenReport).
 
 ## Fase 4 - Pages e Widgets operacionais
-- [ ] Unificar a fila em `ModerationQueue` (forum + reports + flags).
-- [ ] Criar `ReportsDashboard` com KPIs e ultimos pendentes.
-- [ ] Criar `GeoIssues` para itens sem localizacao ou baixa qualidade.
+- [x] Unificar a fila em `ModerationQueue` (forum + reports + flags).
+- [x] Criar `ReportsDashboard` com KPIs e ultimos pendentes.
+- [x] Criar `GeoIssues` para itens sem localizacao ou baixa qualidade.
 
 ## Fase 5 - Performance e qualidade
 - [ ] Revisar indices para filtros padrao (`status`, `category_id`, `bairro_id`, `created_at`).

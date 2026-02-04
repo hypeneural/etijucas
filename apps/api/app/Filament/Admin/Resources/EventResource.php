@@ -8,6 +8,10 @@ use App\Domain\Events\Enums\AgeRating;
 use App\Domain\Events\Enums\EventStatus;
 use App\Domain\Events\Enums\EventType;
 use App\Filament\Admin\Resources\EventResource\Pages;
+use App\Filament\Admin\Resources\EventResource\RelationManagers\MediaRelationManager;
+use App\Filament\Admin\Resources\EventResource\RelationManagers\SchedulesRelationManager;
+use App\Filament\Admin\Resources\EventResource\RelationManagers\TagsRelationManager;
+use App\Filament\Admin\Resources\EventResource\RelationManagers\TicketRelationManager;
 use App\Models\Event;
 use Filament\Forms;
 use Filament\Forms\Components\DateTimePicker;
@@ -273,6 +277,16 @@ class EventResource extends BaseResource
             'index' => Pages\ListEvents::route('/'),
             'create' => Pages\CreateEvent::route('/create'),
             'edit' => Pages\EditEvent::route('/{record}/edit'),
+        ];
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            SchedulesRelationManager::class,
+            MediaRelationManager::class,
+            TagsRelationManager::class,
+            TicketRelationManager::class,
         ];
     }
 

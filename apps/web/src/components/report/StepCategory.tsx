@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { StepHeader } from './HelpTooltip';
+import { CategoryIcon } from './CategoryIcon';
 import { useReportCategories } from '@/hooks/useReportCategories';
 import type { ReportDraft, ReportCategory } from '@/types/report';
 
@@ -88,8 +89,8 @@ export function StepCategory({ draft, onUpdate, onNext }: StepCategoryProps) {
                 </div>
             </Card>
 
-            {/* Category Grid */}
-            <div className="grid grid-cols-2 gap-3">
+            {/* Category Grid - 3 columns for mobile-first */}
+            <div className="grid grid-cols-3 gap-3">
                 {categories.map((category, index) => {
                     const isSelected = draft.categoryId === category.id;
 
@@ -103,37 +104,38 @@ export function StepCategory({ draft, onUpdate, onNext }: StepCategoryProps) {
                             whileTap={{ scale: 0.95 }}
                             onClick={() => handleSelectCategory(category)}
                             className={cn(
-                                'relative flex flex-col items-center gap-2 rounded-2xl border-2 p-4 text-center transition-all',
+                                'relative flex flex-col items-center gap-2 rounded-2xl border-2 p-3 text-center transition-all',
                                 isSelected
                                     ? 'border-primary bg-primary/10 shadow-lg'
                                     : 'border-border bg-card hover:bg-muted/50 hover:border-muted-foreground/30'
                             )}
+                            style={{
+                                borderColor: isSelected ? category.color : undefined,
+                                backgroundColor: isSelected ? `${category.color}10` : undefined,
+                            }}
                         >
-                            {/* Icon from API (emoji) */}
-                            <div
-                                className={cn(
-                                    'text-3xl p-2 rounded-xl transition-colors',
-                                    isSelected ? 'bg-primary/20' : 'bg-muted'
-                                )}
-                                style={{
-                                    backgroundColor: isSelected ? `${category.color}20` : undefined
-                                }}
-                            >
-                                {category.icon}
-                            </div>
+                            {/* Icon from API using CategoryIcon */}
+                            <CategoryIcon
+                                icon={category.icon}
+                                color={category.color}
+                                size="lg"
+                                withBackground
+                            />
+
                             <span className={cn(
-                                'text-sm font-medium leading-tight',
-                                isSelected && 'text-primary'
+                                'text-[11px] leading-tight font-semibold line-clamp-2',
+                                isSelected ? 'text-primary' : 'text-slate-700 dark:text-slate-300'
                             )}
                                 style={{ color: isSelected ? category.color : undefined }}
                             >
                                 {category.name}
                             </span>
+
                             {isSelected && (
                                 <motion.div
                                     initial={{ scale: 0 }}
                                     animate={{ scale: 1 }}
-                                    className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary flex items-center justify-center"
+                                    className="absolute -top-1 -right-1 h-5 w-5 rounded-full flex items-center justify-center"
                                     style={{ backgroundColor: category.color }}
                                 >
                                     <ChevronRight className="h-3 w-3 text-white" />

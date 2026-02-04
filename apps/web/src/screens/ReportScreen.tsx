@@ -12,14 +12,6 @@ import {
   MapPin,
   ChevronRight,
   TrendingUp,
-  AlertTriangle,
-  Lightbulb,
-  Trash2,
-  Car,
-  Volume2,
-  Droplets,
-  Heart,
-  MoreHorizontal,
   XCircle,
   RefreshCw,
 } from 'lucide-react';
@@ -43,18 +35,7 @@ import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { BottomTabBar } from '@/components/layout/BottomTabBar';
-
-// Icon mapping for categories (duplicated for now, could be shared)
-const categoryConfig: Record<string, { label: string; icon: React.ElementType; color: string }> = {
-  buraco: { label: 'Buraco', icon: AlertTriangle, color: 'text-red-600 bg-red-100' },
-  iluminacao: { label: 'Iluminação', icon: Lightbulb, color: 'text-yellow-600 bg-yellow-100' },
-  lixo: { label: 'Lixo', icon: Trash2, color: 'text-green-600 bg-green-100' },
-  transito: { label: 'Trânsito', icon: Car, color: 'text-blue-600 bg-blue-100' },
-  barulho: { label: 'Barulho', icon: Volume2, color: 'text-purple-600 bg-purple-100' },
-  alagamento: { label: 'Alagamento', icon: Droplets, color: 'text-cyan-600 bg-cyan-100' },
-  saude: { label: 'Saúde', icon: Heart, color: 'text-pink-600 bg-pink-100' },
-  outros: { label: 'Outros', icon: MoreHorizontal, color: 'text-gray-600 bg-gray-100' },
-};
+import { CategoryIcon } from '@/components/report/CategoryIcon';
 
 const statusConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
   recebido: { label: 'Recebido', color: 'bg-blue-100 text-blue-700', icon: Clock },
@@ -252,7 +233,6 @@ export default function ReportScreen({ scrollRef }: ReportScreenProps) {
           {/* List */}
           <div className="space-y-4">
             {reports.map((report) => {
-              const category = categoryConfig[report.category?.slug || 'outros'] || categoryConfig.outros;
               const status = statusConfig[report.status] || statusConfig.recebido;
               const StatusIcon = status.icon;
 
@@ -268,11 +248,14 @@ export default function ReportScreen({ scrollRef }: ReportScreenProps) {
                     {/* Header with Category and Date */}
                     <div className="p-3 flex items-start justify-between border-b border-slate-50 dark:border-slate-800">
                       <div className="flex items-center gap-2">
-                        <div className={cn("p-1.5 rounded-lg", category.color)}>
-                          <category.icon className="w-4 h-4" />
-                        </div>
+                        <CategoryIcon
+                          icon={report.category?.icon || 'mdi:dots-horizontal'}
+                          color={report.category?.color || '#64748b'}
+                          size="sm"
+                          withBackground
+                        />
                         <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                          {report.category?.name || category.label}
+                          {report.category?.name || 'Outros'}
                         </span>
                       </div>
                       <span className="text-xs text-muted-foreground flex items-center gap-1">

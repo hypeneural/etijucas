@@ -6,6 +6,8 @@ namespace App\Filament\Admin\Widgets;
 
 use App\Domain\Moderation\Enums\FlagStatus;
 use App\Models\ContentFlag;
+use App\Domains\Reports\Enums\ReportStatus;
+use App\Domains\Reports\Models\CitizenReport;
 use App\Models\User;
 use App\Models\UserRestriction;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
@@ -27,8 +29,9 @@ class AdminOverviewStats extends BaseWidget
             ->where('created_at', '>=', now()->subDay())
             ->count();
 
-        // Placeholder for reports if module is added later
-        $pendingReports = null;
+        $pendingReports = CitizenReport::query()
+            ->whereIn('status', [ReportStatus::Recebido->value, ReportStatus::EmAnalise->value])
+            ->count();
 
         return [
             Stat::make('Flags em aberto', $openFlags)
@@ -40,9 +43,9 @@ class AdminOverviewStats extends BaseWidget
             Stat::make('Usuarios novos (24h)', $newUsers)
                 ->description('Ultimas 24 horas')
                 ->color('success'),
-            Stat::make('Reports pendentes', $pendingReports ?? '—')
-                ->description('Placeholder')
-                ->color('gray'),
+            Stat::make('Reports pendentes', $pendingReports)
+                ->description('Fila de denuncias')
+                ->color('warning'),
         ];
     }
 }

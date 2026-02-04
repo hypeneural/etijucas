@@ -6,6 +6,7 @@ namespace App\Filament\Admin\Resources;
 
 use App\Domains\Tourism\Models\TourismSpot;
 use App\Filament\Admin\Resources\TourismSpotResource\Pages;
+use App\Filament\Admin\Resources\TourismSpotResource\RelationManagers\ReviewsRelationManager;
 use Filament\Forms;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
@@ -220,6 +221,13 @@ class TourismSpotResource extends BaseResource
             'index' => Pages\ListTourismSpots::route('/'),
             'create' => Pages\CreateTourismSpot::route('/create'),
             'edit' => Pages\EditTourismSpot::route('/{record}/edit'),
+        ];
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            ReviewsRelationManager::class,
         ];
     }
 

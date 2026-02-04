@@ -23,6 +23,7 @@ import { useMyReports } from '@/hooks/useMyReports';
 import { useAuthStore } from '@/store/useAuthStore';
 import { LoginRequired } from '@/components/auth/LoginRequired';
 import { BottomTabBar } from '@/components/layout/BottomTabBar';
+import { CategoryIcon } from '@/components/report/CategoryIcon';
 import type { CitizenReport } from '@/types/report';
 
 const statusConfig: Record<string, { icon: React.ComponentType<{ className?: string }>, color: string, label: string }> = {
@@ -56,7 +57,7 @@ function ReportCard({ report }: { report: CitizenReport }) {
                 onClick={() => navigate(`/denuncia/${report.id}`)}
             >
                 <div className="flex items-start gap-3">
-                    {/* Thumbnail or Category Emoji */}
+                    {/* Thumbnail or Category Icon */}
                     {report.media && report.media.length > 0 ? (
                         <img
                             src={report.media[0].thumbUrl || report.media[0].url}
@@ -65,12 +66,13 @@ function ReportCard({ report }: { report: CitizenReport }) {
                             loading="lazy"
                         />
                     ) : (
-                        <div
-                            className="w-14 h-14 rounded-xl text-2xl shrink-0 flex items-center justify-center"
-                            style={{ backgroundColor: (report.category?.color || '#6b7280') + '20' }}
-                        >
-                            {report.category?.icon || '📋'}
-                        </div>
+                        <CategoryIcon
+                            icon={report.category?.icon || 'mdi:dots-horizontal'}
+                            color={report.category?.color || '#64748b'}
+                            size="lg"
+                            withBackground
+                            className="shrink-0"
+                        />
                     )}
 
                     {/* Content */}
