@@ -22,7 +22,7 @@ class BairroResource extends BaseResource
 {
     protected static ?string $model = Bairro::class;
 
-    protected static ?string $navigationGroup = 'Conteudo';
+    protected static ?string $navigationGroup = 'Conte?do';
 
     protected static ?string $navigationIcon = 'heroicon-o-map';
 

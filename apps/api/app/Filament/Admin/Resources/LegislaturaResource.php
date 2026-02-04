@@ -22,7 +22,7 @@ class LegislaturaResource extends BaseResource
 {
     protected static ?string $model = Legislatura::class;
 
-    protected static ?string $navigationGroup = 'Votacoes';
+    protected static ?string $navigationGroup = 'Vota??es';
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
 

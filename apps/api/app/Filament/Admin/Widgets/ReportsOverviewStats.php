@@ -23,7 +23,7 @@ class ReportsOverviewStats extends BaseWidget
             return [
                 'total' => CitizenReport::query()->count(),
                 'pending' => CitizenReport::query()
-                    ->whereIn('status', [ReportStatus::Recebido->value, ReportStatus::EmAnalise->value])
+                    ->whereIn('status', [ReportStatus::Recebido->value, ReportStatus::EmAn?lise->value])
                     ->count(),
                 'resolved' => CitizenReport::query()
                     ->where('status', ReportStatus::Resolvido->value)

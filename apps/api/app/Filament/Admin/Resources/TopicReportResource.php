@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Resources;
 
-use App\Domain\Forum\Enums\ReportMotivo;
-use App\Domain\Forum\Enums\ReportStatus;
+use App\Domain\F?rum\Enums\ReportMotivo;
+use App\Domain\F?rum\Enums\ReportStatus;
 use App\Domain\Moderation\Services\ModerationActionService;
 use App\Filament\Admin\Resources\TopicReportResource\Pages;
 use App\Models\TopicReport;
@@ -23,7 +23,7 @@ class TopicReportResource extends BaseResource
 {
     protected static ?string $model = TopicReport::class;
 
-    protected static ?string $navigationGroup = 'Forum';
+    protected static ?string $navigationGroup = 'F?rum';
 
     protected static ?string $navigationIcon = 'heroicon-o-flag';
 
@@ -88,7 +88,7 @@ class TopicReportResource extends BaseResource
                     ->limit(40)
                     ->toggleable(),
                 TextColumn::make('user.nome')
-                    ->label('Denunciante')
+                    ->label('Den?nciante')
                     ->searchable(),
                 TextColumn::make('motivo')
                     ->label('Motivo')

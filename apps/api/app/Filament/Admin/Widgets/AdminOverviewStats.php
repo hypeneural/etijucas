@@ -35,7 +35,7 @@ class AdminOverviewStats extends BaseWidget
                     ->where('created_at', '>=', now()->subDay())
                     ->count(),
                 'pendingReports' => CitizenReport::query()
-                    ->whereIn('status', [ReportStatus::Recebido->value, ReportStatus::EmAnalise->value])
+                    ->whereIn('status', [ReportStatus::Recebido->value, ReportStatus::EmAn?lise->value])
                     ->count(),
             ];
         });
@@ -44,10 +44,10 @@ class AdminOverviewStats extends BaseWidget
             Stat::make('Flags em aberto', $metrics['openFlags'])
                 ->description('Fila de moderacao')
                 ->color('warning'),
-            Stat::make('Restricoes ativas', $metrics['activeRestrictions'])
-                ->description('Usuarios com restricao')
+            Stat::make('Restri??es ativas', $metrics['activeRestrictions'])
+                ->description('Usu?rios com restricao')
                 ->color('danger'),
-            Stat::make('Usuarios novos (24h)', $metrics['newUsers'])
+            Stat::make('Usu?rios novos (24h)', $metrics['newUsers'])
                 ->description('Ultimas 24 horas')
                 ->color('success'),
             Stat::make('Reports pendentes', $metrics['pendingReports'])

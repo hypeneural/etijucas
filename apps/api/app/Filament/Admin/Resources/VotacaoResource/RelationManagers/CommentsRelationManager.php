@@ -28,13 +28,13 @@ class CommentsRelationManager extends RelationManager
 {
     protected static string $relationship = 'comments';
 
-    protected static ?string $title = 'Comentarios';
+    protected static ?string $title = 'Coment?rios';
 
     public function form(Forms\Form $form): Forms\Form
     {
         return $form
             ->schema([
-                Section::make('Comentario')
+                Section::make('Coment?rio')
                     ->columns(2)
                     ->schema([
                         Textarea::make('texto')
@@ -47,7 +47,7 @@ class CommentsRelationManager extends RelationManager
                             ->url()
                             ->maxLength(500),
                         Toggle::make('is_anon')
-                            ->label('Anonimo'),
+                            ->label('An?nimo'),
                         TextInput::make('likes_count')
                             ->label('Likes')
                             ->numeric()
@@ -63,7 +63,7 @@ class CommentsRelationManager extends RelationManager
             ->modifyQueryUsing(fn (Builder $query): Builder => $query->with('user'))
             ->columns([
                 TextColumn::make('texto')
-                    ->label('Comentario')
+                    ->label('Coment?rio')
                     ->searchable()
                     ->limit(60),
                 TextColumn::make('user.nome')
@@ -88,7 +88,7 @@ class CommentsRelationManager extends RelationManager
                     ->label('Com imagem')
                     ->query(fn (Builder $query): Builder => $query->whereNotNull('image_url')),
                 Tables\Filters\Filter::make('is_anon')
-                    ->label('Anonimos')
+                    ->label('An?nimos')
                     ->query(fn (Builder $query): Builder => $query->where('is_anon', true)),
                 TrashedFilter::make(),
             ])

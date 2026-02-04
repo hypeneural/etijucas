@@ -23,7 +23,7 @@ class TourismReviewResource extends BaseResource
 {
     protected static ?string $model = TourismReview::class;
 
-    protected static ?string $navigationGroup = 'Conteudo';
+    protected static ?string $navigationGroup = 'Conte?do';
 
     protected static ?string $navigationIcon = 'heroicon-o-star';
 
@@ -52,7 +52,7 @@ class TourismReviewResource extends BaseResource
                             ->disabled()
                             ->dehydrated(false),
                         Select::make('user_id')
-                            ->label('Usuario')
+                            ->label('Usu?rio')
                             ->relationship('user', 'nome')
                             ->searchable()
                             ->preload()
@@ -65,7 +65,7 @@ class TourismReviewResource extends BaseResource
                         DatePicker::make('visit_date')
                             ->label('Data da visita'),
                         TextInput::make('titulo')
-                            ->label('Titulo')
+                            ->label('T?tulo')
                             ->maxLength(200),
                         TextInput::make('likes_count')
                             ->label('Likes')
@@ -94,7 +94,7 @@ class TourismReviewResource extends BaseResource
                     ->limit(40)
                     ->sortable(),
                 TextColumn::make('user.nome')
-                    ->label('Usuario')
+                    ->label('Usu?rio')
                     ->searchable()
                     ->toggleable(),
                 TextColumn::make('rating')
@@ -107,7 +107,7 @@ class TourismReviewResource extends BaseResource
                     })
                     ->sortable(),
                 TextColumn::make('titulo')
-                    ->label('Titulo')
+                    ->label('T?tulo')
                     ->limit(30)
                     ->toggleable(),
                 TextColumn::make('visit_date')

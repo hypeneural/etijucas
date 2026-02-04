@@ -25,7 +25,7 @@ class EventRsvpResource extends BaseResource
 {
     protected static ?string $model = EventRsvp::class;
 
-    protected static ?string $navigationGroup = 'Conteudo';
+    protected static ?string $navigationGroup = 'Conte?do';
 
     protected static ?string $navigationIcon = 'heroicon-o-user-plus';
 
@@ -54,7 +54,7 @@ class EventRsvpResource extends BaseResource
                             ->disabled()
                             ->dehydrated(false),
                         Select::make('user_id')
-                            ->label('Usuario')
+                            ->label('Usu?rio')
                             ->relationship('user', 'nome')
                             ->searchable()
                             ->preload()
@@ -91,7 +91,7 @@ class EventRsvpResource extends BaseResource
                     ->limit(40)
                     ->sortable(),
                 TextColumn::make('user.nome')
-                    ->label('Usuario')
+                    ->label('Usu?rio')
                     ->searchable()
                     ->toggleable(),
                 TextColumn::make('status')

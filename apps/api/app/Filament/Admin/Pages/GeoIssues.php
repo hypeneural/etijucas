@@ -24,9 +24,9 @@ class GeoIssues extends Page implements HasTable
 
     protected static ?string $navigationIcon = 'heroicon-o-globe-alt';
 
-    protected static ?string $navigationLabel = 'Problemas de Localizacao';
+    protected static ?string $navigationLabel = 'Problemas de Localização';
 
-    protected static ?string $navigationGroup = 'Moderacao';
+    protected static ?string $navigationGroup = 'Modera??o';
 
     protected static ?int $navigationSort = 8;
 
@@ -66,7 +66,7 @@ class GeoIssues extends Page implements HasTable
                 ->searchable()
                 ->sortable(),
             TextColumn::make('title')
-                ->label('Titulo')
+                ->label('T?tulo')
                 ->limit(40)
                 ->searchable(),
             TextColumn::make('category.name')
@@ -86,7 +86,7 @@ class GeoIssues extends Page implements HasTable
                     LocationQuality::Manual => 'gray',
                 }),
             TextColumn::make('address_text')
-                ->label('Endereco')
+                ->label('Endere?o')
                 ->limit(40)
                 ->searchable()
                 ->toggleable(),
@@ -168,7 +168,7 @@ class GeoIssues extends Page implements HasTable
                 ->icon('heroicon-o-pencil-square')
                 ->form([
                     TextInput::make('address_text')
-                        ->label('Endereco')
+                        ->label('Endere?o')
                         ->maxLength(500)
                         ->default(fn (CitizenReport $record): ?string => $record->address_text),
                     TextInput::make('latitude')
@@ -180,7 +180,7 @@ class GeoIssues extends Page implements HasTable
                         ->numeric()
                         ->default(fn (CitizenReport $record): ?string => $record->longitude),
                     TextInput::make('location_accuracy_m')
-                        ->label('Precisao (m)')
+                        ->label('Precis?o (m)')
                         ->numeric()
                         ->default(fn (CitizenReport $record): ?string => $record->location_accuracy_m),
                     Select::make('location_quality')

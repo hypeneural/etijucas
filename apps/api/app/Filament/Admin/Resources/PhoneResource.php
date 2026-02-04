@@ -23,13 +23,13 @@ class PhoneResource extends BaseResource
 {
     protected static ?string $model = Phone::class;
 
-    protected static ?string $navigationGroup = 'Conteudo';
+    protected static ?string $navigationGroup = 'Conte?do';
 
     protected static ?string $navigationIcon = 'heroicon-o-phone';
 
     protected static ?int $navigationSort = 40;
 
-    protected static ?string $navigationLabel = 'Telefones Uteis';
+    protected static ?string $navigationLabel = 'Telefones ?teis';
 
     public static function form(Forms\Form $form): Forms\Form
     {
@@ -53,7 +53,7 @@ class PhoneResource extends BaseResource
                             ->required()
                             ->maxLength(40),
                         TextInput::make('address')
-                            ->label('Endereco')
+                            ->label('Endere?o')
                             ->maxLength(255),
                         TextInput::make('hours')
                             ->label('Horario')

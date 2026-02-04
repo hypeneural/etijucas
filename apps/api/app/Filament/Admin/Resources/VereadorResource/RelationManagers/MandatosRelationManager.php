@@ -50,7 +50,7 @@ class MandatosRelationManager extends RelationManager
                             ->label('Cargo')
                             ->maxLength(150),
                         DatePicker::make('inicio')
-                            ->label('Inicio'),
+                            ->label('In?cio'),
                         DatePicker::make('fim')
                             ->label('Fim'),
                         Toggle::make('em_exercicio')
@@ -79,7 +79,7 @@ class MandatosRelationManager extends RelationManager
                     ->label('Cargo')
                     ->toggleable(),
                 TextColumn::make('inicio')
-                    ->label('Inicio')
+                    ->label('In?cio')
                     ->date('d/m/Y')
                     ->sortable(),
                 TextColumn::make('fim')

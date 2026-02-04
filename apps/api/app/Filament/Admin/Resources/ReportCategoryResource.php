@@ -25,15 +25,15 @@ class ReportCategoryResource extends BaseResource
 {
     protected static ?string $model = ReportCategory::class;
 
-    protected static ?string $navigationGroup = 'Moderacao';
+    protected static ?string $navigationGroup = 'Modera??o';
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    protected static ?string $navigationLabel = 'Categorias de Denuncia';
+    protected static ?string $navigationLabel = 'Categorias de Den?ncia';
 
     protected static ?string $modelLabel = 'Categoria';
 
-    protected static ?string $pluralModelLabel = 'Categorias de Denuncia';
+    protected static ?string $pluralModelLabel = 'Categorias de Den?ncia';
 
     protected static ?int $navigationSort = 7;
 
@@ -111,7 +111,7 @@ class ReportCategoryResource extends BaseResource
                     ->sortable()
                     ->alignCenter(),
                 TextColumn::make('reports_count')
-                    ->label('Denuncias')
+                    ->label('Den?ncias')
                     ->sortable()
                     ->alignCenter(),
                 ...static::baseTableColumns(),

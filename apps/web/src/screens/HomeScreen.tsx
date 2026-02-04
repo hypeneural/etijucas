@@ -1,24 +1,29 @@
 import React, { useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence, useSpring, useTransform } from 'framer-motion';
 import { RefreshCw } from 'lucide-react';
-import HeroHeader from '@/components/home/HeroHeader';
-import SearchBar from '@/components/home/SearchBar';
+
+// Layout components
 import TodayBentoGrid from '@/components/home/TodayBentoGrid';
-import ReportCTA from '@/components/home/ReportCTA';
-import ForumPreview from '@/components/home/ForumPreview';
-import QuickAccessGrid from '@/components/home/QuickAccessGrid';
-import AlertBanner from '@/components/home/AlertBanner';
 import EventsCarousel from '@/components/home/EventsCarousel';
 import TourismHighlights from '@/components/home/TourismHighlights';
 import { InstallCard } from '@/components/home/InstallCard';
+import { WeatherHomeCard } from '@/components/weather/WeatherHomeCard';
+
+// New "Hoje em Tijucas" VIVO components
+import HeaderSlim from '@/components/home/HeaderSlim';
+import { AlertTotem } from '@/components/home/AlertTotem';
+import { BoletimDoDia } from '@/components/home/BoletimDoDia';
+import { FiscalizaVivo } from '@/components/home/FiscalizaVivo';
+import { BocaNoTromboneVivo } from '@/components/home/BocaNoTromboneVivo';
+import { TijucanosCounter } from '@/components/home/TijucanosCounter';
+import QuickAccessGridVivo from '@/components/home/QuickAccessGridVivo';
+
+// Hooks & Store
+import { useHomeData } from '@/hooks/useHomeData';
 import { useAppStore } from '@/store/useAppStore';
 import { TabId } from '@/components/layout/BottomTabBar';
 import { useToast } from '@/hooks/use-toast';
 import { hapticFeedback } from '@/hooks/useHaptics';
-import { WeatherHomeCard } from '@/components/weather/WeatherHomeCard';
-
-// Mock alerts (TODO: replace with real API)
-import { alerts as mockAlerts } from '@/data/mockData';
 
 interface HomeScreenProps {
   scrollRef: (el: HTMLDivElement | null) => void;
@@ -28,7 +33,7 @@ interface HomeScreenProps {
 // Constants for pull-to-refresh
 const PULL_THRESHOLD = 80;
 const MAX_PULL_DISTANCE = 120;
-const RUBBER_BAND_FACTOR = 0.4; // Exponential resistance factor
+const RUBBER_BAND_FACTOR = 0.4;
 
 export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -38,42 +43,52 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
   const [isPulling, setIsPulling] = useState(false);
   const [hasTriggered, setHasTriggered] = useState(false);
 
-  // TODO: Replace with offline-first hooks when available
-  const activeAlerts = mockAlerts;
+  // ========================================
+  // Home Aggregator Hook
+  // ========================================
+  const {
+    blocks,
+    meta,
+    refresh: refreshHomeData,
+    isLoading,
+    isStale,
+  } = useHomeData();
 
-  // Spring-based pull distance with damping for native feel
+  // Extract alerts from aggregator
+  const alertItems = blocks.alerts?.payload?.alerts || [];
+
+  // Spring-based pull distance
   const springPull = useSpring(0, {
     stiffness: 400,
     damping: 40,
     mass: 0.5,
   });
 
-  // Transform spring value to visual height with rubber banding
   const pullHeight = useTransform(springPull, (value) => {
     if (value <= 0) return 0;
-    // Rubber band effect: resistance increases as you pull further
     return MAX_PULL_DISTANCE * (1 - Math.exp(-value / MAX_PULL_DISTANCE * RUBBER_BAND_FACTOR * 5));
   });
 
-  // Transform for rotation based on pull progress
   const iconRotation = useTransform(springPull, [0, PULL_THRESHOLD], [0, 180]);
+  const iconScale = useTransform(springPull, (value) => value >= PULL_THRESHOLD ? 1.2 : 1);
 
-  // Scale effect when threshold is reached
-  const iconScale = useTransform(springPull, (value) =>
-    value >= PULL_THRESHOLD ? 1.2 : 1
-  );
-
+  // ========================================
+  // Pull to Refresh - Connected to aggregator
+  // ========================================
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     hapticFeedback('success');
-    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    // Refresh the aggregator data
+    await refreshHomeData();
+
     setIsRefreshing(false);
     setHasTriggered(false);
     toast({
       title: "Atualizado agora",
       description: "Conteúdo atualizado com sucesso!",
     });
-  }, [setIsRefreshing, toast]);
+  }, [setIsRefreshing, toast, refreshHomeData]);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (containerRef.current?.scrollTop === 0 && !isRefreshing) {
@@ -95,11 +110,9 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
     const deltaY = currentY - startYRef.current;
 
     if (deltaY > 0) {
-      // Apply rubber banding: the further you pull, the harder it gets
       const rubberBandedDistance = deltaY * Math.pow(RUBBER_BAND_FACTOR, deltaY / MAX_PULL_DISTANCE);
       springPull.set(Math.min(rubberBandedDistance, MAX_PULL_DISTANCE * 1.5));
 
-      // Trigger haptic when crossing threshold
       if (rubberBandedDistance >= PULL_THRESHOLD && !hasTriggered) {
         hapticFeedback('medium');
         setHasTriggered(true);
@@ -109,22 +122,18 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
 
   const handleTouchEnd = useCallback(() => {
     if (!isPulling) return;
-
     const currentPull = springPull.get();
 
     if (currentPull >= PULL_THRESHOLD && !isRefreshing) {
-      // Animate to refreshing state
       springPull.set(60);
       handleRefresh();
     } else {
-      // Spring back
       springPull.set(0);
     }
 
     setIsPulling(false);
   }, [isPulling, springPull, isRefreshing, handleRefresh]);
 
-  // Reset spring when refresh completes
   React.useEffect(() => {
     if (!isRefreshing) {
       springPull.set(0);
@@ -142,16 +151,17 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Alert Banner - Sticky at top */}
-      <AlertBanner
-        alerts={activeAlerts}
-        onTap={(alert) => {
-          hapticFeedback('selection');
-          // TODO: Navigate to alert detail
-        }}
+      {/* ========================================
+          HEADER SLIM - Compact with inline weather
+          ======================================== */}
+      <HeaderSlim
+        scrollRef={containerRef}
+        weather={blocks.weather?.payload}
+        notificationCount={alertItems.length}
+        hasActiveAlert={alertItems.length > 0}
       />
 
-      {/* Pull to refresh indicator with spring physics */}
+      {/* Pull to refresh indicator */}
       <AnimatePresence>
         {(springPull.get() > 0 || isRefreshing) && (
           <motion.div
@@ -191,26 +201,40 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
         )}
       </AnimatePresence>
 
-      <HeroHeader
-        scrollRef={containerRef}
-        todayEventsCount={0}
-        hasActiveAlert={activeAlerts.length > 0}
-        streakDays={3} // TODO: Get from user store
-      />
+      {/* ========================================
+          ALERT TOTEM - Animated ticker for alerts
+          ======================================== */}
+      {alertItems.length > 0 && (
+        <AlertTotem
+          alerts={alertItems}
+          onAlertClick={(alert) => {
+            hapticFeedback('selection');
+            // TODO: Navigate to alert detail
+          }}
+        />
+      )}
 
-      <div className="pb-24">
-        <SearchBar onNavigate={onNavigate} />
-
-        {/* Install App Card - inline */}
-        <div className="px-4 pb-2">
+      <div className="pb-24 space-y-4">
+        {/* Install App Card */}
+        <div className="px-4">
           <InstallCard />
         </div>
 
-        {/* Weather Card */}
-        <div className="px-4 pb-4">
+        {/* ========================================
+            BOLETIM DO DIA - Daily Summary
+            ======================================== */}
+        {blocks.boletim?.payload && (
+          <div className="px-4">
+            <BoletimDoDia data={blocks.boletim.payload} />
+          </div>
+        )}
+
+        {/* Weather Card - Detailed */}
+        <div className="px-4">
           <WeatherHomeCard />
         </div>
 
+        {/* Today's Quick Info Grid */}
         <TodayBentoGrid onNavigate={onNavigate} />
 
         {/* Events Carousel */}
@@ -219,11 +243,34 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
         {/* Tourism Highlights */}
         <TourismHighlights onNavigate={onNavigate} />
 
-        <ReportCTA onNavigate={onNavigate} />
-        <ForumPreview onNavigate={onNavigate} />
-        <QuickAccessGrid onNavigate={onNavigate} />
+        {/* ========================================
+            FISCALIZA VIVO - Live Reports Card
+            ======================================== */}
+        <div className="px-4">
+          <FiscalizaVivo data={blocks.fiscaliza?.payload} />
+        </div>
+
+        {/* ========================================
+            BOCA NO TROMBONE VIVO - Live Forum Card
+            ======================================== */}
+        <div className="px-4">
+          <BocaNoTromboneVivo data={blocks.forum?.payload} />
+        </div>
+
+        {/* ========================================
+            QUICK ACCESS VIVO - with badges
+            ======================================== */}
+        <QuickAccessGridVivo data={blocks.quickAccess?.payload} />
+
+        {/* ========================================
+            TIJUCANOS COUNTER - Gamification
+            ======================================== */}
+        {blocks.stats?.payload && (
+          <div className="px-4">
+            <TijucanosCounter data={blocks.stats.payload} />
+          </div>
+        )}
       </div>
     </div>
   );
 }
-

@@ -30,7 +30,7 @@ class VotesOverviewStats extends BaseWidget
             Stat::make('Aprovadas', $aprovadas)->color('success'),
             Stat::make('Rejeitadas', $rejeitadas)->color('danger'),
             Stat::make('Em andamento', $emAndamento)->color('info'),
-            Stat::make('Comentarios', $comentarios)->color('warning'),
+            Stat::make('Coment?rios', $comentarios)->color('warning'),
         ];
     }
 }

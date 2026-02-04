@@ -15,7 +15,7 @@ class EventsCalendar extends Page
 
     protected static ?string $navigationLabel = 'Calendário de Eventos';
 
-    protected static ?string $navigationGroup = 'Conteudo';
+    protected static ?string $navigationGroup = 'Conte?do';
 
     protected static ?int $navigationSort = 6;
 

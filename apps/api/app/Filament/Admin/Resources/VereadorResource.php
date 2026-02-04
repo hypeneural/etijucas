@@ -33,7 +33,7 @@ class VereadorResource extends BaseResource
 
     protected static ?string $model = Vereador::class;
 
-    protected static ?string $navigationGroup = 'Votacoes';
+    protected static ?string $navigationGroup = 'Vota??es';
 
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
 
@@ -95,11 +95,16 @@ class VereadorResource extends BaseResource
                         static::mediaUploadField('avatar', 'vereador_avatar', 1)
                             ->label('Avatar')
                             ->helperText('Upload preferencial. Gera thumbnails automaticamente.'),
+                    ]),
+                Section::make('Foto (legado)')
+                    ->collapsible()
+                    ->collapsed()
+                    ->schema([
                         TextInput::make('foto_url')
                             ->label('Foto URL (legado)')
                             ->url()
                             ->maxLength(500)
-                            ->helperText('Opcional. Use o upload acima sempre que possível.'),
+                            ->helperText('Opcional. Use o upload acima sempre que poss?vel.'),
                     ]),
                 Section::make('Bio')
                     ->schema([
@@ -203,7 +208,7 @@ class VereadorResource extends BaseResource
             ])
             ->actions([
                 Action::make('importFoto')
-                    ->label('Importar foto (URL)')
+                    ->label('Importar m?dia (URL)')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->requiresConfirmation()
                     ->action(function (Vereador $record): void {
@@ -248,7 +253,7 @@ class VereadorResource extends BaseResource
             ])
             ->bulkActions([
                 Tables\Actions\BulkAction::make('importFotos')
-                    ->label('Importar fotos (URL)')
+                    ->label('Importar m?dias (URL)')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->requiresConfirmation()
                     ->action(function ($records): void {

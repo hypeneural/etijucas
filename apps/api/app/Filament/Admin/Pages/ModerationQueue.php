@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Pages;
 
-use App\Domain\Forum\Enums\ReportStatus as ForumReportStatus;
+use App\Domain\F?rum\Enums\ReportStatus as F?rumReportStatus;
 use App\Domain\Moderation\Enums\FlagStatus;
 use App\Domains\Reports\Enums\ReportStatus as CitizenReportStatus;
 use App\Filament\Admin\Resources\CitizenReportResource;
@@ -28,13 +28,20 @@ class ModerationQueue extends Page implements HasTable
 
     protected static ?string $navigationIcon = 'heroicon-o-queue-list';
 
-    protected static ?string $navigationLabel = 'Fila de Modera??o';
+    protected static ?string $navigationLabel = 'Fila de Moderação';
 
-    protected static ?string $navigationGroup = 'Moderacao';
+    protected static ?string $navigationGroup = 'Modera??o';
+
+    protected static ?string $title = 'Fila de Moderação';
 
     protected static ?int $navigationSort = 5;
 
     protected static string $view = 'filament.admin.pages.moderation-queue';
+
+    public function getSubheading(): ?string
+    {
+        return 'Fila única com denúncias, reports e flags pendentes.';
+    }
 
     public static function canAccess(): bool
     {
@@ -67,7 +74,7 @@ class ModerationQueue extends Page implements HasTable
                 'topic_reports.descricao as description',
                 'topic_reports.created_at as created_at',
             ])
-            ->where('topic_reports.status', ForumReportStatus::Pending->value);
+            ->where('topic_reports.status', F?rumReportStatus::Pending->value);
 
         $commentReports = DB::table('comment_reports')
             ->leftJoin('comments', 'comment_reports.comment_id', '=', 'comments.id')
@@ -80,7 +87,7 @@ class ModerationQueue extends Page implements HasTable
                 'comment_reports.descricao as description',
                 'comment_reports.created_at as created_at',
             ])
-            ->where('comment_reports.status', ForumReportStatus::Pending->value);
+            ->where('comment_reports.status', F?rumReportStatus::Pending->value);
 
         $citizenReports = DB::table('citizen_reports')
             ->select([
@@ -93,7 +100,7 @@ class ModerationQueue extends Page implements HasTable
             ])
             ->whereIn('citizen_reports.status', [
                 CitizenReportStatus::Recebido->value,
-                CitizenReportStatus::EmAnalise->value,
+                CitizenReportStatus::EmAn?lise->value,
             ]);
 
         $union = $flags
@@ -137,7 +144,7 @@ class ModerationQueue extends Page implements HasTable
                     return match ($record->kind) {
                         'flag' => FlagStatus::tryFrom($state)?->label() ?? $state,
                         'citizen_report' => CitizenReportStatus::tryFrom($state)?->label() ?? $state,
-                        default => ForumReportStatus::tryFrom($state)?->label() ?? $state,
+                        default => F?rumReportStatus::tryFrom($state)?->label() ?? $state,
                     };
                 })
                 ->color(function (string $state, $record): string {
@@ -151,16 +158,16 @@ class ModerationQueue extends Page implements HasTable
                         },
                         'citizen_report' => match (CitizenReportStatus::tryFrom($state)) {
                             CitizenReportStatus::Recebido => 'info',
-                            CitizenReportStatus::EmAnalise => 'warning',
+                            CitizenReportStatus::EmAn?lise => 'warning',
                             CitizenReportStatus::Resolvido => 'success',
                             CitizenReportStatus::Rejeitado => 'danger',
                             default => 'gray',
                         },
-                        default => match (ForumReportStatus::tryFrom($state)) {
-                            ForumReportStatus::Pending => 'warning',
-                            ForumReportStatus::Reviewed => 'info',
-                            ForumReportStatus::Dismissed => 'gray',
-                            ForumReportStatus::ActionTaken => 'success',
+                        default => match (F?rumReportStatus::tryFrom($state)) {
+                            F?rumReportStatus::Pending => 'warning',
+                            F?rumReportStatus::Reviewed => 'info',
+                            F?rumReportStatus::Dismissed => 'gray',
+                            F?rumReportStatus::ActionTaken => 'success',
                             default => 'gray',
                         },
                     };
@@ -216,9 +223,9 @@ class ModerationQueue extends Page implements HasTable
                 ->options([
                     FlagStatus::Open->value => FlagStatus::Open->label(),
                     FlagStatus::Reviewing->value => FlagStatus::Reviewing->label(),
-                    ForumReportStatus::Pending->value => ForumReportStatus::Pending->label(),
+                    F?rumReportStatus::Pending->value => F?rumReportStatus::Pending->label(),
                     CitizenReportStatus::Recebido->value => CitizenReportStatus::Recebido->label(),
-                    CitizenReportStatus::EmAnalise->value => CitizenReportStatus::EmAnalise->label(),
+                    CitizenReportStatus::EmAn?lise->value => CitizenReportStatus::EmAn?lise->label(),
                 ]),
             SelectFilter::make('priority')
                 ->label('Prioridade')

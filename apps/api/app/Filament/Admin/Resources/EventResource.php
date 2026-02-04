@@ -40,7 +40,7 @@ class EventResource extends BaseResource
 
     protected static ?string $model = Event::class;
 
-    protected static ?string $navigationGroup = 'Conteudo';
+    protected static ?string $navigationGroup = 'Conte?do';
 
     protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
 
@@ -64,7 +64,7 @@ class EventResource extends BaseResource
                     ->columns(2)
                     ->schema([
                         TextInput::make('title')
-                            ->label('Titulo')
+                            ->label('T?tulo')
                             ->required()
                             ->maxLength(200)
                             ->live(onBlur: true)
@@ -77,7 +77,7 @@ class EventResource extends BaseResource
                             ->maxLength(200)
                             ->unique(ignoreRecord: true),
                         TextInput::make('edition')
-                            ->label('Edicao')
+                            ->label('Edi??o')
                             ->maxLength(80),
                         Select::make('category_id')
                             ->label('Categoria')
@@ -108,7 +108,7 @@ class EventResource extends BaseResource
                                 ->toArray())
                             ->required(),
                         Select::make('age_rating')
-                            ->label('Classificacao')
+                            ->label('Classifica??o')
                             ->options(collect(AgeRating::cases())
                                 ->mapWithKeys(fn(AgeRating $rating) => [$rating->value => $rating->label()])
                                 ->toArray())
@@ -124,25 +124,30 @@ class EventResource extends BaseResource
                     ->columns(2)
                     ->schema([
                         DateTimePicker::make('start_datetime')
-                            ->label('Inicio')
-                            ->required(),
+                            ->label('In?cio')
+                            ->required()
+                            ->helperText('Data/hora de in?cio do evento.'),
                         DateTimePicker::make('end_datetime')
                             ->label('Fim')
-                            ->required(),
+                            ->required()
+                            ->helperText('Deve ser ap?s o in?cio.'),
                         DateTimePicker::make('published_at')
-                            ->label('Publicado em'),
+                            ->label('Publicado em')
+                            ->helperText('Definido automaticamente ao publicar.'),
                     ]),
-                Section::make('Descricao')
+                Section::make('Descri??o')
                     ->schema([
                         Textarea::make('description_short')
-                            ->label('Descricao curta')
+                            ->label('Descri??o curta')
                             ->rows(3)
-                            ->maxLength(500),
+                            ->maxLength(500)
+                            ->helperText('Resumo para listagens e cards.'),
                         Textarea::make('description_full')
-                            ->label('Descricao completa')
-                            ->rows(6),
+                            ->label('Descri??o completa')
+                            ->rows(6)
+                            ->helperText('Texto completo exibido na p?gina do evento.'),
                     ]),
-                Section::make('Midia')
+                Section::make('M?dia')
                     ->columns(2)
                     ->schema([
                         static::mediaUploadField('cover', 'event_cover', 1)
@@ -157,6 +162,11 @@ class EventResource extends BaseResource
                         static::mediaUploadField('gallery', 'event_gallery', 8)
                             ->label('Galeria')
                             ->helperText('Imagens adicionais do evento.'),
+                    ]),
+                Section::make('M?dia (legado)')
+                    ->collapsible()
+                    ->collapsed()
+                    ->schema([
                         TextInput::make('cover_image_url')
                             ->label('Capa URL (legado)')
                             ->url()
@@ -170,7 +180,7 @@ class EventResource extends BaseResource
                             ->url()
                             ->maxLength(500),
                     ]),
-                Section::make('Configuracoes')
+                Section::make('Configura??es')
                     ->columns(2)
                     ->schema([
                         Toggle::make('is_featured')
@@ -183,7 +193,7 @@ class EventResource extends BaseResource
                             ->label('Ao ar livre')
                             ->default(false),
                         Toggle::make('has_accessibility')
-                            ->label('Acessivel')
+                            ->label('Acess?vel')
                             ->default(false),
                         Toggle::make('has_parking')
                             ->label('Estacionamento')
@@ -193,8 +203,9 @@ class EventResource extends BaseResource
                             ->numeric()
                             ->default(1),
                         Textarea::make('recurrence_rule')
-                            ->label('Recorrencia (JSON)')
+                            ->label('Recorr?ncia (JSON)')
                             ->rows(3)
+                            ->helperText('Opcional. Use JSON para regras de repeti??o.')
                             ->columnSpanFull(),
                     ]),
                 Section::make('Metricas')
@@ -204,7 +215,7 @@ class EventResource extends BaseResource
                             ->label('Popularidade')
                             ->numeric(),
                         TextInput::make('expected_audience')
-                            ->label('Publico esperado')
+                            ->label('P?blico esperado')
                             ->numeric(),
                         TextInput::make('confirmed_attendance')
                             ->label('Confirmados')
@@ -218,7 +229,7 @@ class EventResource extends BaseResource
         return $table
             ->columns([
                 TextColumn::make('title')
-                    ->label('Titulo')
+                    ->label('T?tulo')
                     ->searchable()
                     ->sortable()
                     ->limit(40),
@@ -234,7 +245,7 @@ class EventResource extends BaseResource
                     ->label('Organizador')
                     ->toggleable(),
                 TextColumn::make('start_datetime')
-                    ->label('Inicio')
+                    ->label('In?cio')
                     ->dateTime('d/m/Y H:i')
                     ->sortable(),
                 TextColumn::make('status')
@@ -256,7 +267,7 @@ class EventResource extends BaseResource
                     ->sortable()
                     ->alignCenter(),
                 TextColumn::make('media_count')
-                    ->label('Midias')
+                    ->label('M?dias')
                     ->alignCenter()
                     ->getStateUsing(fn(Event $record): int => (int) ($record->media_count ?? 0) + (int) ($record->legacy_media_count ?? 0))
                     ->sortable(query: fn(Builder $query, string $direction): Builder => $query->orderByRaw(
@@ -297,7 +308,7 @@ class EventResource extends BaseResource
             ])
             ->actions([
                 Action::make('importLegacyMedia')
-                    ->label('Importar midia (URL)')
+                    ->label('Importar m?dia (URL)')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->requiresConfirmation()
                     ->action(function (Event $record): void {

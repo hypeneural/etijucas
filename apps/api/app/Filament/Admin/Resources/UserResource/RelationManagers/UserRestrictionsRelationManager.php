@@ -23,7 +23,7 @@ class UserRestrictionsRelationManager extends RelationManager
 {
     protected static string $relationship = 'restrictions';
 
-    protected static ?string $title = 'Restricoes';
+    protected static ?string $title = 'Restri??es';
 
     public function form(Forms\Form $form): Forms\Form
     {
@@ -46,7 +46,7 @@ class UserRestrictionsRelationManager extends RelationManager
                     ->label('Motivo')
                     ->required(),
                 DateTimePicker::make('starts_at')
-                    ->label('Inicio')
+                    ->label('In?cio')
                     ->default(now()),
                 DateTimePicker::make('ends_at')
                     ->label('Fim')
@@ -75,7 +75,7 @@ class UserRestrictionsRelationManager extends RelationManager
                     ->limit(40)
                     ->tooltip(fn ($record) => $record->reason),
                 TextColumn::make('starts_at')
-                    ->label('Inicio')
+                    ->label('In?cio')
                     ->dateTime('d/m/Y H:i')
                     ->sortable(),
                 TextColumn::make('ends_at')

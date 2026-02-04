@@ -21,7 +21,7 @@ class PartidoResource extends BaseResource
 {
     protected static ?string $model = Partido::class;
 
-    protected static ?string $navigationGroup = 'Votacoes';
+    protected static ?string $navigationGroup = 'Vota??es';
 
     protected static ?string $navigationIcon = 'heroicon-o-flag';
 

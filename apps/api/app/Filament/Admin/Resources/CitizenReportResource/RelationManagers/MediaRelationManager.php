@@ -12,7 +12,7 @@ class MediaRelationManager extends RelationManager
 {
     protected static string $relationship = 'media';
 
-    protected static ?string $title = 'Midias';
+    protected static ?string $title = 'M?dias';
 
     public function table(Tables\Table $table): Tables\Table
     {

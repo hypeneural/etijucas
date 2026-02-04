@@ -22,13 +22,20 @@ class ReportsDashboard extends Page implements HasTable
 
     protected static ?string $navigationIcon = 'heroicon-o-chart-bar';
 
-    protected static ?string $navigationLabel = 'Dashboard de Denuncias';
+    protected static ?string $navigationLabel = 'Dashboard de Denúncias';
 
-    protected static ?string $navigationGroup = 'Moderacao';
+    protected static ?string $navigationGroup = 'Modera??o';
+
+    protected static ?string $title = 'Dashboard de Denúncias';
 
     protected static ?int $navigationSort = 7;
 
     protected static string $view = 'filament.admin.pages.reports-dashboard';
+
+    public function getSubheading(): ?string
+    {
+        return 'KPIs e acesso rápido às denúncias pendentes.';
+    }
 
     public static function canAccess(): bool
     {
@@ -48,7 +55,7 @@ class ReportsDashboard extends Page implements HasTable
             ->with(['category', 'bairro', 'user'])
             ->whereIn('status', [
                 ReportStatus::Recebido->value,
-                ReportStatus::EmAnalise->value,
+                ReportStatus::EmAn?lise->value,
             ])
             ->latest();
     }
@@ -66,7 +73,7 @@ class ReportsDashboard extends Page implements HasTable
                 ->searchable()
                 ->sortable(),
             TextColumn::make('title')
-                ->label('Titulo')
+                ->label('T?tulo')
                 ->limit(40)
                 ->searchable(),
             TextColumn::make('category.name')
@@ -78,7 +85,7 @@ class ReportsDashboard extends Page implements HasTable
                 ->searchable()
                 ->toggleable(),
             TextColumn::make('user.nome')
-                ->label('Usuario')
+                ->label('Usu?rio')
                 ->searchable()
                 ->toggleable(),
             TextColumn::make('status')
@@ -87,7 +94,7 @@ class ReportsDashboard extends Page implements HasTable
                 ->formatStateUsing(fn (ReportStatus $state): string => $state->label())
                 ->color(fn (ReportStatus $state): string => match ($state) {
                     ReportStatus::Recebido => 'info',
-                    ReportStatus::EmAnalise => 'warning',
+                    ReportStatus::EmAn?lise => 'warning',
                     ReportStatus::Resolvido => 'success',
                     ReportStatus::Rejeitado => 'danger',
                 }),

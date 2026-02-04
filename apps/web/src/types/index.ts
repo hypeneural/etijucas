@@ -196,10 +196,12 @@ export interface PhoneContact {
 export interface Alert {
   id: string;
   titulo: string;
-  tipo: 'obras' | 'interdicao' | 'evento' | 'clima';
-  descricao: string;
+  tipo: 'obras' | 'interdicao' | 'evento' | 'clima' | 'seguranca';
+  descricao?: string;
+  nivel?: 'info' | 'warning' | 'critical';
   bairroId?: string;
-  severity?: 'info' | 'warning' | 'danger';
+  severity?: 'info' | 'warning' | 'danger'; // Legacy
   expiresAt?: Date;
-  createdAt: Date;
+  createdAt?: Date | string;
+  created_at?: string; // From API
 }

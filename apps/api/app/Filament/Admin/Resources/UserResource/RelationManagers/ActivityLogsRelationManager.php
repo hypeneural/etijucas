@@ -27,7 +27,7 @@ class ActivityLogsRelationManager extends RelationManager
                     ->label('Evento')
                     ->badge(),
                 TextColumn::make('description')
-                    ->label('Descricao')
+                    ->label('Descri??o')
                     ->limit(40)
                     ->tooltip(fn ($record) => $record->description),
                 TextColumn::make('created_at')

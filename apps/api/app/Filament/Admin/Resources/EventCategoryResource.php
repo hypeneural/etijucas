@@ -23,7 +23,7 @@ class EventCategoryResource extends BaseResource
 {
     protected static ?string $model = EventCategory::class;
 
-    protected static ?string $navigationGroup = 'Conteudo';
+    protected static ?string $navigationGroup = 'Conte?do';
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
@@ -54,7 +54,7 @@ class EventCategoryResource extends BaseResource
                             ->maxLength(120)
                             ->unique(ignoreRecord: true),
                         Textarea::make('description')
-                            ->label('Descricao')
+                            ->label('Descri??o')
                             ->rows(3)
                             ->columnSpanFull(),
                         TextInput::make('icon')

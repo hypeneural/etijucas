@@ -34,7 +34,7 @@ class ActivityLogResource extends BaseResource
                     ->label('Evento')
                     ->badge(),
                 TextColumn::make('description')
-                    ->label('Descricao')
+                    ->label('Descri??o')
                     ->limit(50)
                     ->tooltip(fn ($record) => $record->description),
                 TextColumn::make('causer.nome')

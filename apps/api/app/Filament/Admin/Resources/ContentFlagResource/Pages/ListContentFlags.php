@@ -14,15 +14,25 @@ class ListContentFlags extends ListRecords
 {
     protected static string $resource = ContentFlagResource::class;
 
+    public function getTitle(): string
+    {
+        return 'Denúncias de Conteúdo';
+    }
+
+    public function getSubheading(): ?string
+    {
+        return 'Flags enviadas por usuários sobre conteúdos suspeitos ou inadequados.';
+    }
+
     public function getTabs(): array
     {
         return [
             'all' => Tab::make('Todos'),
             'open' => Tab::make('Em aberto')
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('status', FlagStatus::Open->value)),
-            'reviewing' => Tab::make('Em analise')
+            'reviewing' => Tab::make('Em análise')
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('status', FlagStatus::Reviewing->value)),
-            'action_taken' => Tab::make('Acao tomada')
+            'action_taken' => Tab::make('Ação tomada')
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('status', FlagStatus::ActionTaken->value)),
             'dismissed' => Tab::make('Dispensadas')
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('status', FlagStatus::Dismissed->value)),

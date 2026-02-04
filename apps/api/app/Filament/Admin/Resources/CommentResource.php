@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Resources;
 
-use App\Domain\Forum\Enums\ReportStatus as ForumReportStatus;
+use App\Domain\F?rum\Enums\ReportStatus as F?rumReportStatus;
 use App\Filament\Admin\Resources\CommentResource\Pages;
 use App\Models\Comment;
 use Filament\Forms;
@@ -30,7 +30,7 @@ class CommentResource extends BaseResource
 {
     protected static ?string $model = Comment::class;
 
-    protected static ?string $navigationGroup = 'Forum';
+    protected static ?string $navigationGroup = 'F?rum';
 
     protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-left-right';
 
@@ -228,7 +228,7 @@ class CommentResource extends BaseResource
 
     public static function getNavigationBadge(): ?string
     {
-        return (string) static::getModel()::whereHas('reports', fn($q) => $q->where('status', ForumReportStatus::Pending))->count() ?: null;
+        return (string) static::getModel()::whereHas('reports', fn($q) => $q->where('status', F?rumReportStatus::Pending))->count() ?: null;
     }
 
     public static function getNavigationBadgeColor(): ?string

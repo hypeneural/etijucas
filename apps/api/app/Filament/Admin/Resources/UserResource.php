@@ -33,9 +33,13 @@ class UserResource extends BaseResource
 {
     protected static ?string $model = User::class;
 
-    protected static ?string $navigationGroup = 'Acesso & Usuarios';
+    protected static ?string $navigationGroup = 'Acesso & Usu?rios';
 
     protected static ?string $navigationIcon = 'heroicon-o-users';
+
+    protected static ?string $navigationLabel = 'Usu?rios';
+    protected static ?string $modelLabel = 'Usu?rio';
+    protected static ?string $pluralModelLabel = 'Usu?rios';
 
     protected static ?int $navigationSort = 1;
 
@@ -47,7 +51,7 @@ class UserResource extends BaseResource
     {
         return $form
             ->schema([
-                Section::make('Dados basicos')
+                Section::make('Dados b?sicos')
                     ->columns(2)
                     ->schema([
                         TextInput::make('nome')
@@ -75,10 +79,10 @@ class UserResource extends BaseResource
                             ->preload()
                             ->nullable(),
                     ]),
-                Section::make('Roles')
+                Section::make('Perfis')
                     ->schema([
                         Select::make('roles')
-                            ->label('Roles')
+                            ->label('Perfis')
                             ->relationship('roles', 'name')
                             ->preload()
                             ->multiple()
@@ -111,7 +115,7 @@ class UserResource extends BaseResource
                     ->sortable()
                     ->toggleable(),
                 TextColumn::make('roles.name')
-                    ->label('Roles')
+                    ->label('Perfis')
                     ->badge()
                     ->separator(',')
                     ->toggleable(),
@@ -124,7 +128,7 @@ class UserResource extends BaseResource
             ])
             ->filters([
                 SelectFilter::make('role')
-                    ->label('Role')
+                    ->label('Perfil')
                     ->relationship('roles', 'name')
                     ->preload(),
                 SelectFilter::make('bairro_id')
@@ -137,7 +141,7 @@ class UserResource extends BaseResource
                 Filter::make('created_at')
                     ->form([
                         DateTimePicker::make('from')->label('De'),
-                        DateTimePicker::make('until')->label('Ate'),
+                        DateTimePicker::make('until')->label('At?'),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
@@ -149,7 +153,7 @@ class UserResource extends BaseResource
             ->actions([
                 EditAction::make(),
                 Action::make('applyRestriction')
-                    ->label('Aplicar restricao')
+                    ->label('Aplicar restri??o')
                     ->icon('heroicon-o-no-symbol')
                     ->color('warning')
                     ->form([
@@ -171,7 +175,7 @@ class UserResource extends BaseResource
                             ->rows(3)
                             ->required(),
                         DateTimePicker::make('starts_at')
-                            ->label('Inicio')
+                            ->label('In?cio')
                             ->default(now()),
                         DateTimePicker::make('ends_at')
                             ->label('Fim')
@@ -197,7 +201,7 @@ class UserResource extends BaseResource
                     })
                     ->visible(fn () => auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false),
                 Action::make('revokeRestrictions')
-                    ->label('Revogar restricoes')
+                    ->label('Revogar restri??es')
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->requiresConfirmation()
@@ -214,7 +218,7 @@ class UserResource extends BaseResource
             ])
             ->bulkActions([
                 BulkAction::make('revokeRestrictions')
-                    ->label('Revogar restricoes')
+                    ->label('Revogar restri??es')
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->requiresConfirmation()

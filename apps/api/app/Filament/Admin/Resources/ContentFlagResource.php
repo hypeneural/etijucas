@@ -28,13 +28,16 @@ class ContentFlagResource extends BaseResource
 {
     protected static ?string $model = ContentFlag::class;
 
-    protected static ?string $navigationGroup = 'Moderacao';
+    protected static ?string $navigationGroup = 'Modera??o';
 
     protected static ?string $navigationIcon = 'heroicon-o-flag';
 
     protected static ?int $navigationSort = 20;
 
-    protected static ?string $navigationLabel = 'Denuncias';
+    protected static ?string $navigationLabel = 'Den?ncias de Conte?do';
+
+    protected static ?string $modelLabel = 'Den?ncia de Conte?do';
+    protected static ?string $pluralModelLabel = 'Den?ncias de Conte?do';
 
     protected static array $defaultEagerLoad = ['reportedBy', 'handledBy'];
 
@@ -43,13 +46,13 @@ class ContentFlagResource extends BaseResource
         return $form
             ->schema([
                 Select::make('content_type')
-                    ->label('Tipo de conteudo')
+                    ->label('Tipo de conte?do')
                     ->options(collect(FlagContentType::cases())
                         ->mapWithKeys(fn (FlagContentType $type) => [$type->value => $type->label()])
                         ->toArray())
                     ->required(),
                 Forms\Components\TextInput::make('content_id')
-                    ->label('Conteudo ID')
+                    ->label('Conte?do ID')
                     ->disabled()
                     ->dehydrated(false),
                 Textarea::make('message')
@@ -68,7 +71,7 @@ class ContentFlagResource extends BaseResource
                         ->toArray())
                     ->required(),
                 Select::make('action')
-                    ->label('Acao')
+                    ->label('A??o')
                     ->options(collect(FlagAction::cases())
                         ->mapWithKeys(fn (FlagAction $action) => [$action->value => $action->label()])
                         ->toArray())
@@ -103,7 +106,7 @@ class ContentFlagResource extends BaseResource
                     ->formatStateUsing(fn ($state) => $state?->label() ?? $state)
                     ->toggleable(),
                 TextColumn::make('content_id')
-                    ->label('Conteudo ID')
+                    ->label('Conte?do ID')
                     ->toggleable(),
                 TextColumn::make('reason')
                     ->label('Motivo')
@@ -114,10 +117,10 @@ class ContentFlagResource extends BaseResource
                     ->limit(40)
                     ->tooltip(fn ($record) => $record->message),
                 TextColumn::make('reportedBy.nome')
-                    ->label('Denunciante')
+                    ->label('Den?nciante')
                     ->toggleable(),
                 TextColumn::make('handledBy.nome')
-                    ->label('Responsavel')
+                    ->label('Respons?vel')
                     ->toggleable(),
                 ...static::baseTableColumns(),
             ])
@@ -141,7 +144,7 @@ class ContentFlagResource extends BaseResource
             ])
             ->actions([
                 Action::make('markReviewing')
-                    ->label('Marcar em analise')
+                    ->label('Marcar em an?lise')
                     ->icon('heroicon-o-eye')
                     ->color('info')
                     ->action(function (ContentFlag $record): void {
@@ -162,19 +165,19 @@ class ContentFlagResource extends BaseResource
                     ->visible(fn (ContentFlag $record) => in_array($record->status, [FlagStatus::Open, FlagStatus::Reviewing], true)
                         && (auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false)),
                 Action::make('takeAction')
-                    ->label('Acao tomada')
+                    ->label('A??o tomada')
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->form([
                         Select::make('action')
-                            ->label('Acao')
+                            ->label('A??o')
                             ->options(collect(FlagAction::cases())
                                 ->mapWithKeys(fn (FlagAction $action) => [$action->value => $action->label()])
                                 ->toArray())
                             ->required()
                             ->reactive(),
                         Select::make('user_id')
-                            ->label('Usuario alvo')
+                            ->label('Usu?rio alvo')
                             ->searchable()
                             ->getSearchResultsUsing(function (string $search): array {
                                 return User::query()
@@ -189,7 +192,7 @@ class ContentFlagResource extends BaseResource
                             ->required(fn (Get $get) => $get('action') === FlagAction::RestrictUser->value)
                             ->visible(fn (Get $get) => $get('action') === FlagAction::RestrictUser->value),
                         Select::make('restriction_type')
-                            ->label('Tipo de restricao')
+                            ->label('Tipo de restri??o')
                             ->options(collect(RestrictionType::cases())
                                 ->mapWithKeys(fn (RestrictionType $type) => [$type->value => $type->label()])
                                 ->toArray())
@@ -209,7 +212,7 @@ class ContentFlagResource extends BaseResource
                             ->required(fn (Get $get) => $get('action') === FlagAction::RestrictUser->value)
                             ->visible(fn (Get $get) => $get('action') === FlagAction::RestrictUser->value),
                         DateTimePicker::make('restriction_ends_at')
-                            ->label('Fim da restricao')
+                            ->label('Fim da restri??o')
                             ->nullable()
                             ->visible(fn (Get $get) => $get('action') === FlagAction::RestrictUser->value),
                     ])

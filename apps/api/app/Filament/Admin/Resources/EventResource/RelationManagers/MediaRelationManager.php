@@ -18,13 +18,13 @@ class MediaRelationManager extends RelationManager
 {
     protected static string $relationship = 'legacyMedia';
 
-    protected static ?string $title = 'Midias';
+    protected static ?string $title = 'M?dias';
 
     public function form(Forms\Form $form): Forms\Form
     {
         return $form
             ->schema([
-                Section::make('Midia')
+                Section::make('M?dia')
                     ->columns(2)
                     ->schema([
                         Select::make('media_type')

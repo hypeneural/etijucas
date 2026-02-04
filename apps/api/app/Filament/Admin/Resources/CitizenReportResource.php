@@ -36,11 +36,14 @@ class CitizenReportResource extends BaseResource
 
     protected static ?string $model = CitizenReport::class;
 
-    protected static ?string $navigationGroup = 'Moderacao';
+    protected static ?string $navigationGroup = 'Modera??o';
 
     protected static ?string $navigationIcon = 'heroicon-o-flag';
 
-    protected static ?string $navigationLabel = 'Denuncias';
+    protected static ?string $navigationLabel = 'Den?ncias Cidad?s';
+
+    protected static ?string $modelLabel = 'Den?ncia Cidad?';
+    protected static ?string $pluralModelLabel = 'Den?ncias Cidad?s';
 
     protected static ?int $navigationSort = 6;
 
@@ -54,7 +57,7 @@ class CitizenReportResource extends BaseResource
     {
         return $form
             ->schema([
-                Section::make('Denuncia')
+                Section::make('Den?ncia')
                     ->columns(2)
                     ->schema([
                         TextInput::make('protocol')
@@ -62,7 +65,7 @@ class CitizenReportResource extends BaseResource
                             ->disabled()
                             ->dehydrated(false),
                         TextInput::make('title')
-                            ->label('Titulo')
+                            ->label('T?tulo')
                             ->required()
                             ->maxLength(200),
                         Select::make('status')
@@ -85,14 +88,14 @@ class CitizenReportResource extends BaseResource
                             ->searchable()
                             ->preload(),
                         Select::make('user_id')
-                            ->label('Usuario')
+                            ->label('Usu?rio')
                             ->relationship('user', 'nome')
                             ->searchable()
                             ->preload()
                             ->disabled()
                             ->dehydrated(false),
                         Select::make('assigned_to')
-                            ->label('Responsavel')
+                            ->label('Respons?vel')
                             ->options(fn () => User::role(['admin', 'moderator'])
                                 ->orderBy('nome')
                                 ->pluck('nome', 'id')
@@ -103,22 +106,22 @@ class CitizenReportResource extends BaseResource
                             ->dehydrated(false)
                             ->visible(fn (): bool => auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false),
                         DateTimePicker::make('assigned_at')
-                            ->label('Atribuido em')
+                            ->label('Atribu?do em')
                             ->disabled()
                             ->dehydrated(false),
                     ]),
-                Section::make('Descricao')
+                Section::make('Descri??o')
                     ->schema([
                         Textarea::make('description')
-                            ->label('Descricao')
+                            ->label('Descri??o')
                             ->rows(5)
                             ->required(),
                     ]),
-                Section::make('Localizacao')
+                Section::make('Localiza??o')
                     ->columns(2)
                     ->schema([
                         TextInput::make('address_text')
-                            ->label('Endereco')
+                            ->label('Endere?o')
                             ->maxLength(255),
                         Select::make('location_quality')
                             ->label('Qualidade')
@@ -127,12 +130,14 @@ class CitizenReportResource extends BaseResource
                                 ->toArray()),
                         TextInput::make('latitude')
                             ->label('Latitude')
-                            ->numeric(),
+                            ->numeric()
+                            ->helperText('Coordenada em decimal. Opcional se o endere?o estiver completo.'),
                         TextInput::make('longitude')
                             ->label('Longitude')
-                            ->numeric(),
+                            ->numeric()
+                            ->helperText('Coordenada em decimal. Opcional se o endere?o estiver completo.'),
                         TextInput::make('location_accuracy_m')
-                            ->label('Precisao (m)')
+                            ->label('Precis?o (m)')
                             ->numeric(),
                         DateTimePicker::make('resolved_at')
                             ->label('Resolvido em'),
@@ -200,7 +205,7 @@ class CitizenReportResource extends BaseResource
                         ])
                             ->columnSpanFull(),
                     ]),
-                Section::make('Midia')
+                Section::make('M?dia')
                     ->schema([
                         static::mediaUploadField('images', 'report_images', 3)
                             ->label('Imagens')
@@ -219,7 +224,7 @@ class CitizenReportResource extends BaseResource
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('title')
-                    ->label('Titulo')
+                    ->label('T?tulo')
                     ->searchable()
                     ->limit(40),
                 TextColumn::make('category.name')
@@ -231,11 +236,11 @@ class CitizenReportResource extends BaseResource
                     ->searchable()
                     ->toggleable(),
                 TextColumn::make('user.nome')
-                    ->label('Usuario')
+                    ->label('Usu?rio')
                     ->searchable()
                     ->toggleable(),
                 TextColumn::make('assignedTo.nome')
-                    ->label('Responsavel')
+                    ->label('Respons?vel')
                     ->searchable()
                     ->toggleable(),
                 TextColumn::make('status')
@@ -244,12 +249,12 @@ class CitizenReportResource extends BaseResource
                     ->formatStateUsing(fn (ReportStatus $state): string => $state->label())
                     ->color(fn (ReportStatus $state): string => match ($state) {
                         ReportStatus::Recebido => 'info',
-                        ReportStatus::EmAnalise => 'warning',
+                        ReportStatus::EmAn?lise => 'warning',
                         ReportStatus::Resolvido => 'success',
                         ReportStatus::Rejeitado => 'danger',
                     }),
                 TextColumn::make('media_count')
-                    ->label('Midias')
+                    ->label('M?dias')
                     ->sortable()
                     ->alignCenter(),
                 TextColumn::make('tempo_aberto')
@@ -270,7 +275,7 @@ class CitizenReportResource extends BaseResource
                         $end = $record->resolved_at ?? now();
                         $days = $record->created_at?->diffInDays($end) ?? 0;
 
-                        if (in_array($record->status, [ReportStatus::Recebido, ReportStatus::EmAnalise], true)
+                        if (in_array($record->status, [ReportStatus::Recebido, ReportStatus::EmAn?lise], true)
                             && $days >= self::SLA_DAYS) {
                             return 'danger';
                         }
@@ -295,7 +300,7 @@ class CitizenReportResource extends BaseResource
                     ->relationship('bairro', 'nome')
                     ->preload(),
                 SelectFilter::make('assigned_to')
-                    ->label('Responsavel')
+                    ->label('Respons?vel')
                     ->options(fn () => User::role(['admin', 'moderator'])
                         ->orderBy('nome')
                         ->pluck('nome', 'id')
@@ -308,7 +313,7 @@ class CitizenReportResource extends BaseResource
                     ->query(function (Builder $query): Builder {
                         return $query->whereIn('status', [
                                 ReportStatus::Recebido->value,
-                                ReportStatus::EmAnalise->value,
+                                ReportStatus::EmAn?lise->value,
                             ])
                             ->where('created_at', '<=', now()->subDays(self::SLA_DAYS));
                     }),
@@ -338,7 +343,7 @@ class CitizenReportResource extends BaseResource
                     ->icon('heroicon-o-user-group')
                     ->form([
                         Select::make('assigned_to')
-                            ->label('Responsavel')
+                            ->label('Respons?vel')
                             ->options(fn () => User::role(['admin', 'moderator'])
                                 ->orderBy('nome')
                                 ->pluck('nome', 'id')

@@ -42,11 +42,11 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Admin/Widgets'), for: 'App\\Filament\\Admin\\Widgets')
             ->navigationGroups([
-                'Acesso & Usuarios',
-                'Moderacao',
-                'Forum',
-                'Votacoes',
-                'Conteudo',
+                'Acesso & Usuários',
+                'Moderação',
+                'Fórum',
+                'Votações',
+                'Conteúdo',
                 'Sistema & Auditoria',
             ])
             ->middleware([

@@ -21,7 +21,7 @@ class TagResource extends BaseResource
 {
     protected static ?string $model = Tag::class;
 
-    protected static ?string $navigationGroup = 'Conteudo';
+    protected static ?string $navigationGroup = 'Conte?do';
 
     protected static ?string $navigationIcon = 'heroicon-o-tag';
 

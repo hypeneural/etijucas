@@ -30,7 +30,7 @@ class OrganizerResource extends BaseResource
 
     protected static ?string $model = Organizer::class;
 
-    protected static ?string $navigationGroup = 'Conteudo';
+    protected static ?string $navigationGroup = 'Conte?do';
 
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
 
@@ -70,7 +70,7 @@ class OrganizerResource extends BaseResource
                             ->label('Verificado')
                             ->default(false),
                         Select::make('user_id')
-                            ->label('Usuario')
+                            ->label('Usu?rio')
                             ->relationship('user', 'nome')
                             ->searchable()
                             ->preload(),
@@ -98,16 +98,21 @@ class OrganizerResource extends BaseResource
                         static::mediaUploadField('avatar', 'avatar', 1)
                             ->label('Avatar')
                             ->helperText('Upload preferencial. Gera thumbnails automaticamente.'),
+                    ]),
+                Section::make('Avatar (legado)')
+                    ->collapsible()
+                    ->collapsed()
+                    ->schema([
                         TextInput::make('avatar_url')
                             ->label('Avatar URL (legado)')
                             ->url()
                             ->maxLength(500)
-                            ->helperText('Opcional. Use o upload acima sempre que possivel.'),
+                            ->helperText('Opcional. Use o upload acima sempre que poss?vel.'),
                     ]),
-                Section::make('Descricao')
+                Section::make('Descri??o')
                     ->schema([
                         Textarea::make('description')
-                            ->label('Descricao')
+                            ->label('Descri??o')
                             ->rows(4),
                     ]),
             ]);
@@ -148,7 +153,7 @@ class OrganizerResource extends BaseResource
             ])
             ->actions([
                 Action::make('importLegacyAvatar')
-                    ->label('Importar avatar (URL)')
+                    ->label('Importar m?dia (URL)')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->requiresConfirmation()
                     ->action(function (Organizer $record): void {

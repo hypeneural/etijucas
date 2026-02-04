@@ -28,7 +28,7 @@ class ReviewsRelationManager extends RelationManager
                     ->columns(2)
                     ->schema([
                         Select::make('user_id')
-                            ->label('Usuario')
+                            ->label('Usu?rio')
                             ->relationship('user', 'nome')
                             ->searchable()
                             ->preload()
@@ -38,7 +38,7 @@ class ReviewsRelationManager extends RelationManager
                             ->numeric()
                             ->required(),
                         TextInput::make('titulo')
-                            ->label('Titulo')
+                            ->label('T?tulo')
                             ->maxLength(200),
                         DatePicker::make('visit_date')
                             ->label('Data da visita'),
@@ -55,14 +55,14 @@ class ReviewsRelationManager extends RelationManager
         return $table
             ->columns([
                 TextColumn::make('user.nome')
-                    ->label('Usuario')
+                    ->label('Usu?rio')
                     ->searchable()
                     ->toggleable(),
                 TextColumn::make('rating')
                     ->label('Nota')
                     ->sortable(),
                 TextColumn::make('titulo')
-                    ->label('Titulo')
+                    ->label('T?tulo')
                     ->limit(40)
                     ->toggleable(),
                 TextColumn::make('created_at')

@@ -29,7 +29,7 @@ class TourismSpotResource extends BaseResource
 
     protected static ?string $model = TourismSpot::class;
 
-    protected static ?string $navigationGroup = 'Conteudo';
+    protected static ?string $navigationGroup = 'Conte?do';
 
     protected static ?string $navigationIcon = 'heroicon-o-map';
 
@@ -49,7 +49,7 @@ class TourismSpotResource extends BaseResource
                     ->columns(2)
                     ->schema([
                         TextInput::make('titulo')
-                            ->label('Titulo')
+                            ->label('T?tulo')
                             ->required()
                             ->maxLength(200)
                             ->live(onBlur: true)
@@ -85,16 +85,16 @@ class TourismSpotResource extends BaseResource
                             ->label('Dificuldade')
                             ->maxLength(80),
                     ]),
-                Section::make('Descricao')
+                Section::make('Descri??o')
                     ->schema([
                         Textarea::make('desc_curta')
-                            ->label('Descricao curta')
+                            ->label('Descri??o curta')
                             ->rows(3),
                         Textarea::make('desc_longa')
-                            ->label('Descricao longa')
+                            ->label('Descri??o longa')
                             ->rows(6),
                     ]),
-                Section::make('Midia')
+                Section::make('M?dia')
                     ->columns(2)
                     ->schema([
                         static::mediaUploadField('cover', 'tourism_cover', 1)
@@ -103,12 +103,17 @@ class TourismSpotResource extends BaseResource
                         static::mediaUploadField('gallery_media', 'tourism_gallery', 6)
                             ->label('Galeria')
                             ->helperText('Imagens adicionais do ponto turistico.'),
+                    ]),
+                Section::make('M?dia (legado)')
+                    ->collapsible()
+                    ->collapsed()
+                    ->schema([
                         TextInput::make('image_url')
                             ->label('Imagem principal (legado)')
                             ->url()
                             ->maxLength(500),
                         TextInput::make('video_url')
-                            ->label('Video URL')
+                            ->label('V?deo URL')
                             ->url()
                             ->maxLength(500),
                         Textarea::make('gallery')
@@ -116,11 +121,11 @@ class TourismSpotResource extends BaseResource
                             ->rows(3)
                             ->columnSpanFull(),
                     ]),
-                Section::make('Localizacao')
+                Section::make('Localiza??o')
                     ->columns(2)
                     ->schema([
                         TextInput::make('endereco')
-                            ->label('Endereco')
+                            ->label('Endere?o')
                             ->maxLength(255),
                         TextInput::make('latitude')
                             ->label('Latitude')
@@ -173,7 +178,7 @@ class TourismSpotResource extends BaseResource
         return $table
             ->columns([
                 TextColumn::make('titulo')
-                    ->label('Titulo')
+                    ->label('T?tulo')
                     ->searchable()
                     ->sortable()
                     ->limit(40),
@@ -223,7 +228,7 @@ class TourismSpotResource extends BaseResource
             ])
             ->actions([
                 Action::make('importLegacyMedia')
-                    ->label('Importar midia (URL)')
+                    ->label('Importar m?dia (URL)')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->requiresConfirmation()
                     ->action(function (TourismSpot $record): void {

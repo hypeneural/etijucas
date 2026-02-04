@@ -70,6 +70,14 @@ Route::prefix('v1')->group(function () {
         ->middleware('cache.headers:static');
 
     // =====================================================
+    // Home Aggregator API - "Hoje em Tijucas"
+    // Returns all home data in a single optimized request
+    // =====================================================
+    Route::get('home', [\App\Domains\Home\Http\Controllers\HomeController::class, 'index']);
+    Route::get('today/brief', [\App\Domains\Home\Http\Controllers\HomeController::class, 'brief']);
+    Route::get('stats/users', [\App\Domains\Home\Http\Controllers\HomeController::class, 'userStats']);
+
+    // =====================================================
     // Weather API (public, cached in DB for 6h)
     // =====================================================
     Route::prefix('weather')->group(function () {

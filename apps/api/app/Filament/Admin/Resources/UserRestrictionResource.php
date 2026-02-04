@@ -25,13 +25,13 @@ class UserRestrictionResource extends BaseResource
 {
     protected static ?string $model = UserRestriction::class;
 
-    protected static ?string $navigationGroup = 'Moderacao';
+    protected static ?string $navigationGroup = 'Modera??o';
 
     protected static ?string $navigationIcon = 'heroicon-o-no-symbol';
 
     protected static ?int $navigationSort = 10;
 
-    protected static ?string $navigationLabel = 'Restricoes';
+    protected static ?string $navigationLabel = 'Restri??es';
 
     protected static array $defaultEagerLoad = ['user'];
 
@@ -61,7 +61,7 @@ class UserRestrictionResource extends BaseResource
                     ->label('Motivo')
                     ->required(),
                 DateTimePicker::make('starts_at')
-                    ->label('Inicio')
+                    ->label('In?cio')
                     ->default(now()),
                 DateTimePicker::make('ends_at')
                     ->label('Fim')
@@ -77,7 +77,7 @@ class UserRestrictionResource extends BaseResource
         return $table
             ->columns([
                 TextColumn::make('user.nome')
-                    ->label('Usuario')
+                    ->label('Usu?rio')
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('type')
@@ -93,7 +93,7 @@ class UserRestrictionResource extends BaseResource
                     ->limit(40)
                     ->tooltip(fn ($record) => $record->reason),
                 TextColumn::make('starts_at')
-                    ->label('Inicio')
+                    ->label('In?cio')
                     ->dateTime('d/m/Y H:i')
                     ->sortable(),
                 TextColumn::make('ends_at')

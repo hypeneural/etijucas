@@ -31,15 +31,15 @@ class VotacaoCommentResource extends BaseResource
 {
     protected static ?string $model = Comment::class;
 
-    protected static ?string $navigationGroup = 'Votacoes';
+    protected static ?string $navigationGroup = 'Vota??es';
 
     protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-left-right';
 
-    protected static ?string $navigationLabel = 'Comentarios (Votacoes)';
+    protected static ?string $navigationLabel = 'Coment?rios (Vota??es)';
 
-    protected static ?string $modelLabel = 'Comentario (Votacao)';
+    protected static ?string $modelLabel = 'Coment?rio (Votacao)';
 
-    protected static ?string $pluralModelLabel = 'Comentarios (Votacoes)';
+    protected static ?string $pluralModelLabel = 'Coment?rios (Vota??es)';
 
     protected static ?int $navigationSort = 22;
 
@@ -56,7 +56,7 @@ class VotacaoCommentResource extends BaseResource
     {
         return $form
             ->schema([
-                Section::make('Comentario')
+                Section::make('Coment?rio')
                     ->columns(2)
                     ->schema([
                         Textarea::make('texto')
@@ -69,7 +69,7 @@ class VotacaoCommentResource extends BaseResource
                             ->url()
                             ->maxLength(500),
                         Toggle::make('is_anon')
-                            ->label('Anonimo'),
+                            ->label('An?nimo'),
                         TextInput::make('depth')
                             ->label('Nivel')
                             ->numeric()
@@ -116,7 +116,7 @@ class VotacaoCommentResource extends BaseResource
                     ->limit(40)
                     ->sortable(),
                 TextColumn::make('texto')
-                    ->label('Comentario')
+                    ->label('Coment?rio')
                     ->searchable()
                     ->limit(50),
                 TextColumn::make('user.nome')
@@ -153,7 +153,7 @@ class VotacaoCommentResource extends BaseResource
                     ->label('Com imagem')
                     ->query(fn(Builder $query): Builder => $query->whereNotNull('image_url')),
                 Tables\Filters\Filter::make('is_anon')
-                    ->label('Anonimos')
+                    ->label('An?nimos')
                     ->query(fn(Builder $query): Builder => $query->where('is_anon', true)),
                 ...static::baseTableFilters(),
             ])

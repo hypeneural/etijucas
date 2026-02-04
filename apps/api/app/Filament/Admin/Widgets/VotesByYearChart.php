@@ -9,7 +9,7 @@ use Filament\Widgets\ChartWidget;
 
 class VotesByYearChart extends ChartWidget
 {
-    protected static ?string $heading = 'Votacoes por ano';
+    protected static ?string $heading = 'Vota??es por ano';
 
     public static function canView(): bool
     {
@@ -30,7 +30,7 @@ class VotesByYearChart extends ChartWidget
         return [
             'datasets' => [
                 [
-                    'label' => 'Votacoes',
+                    'label' => 'Vota??es',
                     'data' => $totals,
                     'backgroundColor' => '#F59E0B',
                     'borderColor' => '#D97706',

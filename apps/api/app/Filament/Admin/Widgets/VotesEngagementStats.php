@@ -24,7 +24,7 @@ class VotesEngagementStats extends BaseWidget
         return [
             Stat::make('Likes', $likes)->color('success'),
             Stat::make('Dislikes', $dislikes)->color('danger'),
-            Stat::make('Comentarios', $comments)->color('warning'),
+            Stat::make('Coment?rios', $comments)->color('warning'),
         ];
     }
 }

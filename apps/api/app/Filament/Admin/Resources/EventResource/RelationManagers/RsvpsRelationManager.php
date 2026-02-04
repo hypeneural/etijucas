@@ -30,7 +30,7 @@ class RsvpsRelationManager extends RelationManager
                     ->columns(2)
                     ->schema([
                         Select::make('user_id')
-                            ->label('Usuario')
+                            ->label('Usu?rio')
                             ->relationship('user', 'nome')
                             ->searchable()
                             ->preload()
@@ -62,7 +62,7 @@ class RsvpsRelationManager extends RelationManager
         return $table
             ->columns([
                 TextColumn::make('user.nome')
-                    ->label('Usuario')
+                    ->label('Usu?rio')
                     ->searchable()
                     ->toggleable(),
                 TextColumn::make('status')

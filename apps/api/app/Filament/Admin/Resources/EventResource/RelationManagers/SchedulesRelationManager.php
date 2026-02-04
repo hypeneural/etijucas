@@ -35,7 +35,7 @@ class SchedulesRelationManager extends RelationManager
                             ->label('Horario')
                             ->required(),
                         TextInput::make('title')
-                            ->label('Titulo')
+                            ->label('T?tulo')
                             ->required()
                             ->maxLength(160),
                         TextInput::make('stage')
@@ -54,7 +54,7 @@ class SchedulesRelationManager extends RelationManager
                             ->numeric()
                             ->default(0),
                         Textarea::make('description')
-                            ->label('Descricao')
+                            ->label('Descri??o')
                             ->rows(3)
                             ->columnSpanFull(),
                     ]),
@@ -74,7 +74,7 @@ class SchedulesRelationManager extends RelationManager
                     ->time('H:i')
                     ->sortable(),
                 TextColumn::make('title')
-                    ->label('Titulo')
+                    ->label('T?tulo')
                     ->searchable()
                     ->limit(30),
                 TextColumn::make('stage')

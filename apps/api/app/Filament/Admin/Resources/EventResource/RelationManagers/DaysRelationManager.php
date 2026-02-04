@@ -35,10 +35,10 @@ class DaysRelationManager extends RelationManager
                             ->label('Data')
                             ->required(),
                         TextInput::make('title')
-                            ->label('Titulo')
+                            ->label('T?tulo')
                             ->maxLength(150),
                         TimePicker::make('start_time')
-                            ->label('Inicio')
+                            ->label('In?cio')
                             ->required(),
                         TimePicker::make('end_time')
                             ->label('Fim'),
@@ -47,7 +47,7 @@ class DaysRelationManager extends RelationManager
                             ->url()
                             ->maxLength(500),
                         Textarea::make('description')
-                            ->label('Descricao')
+                            ->label('Descri??o')
                             ->rows(3)
                             ->columnSpanFull(),
                     ]),
@@ -66,11 +66,11 @@ class DaysRelationManager extends RelationManager
                     ->date('d/m/Y')
                     ->sortable(),
                 TextColumn::make('title')
-                    ->label('Titulo')
+                    ->label('T?tulo')
                     ->limit(30)
                     ->toggleable(),
                 TextColumn::make('start_time')
-                    ->label('Inicio')
+                    ->label('In?cio')
                     ->time('H:i')
                     ->toggleable(),
                 TextColumn::make('end_time')
