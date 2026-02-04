@@ -21,6 +21,8 @@ Fornecer um caminho robusto, rapido e seguro para criar CRUDs no painel Filament
 - `ContentFlagResource`
 - `EventCategoryResource`
 - `EventResource`
+- `EventRsvpResource`
+- `OrganizerResource`
 - `PhoneResource`
 - `ReportCategoryResource`
 - `TagResource`
@@ -47,7 +49,6 @@ Fornecer um caminho robusto, rapido e seguro para criar CRUDs no painel Filament
 - Observacao: o painel Filament opera direto nos Models e Policies, nao consome os endpoints da API.
 
 ## Lacunas de cobertura no painel
-- Eventos: `Organizer`, `EventRsvp` (ainda sem CRUD dedicado).
 - Turismo: categorias (se virar entidade propria).
 - Outros CRUDs operacionais que hoje so existem via API ou seeders.
 
@@ -252,8 +253,11 @@ Em todos:
 - [x] Catalogo: `Venue`.
 - [x] Catalogo: `ReportCategory` (Denuncias).
 - [x] CRUD principal: `Event`.
+- [x] CRUD principal: `Organizer`.
+- [x] CRUD principal: `EventRsvp`.
 - [x] CRUD principal: `TourismSpot`.
 - [x] CRUD principal: `CitizenReport`.
+- [x] Gerar permissoes Shield para novos resources e rodar seeder de roles.
 - [x] CRUD moderacao: `Comment` (Forum).
 - [x] CRUD moderacao: `TourismReview` (Turismo).
 - [x] CRUD moderacao: `Flags/Reports` (TopicReport, CommentReport, ContentFlag).

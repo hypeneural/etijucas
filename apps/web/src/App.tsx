@@ -35,6 +35,7 @@ const UsefulPhonesScreen = lazy(() => import("./screens/UsefulPhonesScreen"));
 const TrashScheduleScreen = lazy(() => import("./screens/TrashScheduleScreen"));
 const ForumScreen = lazy(() => import("./screens/ForumScreen"));
 const ReportScreen = lazy(() => import("./screens/ReportScreen"));
+const ReportsMapScreen = lazy(() => import("./screens/ReportsMapScreen"));
 const AgendaScreen = lazy(() => import("./screens/AgendaScreen"));
 const TourismScreen = lazy(() => import("./screens/TourismScreen"));
 
@@ -123,6 +124,7 @@ const App = () => {
 
             {/* Denúncias */}
             <Route path="/denuncias" element={<ReportScreen />} />
+            <Route path="/denuncias/mapa" element={<ReportsMapScreen />} />
             <Route path="/denuncia/nova" element={<ReportWizardPage />} />
             <Route path="/denuncia/:id" element={<ReportDetailPage />} />
             <Route path="/minhas-denuncias" element={<MyReportsPage />} />

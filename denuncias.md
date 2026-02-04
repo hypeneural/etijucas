@@ -1,181 +1,315 @@
-**Denuncias Cidadas - Analise e Checklist de Implementacao**
+# 📋 Sistema de Denúncias - Documentação Técnica
 
-**Resumo**
-Documento unico com analise minuciosa do que ja existe, gaps e checklist detalhado para evoluir o modulo de Denuncias Cidadas mantendo a stack atual e mudancas cirurgicas.
-
-**Stack atual (confirmado nos arquivos)**
-- Front: React + Vite PWA, TypeScript, Tailwind, Framer Motion, Lucide, shadcn/ui, Zustand, TanStack Query, IndexedDB.
-- Mapas: Leaflet via react-leaflet (ainda nao instalado no front).
-- Back: Laravel 12 (composer.json), MariaDB, Sanctum, Spatie Media Library.
-- Geocoding: proxy backend com Nominatim, cache e throttle.
-
-**Arquivos base (existentes)**
-- Wizard: `apps/web/src/pages/ReportWizardPage.tsx`
-- Steps: `apps/web/src/components/report/StepCategory.tsx`, `apps/web/src/components/report/StepLocation.tsx`, `apps/web/src/components/report/StepCamera.tsx`, `apps/web/src/components/report/StepReview.tsx`
-- Tipos e services: `apps/web/src/types/report.ts`, `apps/web/src/services/report.service.ts`, `apps/web/src/api/config.ts`
-- Back: `apps/api/routes/api.php`, `apps/api/app/Domains/Reports/Http/Controllers/ReportController.php`, `apps/api/app/Domains/Geocoding/Http/Controllers/GeocodeController.php`
-- Spec: `contracts/openapi.yaml`, `DENUNCIAS_SPEC.md`
-
-**Analise do que ja temos (confirmado nos arquivos)**
-- Wizard em 4 passos funcional em `ReportWizardPage.tsx`.
-- StepCategory usa categorias do backend e exibe dicas (`tips`) por categoria.
-- Existe tela publica `ReportScreen.tsx` com KPIs, busca e filtros.
-- StepLocation ja faz:
-  - GPS via `navigator.geolocation`.
-  - reverse geocode no backend.
-  - autocomplete com debounce 300ms.
-  - mapa apenas placeholder (card com gradiente e pin animado).
-- StepCamera ja tem:
-  - captura por camera com `getUserMedia`.
-  - galeria via input file.
-  - tratamento de erros (NotAllowed, NotFound, NotReadable).
-  - auto-start no mount (causa de friccao).
-- StepReview exige titulo e confirmacao antes do envio.
-- ReportSuccess com confetti, copia/compartilha protocolo e CTA de retorno.
-- Draft salvo em localStorage em `ReportWizardPage.tsx` sem persistir imagens.
-- Upload multipart no backend com limite 3 imagens (15MB cada) via Spatie Media Library.
-- ReportController:
-  - valida e salva denuncia com `strip_tags` em `description`.
-  - limita 3 imagens por denuncia.
-- ReportResource:
-  - nao expõe `user_id` no publico.
-  - retorna `user` apenas para admin/moderator.
-  - retorna `statusLabel`, `statusColor`, `statusIcon` e `locationQualityLabel`.
-- Enums no backend:
-  - `ReportStatus`: recebido, em_analise, resolvido, rejeitado.
-  - `LocationQuality`: precisa, aproximada, manual.
-- Geocoding proxy em `GeocodeController.php` com cache e viewbox de Tijucas (30 min).
-- Throttle:
-  - `/geocode/*` com `throttle:30,1`.
-  - `/reports` com `throttle:5,1`.
-- Endpoints no backend:
-  - Publico: `/reports`, `/reports/stats`, `/report-categories`.
-  - Auth: `/reports`, `/reports/me`, `/reports/{id}`, `/reports/{id}/media`, `/reports/{id}/status`.
-- Offline basico: `syncQueueDB` usado no `report.service.ts` para fila de envio, sem worker de reenvio.
-- `report.service.ts` envia FormData com `X-Idempotency-Key` e, em falha, coloca item na fila sem imagens.
-- Model `CitizenReport`:
-  - gera protocolo automaticamente `ETJ-YYYY-XXXXXX`.
-  - salva historico de status em `ReportStatusHistory`.
-  - possui soft delete.
-- Banco usa `citizen_reports` (nao `reports`) com indices por status, user e bairro.
-
-**Gaps principais (baseado no codigo)**
-- Status inconsistentes entre front e backend.
-- OpenAPI ainda aponta `GET /users/me/reports` enquanto o sistema usa `/reports/me`.
-- Mapa ainda e placeholder, sem pino real e sem interacao de zoom/pan.
-- Camera inicia no mount e aumenta erro de permissao.
-- Draft nao persiste imagens, gerando perda de trabalho.
-- Autocomplete nao envia bias lat/lon, reduzindo qualidade.
-- Offline sem fallback claro no mapa.
-- OpenAPI descreve imagens em base64 no JSON, mas o backend recebe multipart.
-- OpenAPI usa `category_id`/`bairro_id`, mas o backend espera `categoryId`/`bairroId` (FormData).
-- StepReview diz "descricao opcional", mas backend exige `description` com minimo 10 chars.
-- Idempotency middleware existe, mas nao esta aplicado nas rotas de `/reports`.
-- Query keys de categorias usam `['report','categories']`, divergindo do padrao sugerido.
-
-**Melhorias recomendadas (cirurgicas)**
-- Unificar status oficial e ajustar KPIs e filtros.
-- Alinhar path `/reports/me` em OpenAPI e front/back.
-- Substituir mapa placeholder por Leaflet com pin draggable.
-- Iniciar camera somente ao clicar "Ativar camera".
-- Persistir draft + imagens em IndexedDB com Blob.
-- Implementar Outbox com estados formais e retry.
-- Enviar bias lat/lon no autocomplete.
-- Fallback offline inteligente no mapa.
-- Reduzir exposicao de dados sensiveis no endpoint publico.
-- Atualizar OpenAPI para multipart no `POST /reports`.
-- Ajustar StepReview para refletir campos obrigatorios (ou relaxar validacao).
-- Aplicar middleware `idempotent` nas rotas de create report.
-
-**Aceite final**
-1. Status e KPIs consistentes: `recebido | em_analise | resolvido | rejeitado`.
-2. OpenAPI e frontend usam `GET /api/v1/reports/me`.
-3. StepLocation com mapa real, pin draggable e reverse apenas em `dragend/click`.
-4. StepCamera sem auto-start, com fallback de upload.
-5. Draft e imagens persistem offline via IndexedDB.
-6. Outbox com estados `draft -> queued -> sending -> sent -> failed`.
-7. Autocomplete envia bias lat/lon quando disponivel.
-8. Offline com fallback inteligente sem travar o wizard.
+> **Fiscaliza Tijucas** - Módulo de Denúncias Cidadãs  
+> Última atualização: 2026-02-03
 
 ---
 
-**Checklist de implementacao**
+## 🎯 Visão Geral
 
-**Checklist de implementacao (ordenado por prioridade P0/P1)**
+O módulo de Denúncias permite que cidadãos reportem problemas urbanos (buracos, iluminação, lixo, etc.) com fotos, localização GPS e descrição. O sistema é **mobile-first**, **offline-first** e **native-first**.
 
-**P0 - Consistencia e correcoes de contrato (backend + frontend + docs)**
-- [ ] Unificar enum oficial no front em `apps/web/src/types/report.ts`.
-- [ ] Remover uso de `em_andamento` e `nao_procede` em KPIs, chips e badges (ex: `ReportScreen.tsx`, `useMyReports.ts`).
-- [ ] Ajustar KPIs no front para refletir apenas status oficiais.
-- [ ] Atualizar OpenAPI para `/api/v1/reports/me` em `contracts/openapi.yaml`.
-- [ ] Atualizar OpenAPI do `POST /reports` para `multipart/form-data` (hoje esta como base64).
-- [ ] Ajustar OpenAPI para `categoryId`/`bairroId` (camelCase) conforme backend.
-- [ ] Confirmar rota `/api/v1/reports/me` no backend (`apps/api/routes/api.php` ja tem).
-- [ ] Opcional: alias temporario `/users/me/reports` para compatibilidade.
-- [ ] Criar script simples que valida config vs OpenAPI (alvo: `tools/contract-check/check-endpoints.mjs`).
-- [ ] Aplicar middleware `idempotent` na rota `POST /reports`.
-- [ ] Ajustar StepReview: alinhar "descricao opcional" com validacao real (ou atualizar copy).
+---
 
-**P0 - Camera robusta (frontend)**
-- [ ] Remover auto-start no mount do `StepCamera`.
-- [ ] Botao "Ativar camera" + "Escolher arquivo" sempre visivel.
-- [ ] Desabilitar camera se `!window.isSecureContext`.
-- [ ] Checar `enumerateDevices()` antes de ativar.
-- [ ] Tratar `NotAllowedError`, `NotReadableError`, `NotFoundError` com mensagens claras.
-- [ ] Mobile: usar `input capture="environment"` como atalho.
-- [ ] Mostrar feedback de compressao (ex: 8.2MB -> 1.1MB).
+## 🏗️ Arquitetura
 
-**P1 - Mapa real no StepLocation (frontend)**
-- [ ] Adicionar dependencias `leaflet` e `react-leaflet` no `apps/web/package.json`.
-- [ ] Importar CSS do Leaflet globalmente.
-- [ ] Integrar Leaflet com `MapContainer` + `TileLayer`.
-- [ ] Implementar pino draggable e click-to-move.
-- [ ] Reverse geocode apenas em `dragend` e `click` com debounce 300-500ms.
-- [ ] Evitar reverse em `moveend` e `zoomend` (apenas salvar zoom no draft).
-- [ ] Botao "Centralizar no GPS".
-- [ ] Salvar `lat`, `lon`, `zoom`, `address_text`, `address_source`, `location_quality`.
-- [ ] Autocomplete move o pino e chama `map.flyTo`.
+### Backend (Laravel 12)
 
-**P1 - Offline no mapa (frontend)**
-- [ ] Detectar online/offline com listeners.
-- [ ] Se offline, nao carregar tiles e exibir placeholder.
-- [ ] Permitir apenas GPS e endereco manual.
-- [ ] Definir `location_quality` = `manual` ou `aproximada`.
+```
+apps/api/app/Domains/Reports/
+├── Models/
+│   ├── CitizenReport.php      # Denúncia principal
+│   ├── ReportCategory.php     # Categorias (buraco, iluminação, etc.)
+│   └── ReportMedia.php        # Fotos/vídeos anexados
+├── Http/
+│   ├── Controllers/
+│   │   └── ReportController.php
+│   ├── Requests/
+│   │   └── CreateReportRequest.php
+│   └── Resources/
+│       └── ReportResource.php
+├── Enums/
+│   └── ReportStatus.php       # recebido, em_analise, resolvido, rejeitado
+├── Services/
+│   └── ReportService.php
+└── Policies/
+    └── ReportPolicy.php
+```
 
-**P1 - Drafts + imagens em IndexedDB (frontend)**
-- [ ] Reaproveitar `idb-keyval` (ja instalado) ou criar wrapper simples.
-- [ ] Criar `apps/web/src/lib/idb/reportDraftDB.ts`.
-- [ ] Migrar draft do localStorage para IndexedDB na primeira abertura.
-- [ ] Persistir imagens como Blob no draft.
-- [ ] Recriar objectURL ao carregar do IDB.
+### Frontend (React + TypeScript)
 
-**P1 - Outbox e sync automatico (frontend)**
-- [ ] Evoluir o `syncQueueDB` existente em `apps/web/src/lib/localDatabase.ts` ou criar store dedicada.
-- [ ] Criar `apps/web/src/services/reportSync.service.ts`.
-- [ ] Implementar estados: `draft -> queued -> sending -> sent -> failed`.
-- [ ] Implementar backoff exponencial.
-- [ ] Enviar create report com `X-Idempotency-Key`.
-- [ ] Enviar media por imagem em `/reports/{id}/media`.
-- [ ] Marcar `failed` em erros 4xx sem retry automatico.
+```
+apps/web/src/
+├── pages/
+│   ├── ReportWizardPage.tsx   # Wizard de criação (4 steps)
+│   ├── MyReportsPage.tsx      # Minhas denúncias (logado)
+│   └── ReportDetailPage.tsx   # Detalhe da denúncia
+├── screens/
+│   └── ReportScreen.tsx       # Lista pública (/denuncias)
+├── components/report/
+│   ├── StepCategory.tsx       # Seleção de categoria
+│   ├── StepLocation.tsx       # Mapa + GPS
+│   ├── StepDetails.tsx        # Título + descrição
+│   ├── StepPhotos.tsx         # Upload de fotos
+│   ├── StepReview.tsx         # Revisão final
+│   ├── LocationMap.tsx        # Componente de mapa
+│   └── CategoryIcon.tsx       # Ícone dinâmico (Iconify MDI)
+├── hooks/
+│   ├── useMyReports.ts        # CRUD + cache
+│   └── useReportCategories.ts # Categorias da API
+└── services/
+    └── report.service.ts      # API calls
+```
 
-**P1 - Geocoding com bias (frontend + backend)**
-- [ ] Autocomplete envia lat/lon quando houver.
-- [ ] Debounce 250-350ms no autocomplete e abortar requests anteriores.
-- [ ] Backend: cache por query + lat/lon arredondado (ja existe, revisar chaves).
-- [ ] Backend: fallback quando Nominatim falhar (nao bloquear wizard).
-- [ ] Evitar 404 no reverse; retornar payload com `warning`.
+---
 
-**P1 - Privacidade e visibilidade publica (backend + docs)**
-- [ ] Confirmar que endpoint publico nao retorna `user_id` nem autor (ReportResource ja controla).
-- [ ] Definir `is_public` ou `visibility` se necessario e documentar.
-- [ ] Documentar regra de publicacao no OpenAPI e `DENUNCIAS_SPEC.md`.
+## 🔧 Funcionalidades Implementadas
 
-**P1 - TanStack Query (frontend)**
-- [ ] Padronizar keys: `['reports','public',filters]`, `['reports','mine',filters]`, `['reports','detail',id]`, `['reports','stats']`, `['reports','categories']`.
-- [ ] Invalidar `mine` e `stats` apos envio.
+### ✅ Backend
 
-**Testes manuais (aplicar apos P0/P1)**
-- [ ] StepLocation: GPS permitido/negado, drag/click, autocomplete bias, offline fallback.
-- [ ] StepCamera: HTTPS vs HTTP, sem camera, permissoes negadas, limite 3 imagens.
-- [ ] Offline sync: criar denuncia offline e sincronizar ao voltar online.
-- [ ] KPIs e filtros apenas com status oficial.
+| Feature | Status | Descrição |
+|---------|--------|-----------|
+| CRUD Denúncias | ✅ | Criar, listar, visualizar, atualizar |
+| Upload de Mídia | ✅ | Fotos com thumbnails automáticos |
+| Categorias Dinâmicas | ✅ | Via banco com ícones MDI |
+| Geolocalização | ✅ | latitude/longitude/address |
+| Protocolo Único | ✅ | Geração automática com retry |
+| Status Workflow | ✅ | recebido → em_analise → resolvido |
+| Histórico de Status | ✅ | JSON com timestamps |
+| API Pública | ✅ | Listagem sem autenticação |
+| API Autenticada | ✅ | Minhas denúncias |
+| Filament CRUD | ✅ | Admin panel completo |
+
+### ✅ Frontend
+
+| Feature | Status | Descrição |
+|---------|--------|-----------|
+| Wizard 5 Steps | ✅ | Categoria → Local → Detalhes → Fotos → Revisão |
+| Ícones MDI | ✅ | Via `@iconify/react` + API |
+| Grid 3 Colunas | ✅ | Mobile-first na seleção de categoria |
+| Mapa Interativo | ✅ | Leaflet com GPS e busca |
+| Upload de Fotos | ✅ | Câmera/galeria com preview |
+| Lista Pública | ✅ | `/denuncias` com filtros |
+| Minhas Denúncias | ✅ | `/minhas-denuncias` (autenticado) |
+| Detalhe | ✅ | `/denuncia/:id` com galeria e mapa |
+| Thumbnails | ✅ | Exibição de fotos nas listas |
+| Cache TanStack | ✅ | staleTime 30s, gcTime 5min |
+| Offline Drafts | ✅ | Rascunhos em IndexedDB |
+
+---
+
+## 📊 Modelo de Dados
+
+### citizen_reports
+```sql
+id              UUID PRIMARY KEY
+user_id         UUID FK (nullable para anônimas)
+category_id     UUID FK
+title           VARCHAR(200)
+description     TEXT NULLABLE
+status          ENUM (recebido, em_analise, resolvido, rejeitado)
+protocol        VARCHAR(20) UNIQUE
+latitude        DECIMAL(10,7)
+longitude       DECIMAL(10,7)
+address         TEXT NULLABLE
+status_history  JSON
+is_anonymous    BOOLEAN
+resolved_at     TIMESTAMP NULLABLE
+created_at      TIMESTAMP
+updated_at      TIMESTAMP
+```
+
+### report_categories
+```sql
+id          UUID PRIMARY KEY
+name        VARCHAR(100)
+slug        VARCHAR(100) UNIQUE
+icon        VARCHAR(50)   -- Iconify MDI (ex: mdi:road-variant)
+color       VARCHAR(20)   -- Hex (ex: #ef4444)
+tips        JSON          -- Dicas para o usuário
+active      BOOLEAN
+sort_order  INTEGER
+```
+
+### report_media
+```sql
+id          UUID PRIMARY KEY
+report_id   UUID FK
+url         VARCHAR(500)
+thumb_url   VARCHAR(500)
+type        ENUM (image, video)
+```
+
+---
+
+## 🔌 Endpoints API
+
+### Públicos (sem auth)
+```
+GET  /api/v1/reports                    # Lista pública
+GET  /api/v1/reports/{id}               # Detalhe
+GET  /api/v1/reports/stats              # KPIs
+GET  /api/v1/report-categories          # Categorias
+```
+
+### Autenticados (Bearer Token)
+```
+GET  /api/v1/me/reports                 # Minhas denúncias
+POST /api/v1/me/reports                 # Criar denúncia
+POST /api/v1/me/reports/{id}/media      # Upload de mídia
+```
+
+---
+
+## 🎨 Categorias Atuais
+
+| Slug | Nome | Ícone MDI | Cor |
+|------|------|-----------|-----|
+| `buraco` | Buraco na Rua | `mdi:road-variant` | #ef4444 |
+| `iluminacao` | Iluminação Pública | `mdi:lightbulb-on-outline` | #f59e0b |
+| `lixo` | Lixo/Entulho | `mdi:trash-can-outline` | #10b981 |
+| `calcada` | Calçada Danificada | `mdi:walk` | #3b82f6 |
+| `arvore` | Árvore/Mato Alto | `mdi:tree` | #22c55e |
+| `vazamento` | Vazamento/Esgoto | `mdi:pipe` | #06b6d4 |
+| `estacionamento` | Estacionamento Irregular | `mdi:parking` | #8b5cf6 |
+| `perturbacao` | Perturbação do Sossego | `mdi:volume-high` | #f97316 |
+| `outros` | Outros | `mdi:dots-horizontal` | #64748b |
+
+---
+
+## 🚧 O QUE FALTA FAZER
+
+### Alta Prioridade
+
+- [ ] **Mapa Interativo de Denúncias** (próxima feature)
+  - Tela fullscreen com mapa
+  - Pinos com ícone da categoria
+  - Modal ao clicar no pino
+  - Zoom in/out
+  - Cluster de pinos próximos
+
+- [ ] **Notificações Push**
+  - Atualização de status
+  - Nova resposta da prefeitura
+
+### Média Prioridade
+
+- [ ] **Comentários/Feedback**
+  - Prefeitura responder ao cidadão
+  - Cidadão adicionar informações
+
+- [ ] **Votação/Apoio**
+  - Outros cidadãos apoiarem uma denúncia
+  - Ranking por relevância
+
+- [ ] **Fotos Antes/Depois**
+  - Comparativo visual da resolução
+
+### Baixa Prioridade
+
+- [ ] **Exportar PDF**
+  - Protocolo completo em PDF
+
+- [ ] **Integração WhatsApp**
+  - Notificações via WhatsApp
+
+---
+
+## 🗺️ PRÓXIMA FEATURE: Mapa de Denúncias
+
+### Objetivo
+Criar uma tela **fullscreen mobile-first** com mapa interativo mostrando todas as denúncias como pinos. Ao clicar em um pino, abre um modal com detalhes.
+
+### Especificação
+
+#### UI/UX
+```
+┌─────────────────────────────────┐
+│  ← Denúncias          🔍 [✓]   │  ← Header fixo
+├─────────────────────────────────┤
+│                                 │
+│         [MAPA LEAFLET]          │
+│                                 │
+│      📍   📍                    │
+│         📍    📍   📍           │
+│    📍         📍                │
+│              📍                 │
+│                                 │
+├─────────────────────────────────┤
+│  [Categoria] [Status] [Zoom]    │  ← Filtros bottom
+└─────────────────────────────────┘
+```
+
+#### Componentes
+1. **ReportsMapScreen.tsx** - Tela principal
+2. **MapMarker.tsx** - Pino customizado com CategoryIcon
+3. **ReportPreviewModal.tsx** - Modal de preview ao clicar
+
+#### API
+```
+GET /api/v1/reports/map?bounds=lat1,lng1,lat2,lng2
+```
+Retorna denúncias dentro do viewport para otimizar performance.
+
+#### Bibliotecas
+- `react-leaflet` (já instalado)
+- `leaflet.markercluster` (agrupar pinos próximos)
+
+#### Interações
+- **Tap no pino** → Abre modal com preview
+- **Tap "Ver mais"** → Navega para `/denuncia/:id`
+- **Pinch zoom** → Zoom in/out nativo
+- **Drag** → Move o mapa
+- **Filtros** → Dropdown de categoria/status
+
+---
+
+## 📱 Fluxo do Usuário
+
+```mermaid
+flowchart TD
+    A[Home] --> B{Logado?}
+    B -->|Não| C[/denuncias - Lista Pública]
+    B -->|Sim| D[/minhas-denuncias]
+    
+    C --> E[Detalhe da Denúncia]
+    D --> E
+    
+    B -->|Sim| F[/denuncia/nova]
+    F --> G[1. Categoria]
+    G --> H[2. Localização]
+    H --> I[3. Detalhes]
+    I --> J[4. Fotos]
+    J --> K[5. Revisão]
+    K --> L[Enviar]
+    L --> M[Protocolo Gerado]
+    M --> D
+```
+
+---
+
+## 🔧 Comandos Úteis
+
+```bash
+# Rodar seeder de categorias
+cd apps/api && php artisan db:seed --class=ReportCategorySeeder
+
+# Build frontend
+cd apps/web && pnpm build
+
+# Dev server
+cd apps/web && pnpm dev
+```
+
+---
+
+## 📁 Arquivos Chave
+
+| Arquivo | Descrição |
+|---------|-----------|
+| `apps/api/app/Domains/Reports/Models/CitizenReport.php` | Model principal |
+| `apps/api/app/Domains/Reports/Http/Controllers/ReportController.php` | Controller API |
+| `apps/api/database/seeders/ReportCategorySeeder.php` | Seed das categorias |
+| `apps/web/src/pages/ReportWizardPage.tsx` | Wizard de criação |
+| `apps/web/src/components/report/CategoryIcon.tsx` | Renderização de ícones |
+| `apps/web/src/hooks/useMyReports.ts` | Hooks de cache |

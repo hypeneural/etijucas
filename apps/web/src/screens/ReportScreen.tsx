@@ -14,6 +14,7 @@ import {
   TrendingUp,
   XCircle,
   RefreshCw,
+  Map,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -78,13 +79,24 @@ export default function ReportScreen({ scrollRef }: ReportScreenProps) {
       <div className="pb-32">
         {/* Header & KPIs */}
         <div className="bg-white dark:bg-slate-900 border-b pb-6 rounded-b-[2rem] shadow-sm relative z-10">
-          <div className="px-4 pt-4 pb-2">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-              Fiscaliza Tijucas
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Acompanhe as melhorias na cidade
-            </p>
+          <div className="px-4 pt-4 pb-2 flex items-start justify-between">
+            <div>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                Fiscaliza Tijucas
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Acompanhe as melhorias na cidade
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/denuncias/mapa')}
+              className="shrink-0 gap-1.5"
+            >
+              <Map className="w-4 h-4" />
+              Mapa
+            </Button>
           </div>
 
           {/* KPIs Grid */}

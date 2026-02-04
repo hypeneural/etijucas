@@ -94,41 +94,41 @@ class RolesAndPermissionsSeeder extends Seeder
             'view_any_bairro',
             'view_bairro',
             // Restrictions
-            'view_any_user_restriction',
-            'view_user_restriction',
-            'create_user_restriction',
-            'update_user_restriction',
+            'view_any_user::restriction',
+            'view_user::restriction',
+            'create_user::restriction',
+            'update_user::restriction',
             // Flags
-            'view_any_content_flag',
-            'view_content_flag',
-            'update_content_flag',
+            'view_any_content::flag',
+            'view_content::flag',
+            'update_content::flag',
             // Topic Reports
-            'view_any_topic_report',
-            'view_topic_report',
-            'update_topic_report',
+            'view_any_topic::report',
+            'view_topic::report',
+            'update_topic::report',
             // Comment Reports
-            'view_any_comment_report',
-            'view_comment_report',
-            'update_comment_report',
+            'view_any_comment::report',
+            'view_comment::report',
+            'update_comment::report',
             // Comments
             'view_any_comment',
             'view_comment',
             'update_comment',
             'delete_comment',
             // Activity log
-            'view_any_activity_log',
-            'view_activity_log',
+            'view_any_activity::log',
+            'view_activity::log',
             // Moderation queue page
             'page_moderation_queue',
             'page_reports_dashboard',
             'page_geo_issues',
             // Citizen Reports
-            'view_any_citizen_report',
-            'view_citizen_report',
-            'update_citizen_report',
+            'view_any_citizen::report',
+            'view_citizen::report',
+            'update_citizen::report',
             // Report Categories
-            'view_any_report_category',
-            'view_report_category',
+            'view_any_report::category',
+            'view_report::category',
         ];
 
         $availableFilamentPermissions = Permission::query()
@@ -164,11 +164,11 @@ class RolesAndPermissionsSeeder extends Seeder
             'update_phone',
             'delete_phone',
             // Event Categories
-            'view_any_event_category',
-            'view_event_category',
-            'create_event_category',
-            'update_event_category',
-            'delete_event_category',
+            'view_any_event::category',
+            'view_event::category',
+            'create_event::category',
+            'update_event::category',
+            'delete_event::category',
             // Tags
             'view_any_tag',
             'view_tag',
@@ -188,16 +188,27 @@ class RolesAndPermissionsSeeder extends Seeder
             'update_event',
             'delete_event',
             // Tourism Spots
-            'view_any_tourism_spot',
-            'view_tourism_spot',
-            'create_tourism_spot',
-            'update_tourism_spot',
-            'delete_tourism_spot',
+            'view_any_tourism::spot',
+            'view_tourism::spot',
+            'create_tourism::spot',
+            'update_tourism::spot',
+            'delete_tourism::spot',
             // Tourism Reviews
-            'view_any_tourism_review',
-            'view_tourism_review',
-            'update_tourism_review',
-            'delete_tourism_review',
+            'view_any_tourism::review',
+            'view_tourism::review',
+            'update_tourism::review',
+            'delete_tourism::review',
+            // Organizers
+            'view_any_organizer',
+            'view_organizer',
+            'create_organizer',
+            'update_organizer',
+            'delete_organizer',
+            // Event RSVPs
+            'view_any_event::rsvp',
+            'view_event::rsvp',
+            'update_event::rsvp',
+            'delete_event::rsvp',
         ];
 
         $availableOperatorFilamentPermissions = Permission::query()
