@@ -126,6 +126,10 @@ export interface VotacaoList {
   tags: string[];
   counts: VoteCounts;
   resultado: 'approved' | 'rejected';
+  likesCount: number;
+  dislikesCount: number;
+  commentsCount: number;
+  userReaction?: 'like' | 'dislike' | null;
 }
 
 export interface VotoRegistro {
@@ -249,6 +253,10 @@ export interface VoteHistoryItem {
   summary: string;
   counts: VoteCounts;
   tags: string[];
+  likesCount?: number;
+  dislikesCount?: number;
+  commentsCount?: number;
+  userReaction?: 'like' | 'dislike' | null;
 }
 
 export interface VotesHistoryData {

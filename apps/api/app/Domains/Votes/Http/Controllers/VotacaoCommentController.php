@@ -83,6 +83,9 @@ class VotacaoCommentController extends Controller
             'depth' => $depth,
         ]);
 
+        // Increment comments count
+        $votacao->increment('comments_count');
+
         $comment->load('user');
 
         return response()->json([
@@ -152,6 +155,9 @@ class VotacaoCommentController extends Controller
         }
 
         $comment->delete();
+
+        // Decrement comments count
+        $votacao->decrement('comments_count');
 
         return response()->json([
             'success' => true,

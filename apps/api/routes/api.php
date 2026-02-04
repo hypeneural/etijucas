@@ -167,6 +167,9 @@ Route::prefix('v1')->group(function () {
             Route::post('/{votacao}/comments', [\App\Domains\Votes\Http\Controllers\VotacaoCommentController::class, 'store']);
             Route::post('/{votacao}/comments/{comment}/like', [\App\Domains\Votes\Http\Controllers\VotacaoCommentController::class, 'like']);
             Route::delete('/{votacao}/comments/{comment}', [\App\Domains\Votes\Http\Controllers\VotacaoCommentController::class, 'destroy']);
+
+            // Reactions (Like/Dislike)
+            Route::post('/{votacao}/reaction', [\App\Domains\Votes\Http\Controllers\VotacaoReactionController::class, 'toggle']);
         });
     });
 

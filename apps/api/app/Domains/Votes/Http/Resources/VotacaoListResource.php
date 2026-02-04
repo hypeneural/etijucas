@@ -28,6 +28,14 @@ class VotacaoListResource extends JsonResource
                 'naoVotou' => $this->votos_ausente,
             ],
             'resultado' => $this->resultado,
+
+            // Engajamento
+            'likesCount' => $this->likes_count ?? 0,
+            'dislikesCount' => $this->dislikes_count ?? 0,
+            'commentsCount' => $this->comments_count ?? 0,
+            'userReaction' => $this->whenLoaded('reactions', function () {
+                return $this->reactions->first()?->reaction ?? null;
+            }),
         ];
     }
 }

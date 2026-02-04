@@ -36,6 +36,9 @@ class Votacao extends Model
         'url_fonte',
         'url_documento',
         'tags',
+        'likes_count',
+        'dislikes_count',
+        'comments_count',
     ];
 
     protected $casts = [
@@ -46,6 +49,9 @@ class Votacao extends Model
         'votos_nao' => 'integer',
         'votos_abstencao' => 'integer',
         'votos_ausente' => 'integer',
+        'likes_count' => 'integer',
+        'dislikes_count' => 'integer',
+        'comments_count' => 'integer',
     ];
 
     // =========================================
@@ -63,6 +69,11 @@ class Votacao extends Model
     public function comments(): MorphMany
     {
         return $this->morphMany(Comment::class, 'commentable');
+    }
+
+    public function reactions(): HasMany
+    {
+        return $this->hasMany(VotacaoReaction::class, 'votacao_id');
     }
 
     // =========================================

@@ -68,8 +68,18 @@ class VotacaoController extends Controller
 
         // Paginate
         $perPage = min((int) $request->input('per_page', 20), 50);
+        $votacoes = $query->paginate($perPage);
 
-        return VotacaoListResource::collection($query->paginate($perPage));
+        // Load user reaction if authenticated
+        if ($user = $request->user('sanctum')) {
+            $votacoes->load([
+                'reactions' => function ($query) use ($user) {
+                    $query->where('user_id', $user->id);
+                }
+            ]);
+        }
+
+        return VotacaoListResource::collection($votacoes);
     }
 
     /**
@@ -78,9 +88,18 @@ class VotacaoController extends Controller
      */
     public function show(Request $request, Votacao $votacao): JsonResponse
     {
-        $votacao->load([
+        $with = [
             'votos.vereador.mandatoAtual.partido',
-        ]);
+        ];
+
+        // Load user reaction if authenticated
+        if ($user = $request->user('sanctum')) {
+            $with['reactions'] = function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            };
+        }
+
+        $votacao->load($with);
 
         return response()->json([
             'success' => true,

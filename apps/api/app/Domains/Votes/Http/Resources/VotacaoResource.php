@@ -36,6 +36,14 @@ class VotacaoResource extends JsonResource
             'totalVotos' => $this->total_votos,
             'resultado' => $this->resultado,
 
+            // Engajamento
+            'likesCount' => $this->likes_count ?? 0,
+            'dislikesCount' => $this->dislikes_count ?? 0,
+            'commentsCount' => $this->comments_count ?? 0,
+            'userReaction' => $this->whenLoaded('reactions', function () {
+                return $this->reactions->first()?->reaction ?? null;
+            }),
+
             // Votos individuais
             'votos' => VotoRegistroResource::collection($this->whenLoaded('votos')),
         ];

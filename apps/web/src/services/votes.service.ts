@@ -180,6 +180,26 @@ export const votacoesService = {
         );
         return response.data;
     },
+
+    /**
+     * Toggle reaction (like/dislike) on a voting session
+     */
+    async toggleReaction(id: string, reaction: 'like' | 'dislike'): Promise<{
+        success: boolean;
+        action: 'added' | 'removed' | 'changed';
+        user_reaction: 'like' | 'dislike' | null;
+        likes_count: number;
+        dislikes_count: number;
+    }> {
+        const response = await apiClient.post<{
+            success: boolean;
+            action: 'added' | 'removed' | 'changed';
+            user_reaction: 'like' | 'dislike' | null;
+            likes_count: number;
+            dislikes_count: number;
+        }>(`/votacoes/${id}/reaction`, { reaction });
+        return response;
+    },
 };
 
 // ==========================================
