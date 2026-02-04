@@ -50,6 +50,7 @@ class HomeAggregatorService
 
         return Cache::remember($cacheKey, self::CACHE_TTL_HOME, function () use ($bairroId, $include, $version) {
             $blocks = [];
+            $errors = [];
             $priority = 1;
 
             // Default includes all if empty
@@ -57,49 +58,62 @@ class HomeAggregatorService
                 $include = ['alerts', 'weather', 'boletim', 'fiscaliza', 'forum', 'quick_access', 'events', 'tourism', 'stats'];
             }
 
+            // Helper to safely load blocks - prevents one failure from breaking entire endpoint
+            $safeLoad = function (string $name, callable $loader) use (&$blocks, &$errors) {
+                try {
+                    $block = $loader();
+                    if ($block !== null) {
+                        $blocks[] = $block;
+                    }
+                } catch (\Exception $e) {
+                    $errors[] = $name;
+                    \Log::warning("Home block '{$name}' failed: " . $e->getMessage());
+                }
+            };
+
             // 1. Alert Banner
             if (in_array('alerts', $include)) {
-                $blocks[] = $this->getAlertBannerBlock($priority++);
+                $safeLoad('alerts', fn() => $this->getAlertBannerBlock($priority++));
             }
 
             // 2. Weather Mini
             if (in_array('weather', $include)) {
-                $blocks[] = $this->getWeatherBlock($priority++);
+                $safeLoad('weather', fn() => $this->getWeatherBlock($priority++));
             }
 
             // 3. Boletim do Dia
             if (in_array('boletim', $include)) {
-                $blocks[] = $this->getBoletimBlock($priority++, $bairroId);
+                $safeLoad('boletim', fn() => $this->getBoletimBlock($priority++, $bairroId));
             }
 
             // 4. Fiscaliza Vivo
             if (in_array('fiscaliza', $include)) {
-                $blocks[] = $this->getFiscalizaBlock($priority++, $bairroId);
+                $safeLoad('fiscaliza', fn() => $this->getFiscalizaBlock($priority++, $bairroId));
             }
 
             // 5. Fórum Vivo
             if (in_array('forum', $include)) {
-                $blocks[] = $this->getForumBlock($priority++, $bairroId);
+                $safeLoad('forum', fn() => $this->getForumBlock($priority++, $bairroId));
             }
 
             // 6. Quick Access
             if (in_array('quick_access', $include)) {
-                $blocks[] = $this->getQuickAccessBlock($priority++, $bairroId);
+                $safeLoad('quick_access', fn() => $this->getQuickAccessBlock($priority++, $bairroId));
             }
 
             // 7. Events
             if (in_array('events', $include)) {
-                $blocks[] = $this->getEventsBlock($priority++, $bairroId);
+                $safeLoad('events', fn() => $this->getEventsBlock($priority++, $bairroId));
             }
 
             // 8. Tourism
             if (in_array('tourism', $include)) {
-                $blocks[] = $this->getTourismBlock($priority++);
+                $safeLoad('tourism', fn() => $this->getTourismBlock($priority++));
             }
 
             // 9. Stats (Tijucanos counter)
             if (in_array('stats', $include)) {
-                $blocks[] = $this->getStatsBlock($priority++);
+                $safeLoad('stats', fn() => $this->getStatsBlock($priority++));
             }
 
             return [
@@ -112,6 +126,7 @@ class HomeAggregatorService
                     ],
                     'generated_at' => now()->toIso8601String(),
                     'version' => $version,
+                    'errors' => $errors, // Report which blocks failed (useful for debugging)
                 ],
                 'blocks' => array_filter($blocks),
             ];
@@ -131,36 +146,59 @@ class HomeAggregatorService
             // Weather phrase
             $weather = $this->getWeatherBrief();
 
-            // Alerts count
-            $alertas = Alert::where('active', true)
-                ->where(function ($q) {
-                    $q->whereNull('expires_at')
-                        ->orWhere('expires_at', '>', now());
-                })
-                ->get();
+            // Alerts count (resilient - may fail if table doesn't exist)
+            $alertasCount = 0;
+            $alertaDestaque = null;
+            try {
+                $alertas = Alert::where('active', true)
+                    ->where(function ($q) {
+                        $q->whereNull('expires_at')
+                            ->orWhere('expires_at', '>', now());
+                    })
+                    ->get();
+                $alertasCount = $alertas->count();
+                $alertaDestaque = $alertas->first()?->titulo;
+            } catch (\Exception $e) {
+                \Log::warning("Boletim: Alert query failed: " . $e->getMessage());
+            }
 
-            // Events today
-            $eventosHoje = Event::whereDate('start_date', $today)
-                ->where('status', 'published')
-                ->count();
+            // Events today (resilient)
+            $eventosHoje = 0;
+            try {
+                $eventosHoje = Event::whereDate('start_date', $today)
+                    ->where('status', 'published')
+                    ->count();
+            } catch (\Exception $e) {
+                \Log::warning("Boletim: Event query failed: " . $e->getMessage());
+            }
 
-            // Top report from bairro
-            $topReport = CitizenReport::when($bairroId, fn($q) => $q->where('bairro_id', $bairroId))
-                ->where('created_at', '>=', $today->copy()->subDays(7))
-                ->orderByDesc('created_at')
-                ->first();
+            // Top report from bairro (resilient)
+            $topReport = null;
+            try {
+                $topReport = CitizenReport::when($bairroId, fn($q) => $q->where('bairro_id', $bairroId))
+                    ->where('created_at', '>=', $today->copy()->subDays(7))
+                    ->orderByDesc('created_at')
+                    ->first();
+            } catch (\Exception $e) {
+                \Log::warning("Boletim: CitizenReport query failed: " . $e->getMessage());
+            }
 
-            // Top forum topic
-            $topTopic = Topic::where('created_at', '>=', $today->copy()->subDays(7))
-                ->withCount('comments')
-                ->orderByDesc('comments_count')
-                ->first();
+            // Top forum topic (resilient)
+            $topTopic = null;
+            try {
+                $topTopic = Topic::where('created_at', '>=', $today->copy()->subDays(7))
+                    ->withCount('comments')
+                    ->orderByDesc('comments_count')
+                    ->first();
+            } catch (\Exception $e) {
+                \Log::warning("Boletim: Topic query failed: " . $e->getMessage());
+            }
 
             return [
                 'date' => $today->toDateString(),
                 'clima' => $weather,
-                'alertas_count' => $alertas->count(),
-                'alerta_destaque' => $alertas->first()?->titulo,
+                'alertas_count' => $alertasCount,
+                'alerta_destaque' => $alertaDestaque,
                 'eventos_count' => $eventosHoje,
                 'fiscaliza_destaque' => $topReport ? [
                     'titulo' => $topReport->titulo,

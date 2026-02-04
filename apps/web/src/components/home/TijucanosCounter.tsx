@@ -20,16 +20,49 @@ import { TijucanosCounterPayload } from '@/types/home.types';
 import confetti from 'canvas-confetti';
 
 interface TijucanosCounterProps {
-    data: TijucanosCounterPayload;
+    data?: TijucanosCounterPayload;
+    isLoading?: boolean;
     className?: string;
 }
 
 // LocalStorage key to avoid repeated confetti
 const LAST_GOAL_KEY = 'etijucas:last_goal_seen';
 
-export function TijucanosCounter({ data, className }: TijucanosCounterProps) {
+// Skeleton component
+function TijucanosSkeleton() {
+    return (
+        <div className="animate-pulse rounded-2xl bg-gradient-to-br from-primary/5 to-primary/10 p-4 border border-primary/20">
+            <div className="flex items-center gap-3 mb-3">
+                <div className="h-10 w-10 rounded-full bg-primary/20" />
+                <div className="flex-1">
+                    <div className="h-6 w-24 rounded bg-primary/20 mb-1" />
+                    <div className="h-3 w-32 rounded bg-primary/20" />
+                </div>
+            </div>
+            <div className="h-2 w-full rounded-full bg-primary/20 mb-2" />
+            <div className="h-4 w-3/4 rounded bg-primary/20 mx-auto" />
+        </div>
+    );
+}
+
+export function TijucanosCounter({ data, isLoading, className }: TijucanosCounterProps) {
     const [hasAnimated, setHasAnimated] = useState(false);
     const prevTotalRef = useRef<number | null>(null);
+
+    // Show skeleton while loading
+    if (isLoading && !data) {
+        return <TijucanosSkeleton />;
+    }
+
+    // If no data, show placeholder
+    if (!data) {
+        return (
+            <div className="rounded-2xl bg-gradient-to-br from-primary/5 to-primary/10 p-4 border border-primary/20 text-center text-muted-foreground">
+                <Users className="h-6 w-6 mx-auto mb-2 text-primary/50" />
+                <p className="text-sm">Carregando comunidade...</p>
+            </div>
+        );
+    }
 
     const { total, verified, new_today, goal } = data;
 

@@ -22,6 +22,7 @@ import { useHaptic } from '@/hooks/useHaptic';
 
 interface FiscalizaVivoProps {
     data?: FiscalizaVivoPayload;
+    isLoading?: boolean;
     className?: string;
 }
 

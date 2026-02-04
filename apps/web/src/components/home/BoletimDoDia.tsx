@@ -26,7 +26,8 @@ import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 interface BoletimDoDiaProps {
-    data: BoletimDoDiaPayload;
+    data?: BoletimDoDiaPayload;
+    isLoading?: boolean;
     onMarkAsRead?: () => void;
     className?: string;
 }
@@ -57,9 +58,43 @@ function formatDate(dateString: string): string {
     return date.toLocaleDateString('pt-BR', options);
 }
 
-export function BoletimDoDia({ data, onMarkAsRead, className }: BoletimDoDiaProps) {
+// Skeleton component for loading state
+function BoletimSkeleton() {
+    return (
+        <div className="animate-pulse rounded-2xl bg-gradient-to-br from-primary/5 to-primary/10 p-4 border border-primary/20">
+            <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                    <div className="h-5 w-5 rounded bg-primary/20" />
+                    <div className="h-5 w-32 rounded bg-primary/20" />
+                </div>
+                <div className="h-4 w-20 rounded bg-primary/20" />
+            </div>
+            <div className="space-y-2">
+                <div className="h-4 w-3/4 rounded bg-primary/20" />
+                <div className="h-4 w-1/2 rounded bg-primary/20" />
+            </div>
+        </div>
+    );
+}
+
+export function BoletimDoDia({ data, isLoading, onMarkAsRead, className }: BoletimDoDiaProps) {
     const [isExpanded, setIsExpanded] = useState(false);
     const [hasBeenRead, setHasBeenRead] = useState(false);
+
+    // Show skeleton while loading or if no data
+    if (isLoading && !data) {
+        return <BoletimSkeleton />;
+    }
+
+    // If no data and not loading, show placeholder
+    if (!data) {
+        return (
+            <div className="rounded-2xl bg-gradient-to-br from-primary/5 to-primary/10 p-4 border border-primary/20 text-center text-muted-foreground">
+                <Sparkles className="h-6 w-6 mx-auto mb-2 text-primary/50" />
+                <p className="text-sm">Carregando boletim do dia...</p>
+            </div>
+        );
+    }
 
     const handleMarkAsRead = () => {
         setHasBeenRead(true);

@@ -22,6 +22,7 @@ import { useHaptic } from '@/hooks/useHaptic';
 
 interface BocaNoTromboneVivoProps {
     data?: ForumVivoPayload;
+    isLoading?: boolean;
     className?: string;
 }
 

@@ -26,6 +26,7 @@ import { useHaptic } from '@/hooks/useHaptic';
 
 interface QuickAccessGridVivoProps {
     data?: QuickAccessPayload;
+    isLoading?: boolean;
     className?: string;
 }
 

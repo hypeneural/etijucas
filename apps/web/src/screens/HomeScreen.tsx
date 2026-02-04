@@ -2,7 +2,7 @@ import React, { useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence, useSpring, useTransform } from 'framer-motion';
 import { RefreshCw } from 'lucide-react';
 
-// Layout components (legacy - kept for now)
+// Carousels (use their own API hooks)
 import EventsCarousel from '@/components/home/EventsCarousel';
 import TourismHighlights from '@/components/home/TourismHighlights';
 
@@ -214,23 +214,22 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
       <div className="pb-24 space-y-4">
         {/* ========================================
             BOLETIM DO DIA - Daily Summary (O Gancho!)
+            Always visible - shows skeleton when loading
             ======================================== */}
-        {blocks.boletim?.payload && (
-          <div className="px-4 pt-2">
-            <BoletimDoDia data={blocks.boletim.payload} />
-          </div>
-        )}
+        <div className="px-4 pt-2">
+          <BoletimDoDia data={blocks.boletim?.payload} isLoading={isLoading} />
+        </div>
 
         {/* ========================================
             QUICK ACCESS VIVO - Mobile First! (Moved up)
             ======================================== */}
-        <QuickAccessGridVivo data={blocks.quickAccess?.payload} />
+        <QuickAccessGridVivo data={blocks.quickAccess?.payload} isLoading={isLoading} />
 
         {/* ========================================
             FISCALIZA VIVO - Live Reports Card (CTA Cívico)
             ======================================== */}
         <div className="px-4">
-          <FiscalizaVivo data={blocks.fiscaliza?.payload} />
+          <FiscalizaVivo data={blocks.fiscaliza?.payload} isLoading={isLoading} />
         </div>
 
         {/* ========================================
@@ -242,7 +241,7 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
             BOCA NO TROMBONE VIVO - Live Forum Card
             ======================================== */}
         <div className="px-4">
-          <BocaNoTromboneVivo data={blocks.forum?.payload} />
+          <BocaNoTromboneVivo data={blocks.forum?.payload} isLoading={isLoading} />
         </div>
 
         {/* ========================================
@@ -252,12 +251,11 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
 
         {/* ========================================
             TIJUCANOS COUNTER - Gamification Footer
+            Always visible - shows skeleton when loading
             ======================================== */}
-        {blocks.stats?.payload && (
-          <div className="px-4">
-            <TijucanosCounter data={blocks.stats.payload} />
-          </div>
-        )}
+        <div className="px-4">
+          <TijucanosCounter data={blocks.stats?.payload} isLoading={isLoading} />
+        </div>
       </div>
     </div>
   );
