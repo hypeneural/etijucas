@@ -2,6 +2,7 @@
 
 namespace App\Domains\Reports\Http\Controllers;
 
+use App\Domains\Reports\Actions\UpdateReportStatusAction;
 use App\Domains\Reports\Enums\ReportStatus;
 use App\Domains\Reports\Http\Requests\CreateReportRequest;
 use App\Domains\Reports\Http\Requests\UpdateReportStatusRequest;
@@ -295,7 +296,7 @@ class ReportController extends Controller
      * PATCH /api/v1/reports/{id}/status
      * Update report status (admin only)
      */
-    public function updateStatus(UpdateReportStatusRequest $request, string $id): JsonResponse
+    public function updateStatus(UpdateReportStatusRequest $request, string $id, UpdateReportStatusAction $action): JsonResponse
     {
         $user = $request->user();
         $report = CitizenReport::findOrFail($id);
@@ -304,7 +305,7 @@ class ReportController extends Controller
         $newStatus = ReportStatus::from($validated['status']);
         $note = $validated['note'] ?? null;
 
-        $report->updateStatus($newStatus, $note, $user->id);
+        $action->execute($report, $newStatus, $note, $user);
         $report->load(['category', 'bairro', 'statusHistory.createdBy', 'media']);
 
         return response()->json([

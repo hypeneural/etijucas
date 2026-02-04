@@ -6,6 +6,7 @@ namespace App\Filament\Admin\Resources;
 
 use App\Domains\Reports\Enums\LocationQuality;
 use App\Domains\Reports\Enums\ReportStatus;
+use App\Domains\Reports\Actions\UpdateReportStatusAction;
 use App\Domains\Reports\Models\CitizenReport;
 use App\Filament\Admin\Resources\CitizenReportResource\Pages;
 use App\Filament\Admin\Resources\CitizenReportResource\RelationManagers\MediaRelationManager;
@@ -191,22 +192,12 @@ class CitizenReportResource extends BaseResource
                             ->rows(3),
                     ])
                     ->action(function (CitizenReport $record, array $data): void {
-                        $previousStatus = $record->status;
-                        $record->updateStatus(
+                        app(UpdateReportStatusAction::class)->execute(
+                            $record,
                             ReportStatus::from($data['status']),
                             $data['note'] ?? null,
-                            auth()->id()
+                            auth()->user()
                         );
-
-                        activity()
-                            ->causedBy(auth()->user())
-                            ->performedOn($record)
-                            ->withProperties([
-                                'old' => $previousStatus?->value,
-                                'new' => $data['status'],
-                                'note' => $data['note'] ?? null,
-                            ])
-                            ->log('citizen_report_status_updated');
                     })
                     ->visible(fn (): bool => auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false),
                 ...static::baseTableActions(),
