@@ -14,7 +14,9 @@ export function useMyReports(filters?: MyReportsFilters) {
     const query = useQuery({
         queryKey: [...QUERY_KEYS.myReports, filters],
         queryFn: () => reportService.getMyReports(filters),
-        staleTime: 2 * 60 * 1000, // 2 minutes
+        staleTime: 30 * 1000, // 30 seconds - more dynamic
+        gcTime: 5 * 60 * 1000, // 5 minutes - keep in cache for offline
+        refetchOnWindowFocus: true, // Refetch when user comes back
         enabled: isAuthenticated, // Only fetch when authenticated
     });
 
@@ -32,7 +34,9 @@ export function useReportDetail(id: string | undefined) {
         queryKey: QUERY_KEYS.reports.detail(id ?? ''),
         queryFn: () => reportService.getReportById(id!),
         enabled: !!id,
-        staleTime: 1 * 60 * 1000, // 1 minute
+        staleTime: 30 * 1000, // 30 seconds
+        gcTime: 5 * 60 * 1000, // 5 minutes
+        refetchOnWindowFocus: true,
     });
 
     return {
@@ -50,8 +54,10 @@ export function useCreateReport() {
         mutationFn: ({ payload, idempotencyKey }: { payload: CreateReportPayload; idempotencyKey: string }) =>
             reportService.createReport(payload, idempotencyKey),
         onSuccess: () => {
-            // Invalidate my reports cache
+            // Invalidate ALL reports caches - my reports, public reports, and stats
             queryClient.invalidateQueries({ queryKey: QUERY_KEYS.myReports });
+            queryClient.invalidateQueries({ queryKey: ['reports', 'public'] });
+            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.reports.stats() });
         },
     });
 
@@ -72,6 +78,7 @@ export function useAddReportMedia() {
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: QUERY_KEYS.reports.detail(variables.reportId) });
             queryClient.invalidateQueries({ queryKey: QUERY_KEYS.myReports });
+            queryClient.invalidateQueries({ queryKey: ['reports', 'public'] });
         },
     });
 
@@ -108,7 +115,9 @@ export function usePublicReports(filters?: PublicReportsFilters) {
     const query = useQuery({
         queryKey: ['reports', 'public', filters],
         queryFn: () => reportService.getPublicReports(filters),
-        staleTime: 2 * 60 * 1000, // 2 minutes
+        staleTime: 30 * 1000, // 30 seconds - more dynamic
+        gcTime: 5 * 60 * 1000, // 5 minutes - keep in cache for offline
+        refetchOnWindowFocus: true, // Refetch when user comes back
     });
 
     return {
@@ -128,7 +137,9 @@ export function useReportsStats() {
     const query = useQuery({
         queryKey: QUERY_KEYS.reports.stats(),
         queryFn: () => reportService.getReportsStats(),
-        staleTime: 5 * 60 * 1000, // 5 minutes
+        staleTime: 60 * 1000, // 1 minute - more dynamic
+        gcTime: 5 * 60 * 1000, // 5 minutes
+        refetchOnWindowFocus: true,
     });
 
     return {

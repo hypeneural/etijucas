@@ -107,6 +107,10 @@ class RolesAndPermissionsSeeder extends Seeder
             'view_activity_log',
             // Moderation queue page
             'page_moderation_queue',
+            // Citizen Reports
+            'view_any_citizen_report',
+            'view_citizen_report',
+            'update_citizen_report',
         ];
 
         $availableFilamentPermissions = Permission::query()
@@ -159,6 +163,18 @@ class RolesAndPermissionsSeeder extends Seeder
             'create_venue',
             'update_venue',
             'delete_venue',
+            // Events
+            'view_any_event',
+            'view_event',
+            'create_event',
+            'update_event',
+            'delete_event',
+            // Tourism Spots
+            'view_any_tourism_spot',
+            'view_tourism_spot',
+            'create_tourism_spot',
+            'update_tourism_spot',
+            'delete_tourism_spot',
         ];
 
         $availableOperatorFilamentPermissions = Permission::query()

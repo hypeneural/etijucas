@@ -240,7 +240,9 @@ Em todos:
 - [x] Catalogo: `Tag`.
 - [x] Catalogo: `Bairro` (ja existente).
 - [x] Catalogo: `Venue`.
-- [ ] CRUDs principais: `Event`, `TourismSpot`, `CitizenReport`.
+- [x] CRUD principal: `Event`.
+- [x] CRUD principal: `TourismSpot`.
+- [x] CRUD principal: `CitizenReport`.
 - [ ] CRUDs moderacao: `Review`, `Comment`, `Flags/Reports`.
 - [ ] CRUDs sistema: `Settings`, `FeatureFlags` (se existirem).
 
