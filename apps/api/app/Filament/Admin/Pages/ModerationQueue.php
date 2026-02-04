@@ -11,13 +11,14 @@ use App\Filament\Admin\Resources\CitizenReportResource;
 use App\Filament\Admin\Resources\CommentReportResource;
 use App\Filament\Admin\Resources\ContentFlagResource;
 use App\Filament\Admin\Resources\TopicReportResource;
+use App\Models\ModerationQueueItem;
 use Filament\Pages\Page;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Filters\SelectFilter;
-use Illuminate\Database\Query\Builder;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
 class ModerationQueue extends Page implements HasTable
@@ -99,7 +100,7 @@ class ModerationQueue extends Page implements HasTable
             ->unionAll($commentReports)
             ->unionAll($citizenReports);
 
-        return DB::query()
+        return ModerationQueueItem::query()
             ->fromSub($union, 'moderation_queue')
             ->orderBy('created_at', 'desc');
     }

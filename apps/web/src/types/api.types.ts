@@ -166,6 +166,58 @@ export interface RefreshTokenDTO {
 }
 
 // ======================================================
+// Passwordless OTP DTOs (WhatsApp Login)
+// ======================================================
+
+export interface OtpLoginRequestDTO {
+    phone: string;
+}
+
+export interface OtpLoginResponse {
+    success: boolean;
+    sid: string; // Session ID for verification
+    expiresIn: number;
+    cooldown: number;
+}
+
+export interface OtpSessionResponse {
+    success: boolean;
+    maskedPhone: string; // e.g., "+55 XX XXXXX-1234"
+    expiresIn: number;
+    cooldown: number;
+    hint: string;
+}
+
+export interface OtpVerifyDTO {
+    sid: string;
+    code: string;
+}
+
+export interface OtpVerifyResponse {
+    success: boolean;
+    nextStep: 'home' | 'onboarding';
+    isNewUser: boolean;
+    token: string;
+    refreshToken: string;
+    user: User;
+    expiresIn: number;
+}
+
+export interface CompleteProfileDTO {
+    nome: string;
+    bairroId?: string;
+    termsAccepted: boolean;
+}
+
+export interface CompleteProfileResponse {
+    success: boolean;
+    nextStep: 'home';
+    user: User;
+}
+
+export type OtpErrorCode = 'RATE_LIMITED' | 'OTP_INVALID' | 'OTP_EXPIRED' | 'SID_EXPIRED';
+
+// ======================================================
 // User/Profile Types
 // ======================================================
 
@@ -181,6 +233,8 @@ export interface User {
     notificationSettings: NotificationSettings;
     phoneVerified: boolean;
     phoneVerifiedAt?: string;
+    profileCompleted: boolean;
+    termsAccepted: boolean;
     roles: string[];
     stats?: UserStats;
     createdAt: string; // ISO date string

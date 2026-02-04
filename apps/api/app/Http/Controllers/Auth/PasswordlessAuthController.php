@@ -65,6 +65,7 @@ class PasswordlessAuthController extends Controller
 
     /**
      * Get session context by session ID (for magic link).
+     * Returns ONLY masked phone for privacy.
      *
      * GET /api/v1/auth/otp/session/{sid}
      */
@@ -76,44 +77,58 @@ class PasswordlessAuthController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Sessão expirada ou inválida',
-                'code' => 'SESSION_EXPIRED',
-            ], 404);
+                'code' => 'SID_EXPIRED',
+            ], 410); // 410 Gone
         }
-
-        // Mask phone for privacy (show last 4 digits)
-        $maskedPhone = '(XX) XXXXX-' . substr($context['phone'], -4);
 
         return response()->json([
             'success' => true,
-            'phone_masked' => $maskedPhone,
+            'maskedPhone' => $context['masked_phone'],
             'expiresIn' => $context['expires_in'],
+            'cooldown' => $context['cooldown'],
+            'hint' => 'Copie o código no WhatsApp e volte aqui',
         ]);
     }
 
     /**
      * Verify OTP and login (or auto-register).
+     * Accepts sid + code (no phone required - secure).
      *
      * POST /api/v1/auth/otp/verify
      */
     public function verifyOtp(Request $request): JsonResponse
     {
         $request->validate([
-            'phone' => 'required|string|min:10|max:15',
+            'sid' => 'required|string|size:32',
             'code' => 'required|string|size:6',
         ]);
 
-        $phone = preg_replace('/[^0-9]/', '', $request->phone);
+        // Verify OTP by SID (secure - no phone exposed)
+        $result = $this->otpService->verifyBySid($request->sid, $request->code);
 
-        // Verify OTP
-        $otp = $this->otpService->verify($phone, $request->code, 'passwordless');
+        if (!$result['success']) {
+            $statusCode = match ($result['error_code']) {
+                'SID_EXPIRED' => 410,
+                'OTP_EXPIRED' => 401,
+                'OTP_INVALID' => 401,
+                default => 400,
+            };
 
-        if (!$otp) {
+            $message = match ($result['error_code']) {
+                'SID_EXPIRED' => 'Sessão expirada. Solicite novo código.',
+                'OTP_EXPIRED' => 'Código expirado. Solicite novo código.',
+                'OTP_INVALID' => 'Código incorreto. Tente novamente.',
+                default => 'Erro ao verificar código.',
+            };
+
             return response()->json([
                 'success' => false,
-                'message' => 'Código incorreto ou expirado',
-                'code' => 'INVALID_OTP',
-            ], 401);
+                'message' => $message,
+                'code' => $result['error_code'],
+            ], $statusCode);
         }
+
+        $phone = $result['phone'];
 
         // Find or create user (invisible registration)
         $user = User::where('phone', $phone)->first();

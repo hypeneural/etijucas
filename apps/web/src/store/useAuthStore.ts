@@ -20,6 +20,7 @@ interface AuthStore {
     // Computed-like helpers
     hasRole: (role: string) => boolean;
     isVerified: () => boolean;
+    needsOnboarding: () => boolean;
 }
 
 export const useAuthStore = create<AuthStore>()(
@@ -56,6 +57,11 @@ export const useAuthStore = create<AuthStore>()(
             isVerified: () => {
                 const { user } = get();
                 return user?.phoneVerified ?? false;
+            },
+
+            needsOnboarding: () => {
+                const { user, isAuthenticated } = get();
+                return isAuthenticated && user && !user.profileCompleted;
             },
         }),
         {

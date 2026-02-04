@@ -15,6 +15,7 @@ import { idbPersister } from "./lib/queryPersister";
 
 // Auth pages
 const LoginPage = lazy(() => import("./pages/LoginPage"));
+const WhatsAppLoginPage = lazy(() => import("./pages/WhatsAppLoginPage"));
 const RegisterPage = lazy(() => import("./pages/RegisterPage"));
 const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
@@ -108,6 +109,7 @@ const App = () => {
 
             {/* Auth routes */}
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/login/otp" element={<WhatsAppLoginPage />} />
             <Route path="/cadastro" element={<RegisterPage />} />
             <Route path="/esqueci-senha" element={<ForgotPasswordPage />} />
             <Route path="/perfil" element={<ProfilePage />} />

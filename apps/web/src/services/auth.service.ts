@@ -244,6 +244,104 @@ export const authService = {
         );
         return response;
     },
+
+    // ======================================================
+    // Passwordless OTP Login (WhatsApp)
+    // ======================================================
+
+    /**
+     * Request OTP for passwordless login via WhatsApp
+     * Returns a session ID (sid) for verification
+     */
+    async requestOtpLogin(phone: string): Promise<{
+        success: boolean;
+        sid: string;
+        expiresIn: number;
+        cooldown: number;
+    }> {
+        const response = await apiClient.post<{
+            success: boolean;
+            sid: string;
+            expiresIn: number;
+            cooldown: number;
+        }>('/auth/otp/login', { phone: cleanPhone(phone) });
+        return response;
+    },
+
+    /**
+     * Get session context for magic link (pre-fills phone info)
+     */
+    async getOtpSession(sid: string): Promise<{
+        success: boolean;
+        maskedPhone: string;
+        expiresIn: number;
+        cooldown: number;
+        hint: string;
+    }> {
+        const response = await apiClient.get<{
+            success: boolean;
+            maskedPhone: string;
+            expiresIn: number;
+            cooldown: number;
+            hint: string;
+        }>(`/auth/otp/session/${sid}`);
+        return response;
+    },
+
+    /**
+     * Verify OTP and login (or auto-register)
+     * Uses sid + code (no phone required - secure)
+     */
+    async verifyOtpLogin(sid: string, code: string): Promise<{
+        success: boolean;
+        next_step: 'home' | 'onboarding';
+        isNewUser: boolean;
+        token: string;
+        refreshToken: string;
+        user: User;
+        expiresIn: number;
+    }> {
+        const response = await apiClient.post<{
+            success: boolean;
+            next_step: 'home' | 'onboarding';
+            isNewUser: boolean;
+            token: string;
+            refreshToken: string;
+            user: User;
+            expiresIn: number;
+        }>('/auth/otp/verify', { sid, code });
+
+        // Store tokens on successful verification
+        if (response.token && response.refreshToken) {
+            tokenService.setTokens(response.token, response.refreshToken);
+        }
+
+        return response;
+    },
+
+    /**
+     * Complete user profile after passwordless login
+     */
+    async completeProfile(data: {
+        nome: string;
+        bairroId?: string;
+        termsAccepted: boolean;
+    }): Promise<{
+        success: boolean;
+        next_step: 'home';
+        user: User;
+    }> {
+        const response = await apiClient.post<{
+            success: boolean;
+            next_step: 'home';
+            user: User;
+        }>('/auth/profile/complete', {
+            nome: data.nome,
+            bairro_id: data.bairroId,
+            terms_accepted: data.termsAccepted,
+        });
+        return response;
+    },
 };
 
 export default authService;

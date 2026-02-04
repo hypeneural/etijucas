@@ -70,10 +70,11 @@ class OtpService
     /**
      * Generate OTP with Session ID for magic link support.
      * Implements idempotency: if called within window, returns existing OTP/session.
+     * Uses high-entropy UUID for SID (32 chars).
      *
-     * @return array{otp: OtpCode, sid: string, isNew: bool}
+     * @return array{otp: OtpCode, sid: string, isNew: bool, cooldown: int}
      */
-    public function generateWithSession(string $phone, string $type = 'login'): array
+    public function generateWithSession(string $phone, string $type = 'passwordless'): array
     {
         // Check for existing valid OTP (idempotency)
         $existingOtp = $this->getLatestOtp($phone, $type);
@@ -82,24 +83,31 @@ class OtpService
 
         if ($existingOtp && $existingSid) {
             // Return existing if within idempotency window
+            $sessionData = Cache::get($this->getSessionKey($existingSid));
+            $cooldown = $sessionData ? max(0, $this->idempotencyWindow - (time() - strtotime($sessionData['created_at']))) : 0;
+
             return [
                 'otp' => $existingOtp,
                 'sid' => $existingSid,
                 'isNew' => false,
+                'cooldown' => $cooldown,
             ];
         }
 
         // Generate new OTP
         $otp = $this->generate($phone, $type);
 
-        // Generate session ID (8-char opaque token)
-        $sid = Str::random(8);
+        // Generate high-entropy session ID (UUID without dashes = 32 chars)
+        $sid = Str::uuid()->toString();
+        $sid = str_replace('-', '', $sid); // 32 chars hex
 
-        // Store session context in cache
+        // Store session context in cache (phone stored internally, never exposed)
         $sessionData = [
             'phone' => $phone,
             'otp_id' => $otp->id,
+            'code' => $otp->code, // Store code for sid-based verification
             'created_at' => now()->toIso8601String(),
+            'used' => false,
         ];
         Cache::put($this->getSessionKey($sid), $sessionData, now()->addMinutes($this->sessionExpirationMinutes));
 
@@ -110,13 +118,15 @@ class OtpService
             'otp' => $otp,
             'sid' => $sid,
             'isNew' => true,
+            'cooldown' => $this->idempotencyWindow,
         ];
     }
 
     /**
      * Get session context by session ID (for magic link).
+     * Returns ONLY masked phone for privacy - never exposes full phone.
      *
-     * @return array{phone: string, expires_in: int}|null
+     * @return array{masked_phone: string, expires_in: int, cooldown: int}|null
      */
     public function getSessionContext(string $sid): ?array
     {
@@ -126,15 +136,72 @@ class OtpService
             return null;
         }
 
+        // Check if already used (single-use)
+        if ($sessionData['used'] ?? false) {
+            return null;
+        }
+
         // Calculate remaining time
         $createdAt = \Carbon\Carbon::parse($sessionData['created_at']);
         $expiresAt = $createdAt->addMinutes($this->sessionExpirationMinutes);
         $expiresIn = max(0, now()->diffInSeconds($expiresAt, false));
 
+        // Mask phone for privacy (show only last 4 digits)
+        $phone = $sessionData['phone'];
+        $maskedPhone = '+55 XX XXXXX-' . substr($phone, -4);
+
         return [
-            'phone' => $sessionData['phone'],
+            'masked_phone' => $maskedPhone,
             'expires_in' => (int) $expiresIn,
+            'cooldown' => 0,
         ];
+    }
+
+    /**
+     * Verify OTP by Session ID (no phone required).
+     * This is the secure way - phone is never exposed.
+     *
+     * @return array{success: bool, phone?: string, error_code?: string}
+     */
+    public function verifyBySid(string $sid, string $code): array
+    {
+        $sessionData = Cache::get($this->getSessionKey($sid));
+
+        // Session not found
+        if (!$sessionData) {
+            return ['success' => false, 'error_code' => 'SID_EXPIRED'];
+        }
+
+        // Already used (single-use)
+        if ($sessionData['used'] ?? false) {
+            return ['success' => false, 'error_code' => 'SID_EXPIRED'];
+        }
+
+        $phone = $sessionData['phone'];
+        $storedCode = $sessionData['code'];
+
+        // Verify code matches
+        if ($code !== $storedCode) {
+            // Increment failed attempts
+            $this->incrementFailedAttempt($phone);
+            return ['success' => false, 'error_code' => 'OTP_INVALID'];
+        }
+
+        // Verify OTP in database (check expiration, attempts)
+        $otp = $this->verify($phone, $code, 'passwordless');
+
+        if (!$otp) {
+            return ['success' => false, 'error_code' => 'OTP_EXPIRED'];
+        }
+
+        // Mark session as used (single-use)
+        $sessionData['used'] = true;
+        Cache::put($this->getSessionKey($sid), $sessionData, now()->addMinutes(1)); // Keep briefly for idempotency
+
+        // Clear idempotency key
+        Cache::forget($this->getIdempotencyKey($phone));
+
+        return ['success' => true, 'phone' => $phone];
     }
 
     /**

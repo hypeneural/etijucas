@@ -7,7 +7,7 @@ namespace App\Filament\Admin\Resources\ContentFlagResource\Pages;
 use App\Domain\Moderation\Enums\FlagStatus;
 use App\Filament\Admin\Resources\ContentFlagResource;
 use Filament\Resources\Pages\ListRecords;
-use Filament\Tables\Tabs\Tab;
+use Filament\Resources\Pages\ListRecords\Tab;
 use Illuminate\Database\Eloquent\Builder;
 
 class ListContentFlags extends ListRecords
