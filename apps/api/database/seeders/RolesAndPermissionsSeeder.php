@@ -119,9 +119,13 @@ class RolesAndPermissionsSeeder extends Seeder
             'view_any_activity::log',
             'view_activity::log',
             // Moderation queue page
+            'page_Dashboard',
             'page_ModerationQueue',
             'page_ReportsDashboard',
             'page_GeoIssues',
+            // Widgets
+            'widget_AdminOverviewStats',
+            'widget_ReportsOverviewStats',
             // Citizen Reports
             'view_any_citizen::report',
             'view_citizen::report',
@@ -141,85 +145,8 @@ class RolesAndPermissionsSeeder extends Seeder
             $availableFilamentPermissions
         )));
 
-        // Operator Role - Content operations
-        $operatorRole = Role::firstOrCreate(['name' => 'operator']);
-        $operatorBasePermissions = [
-            'events.manage',
-            'tourism.manage',
-            'phones.manage',
-            'bairros.manage',
-        ];
-
-        $operatorFilamentPermissions = [
-            // Bairros
-            'view_any_bairro',
-            'view_bairro',
-            'create_bairro',
-            'update_bairro',
-            'delete_bairro',
-            // Phones
-            'view_any_phone',
-            'view_phone',
-            'create_phone',
-            'update_phone',
-            'delete_phone',
-            // Event Categories
-            'view_any_event::category',
-            'view_event::category',
-            'create_event::category',
-            'update_event::category',
-            'delete_event::category',
-            // Tags
-            'view_any_tag',
-            'view_tag',
-            'create_tag',
-            'update_tag',
-            'delete_tag',
-            // Venues
-            'view_any_venue',
-            'view_venue',
-            'create_venue',
-            'update_venue',
-            'delete_venue',
-            // Events
-            'view_any_event',
-            'view_event',
-            'create_event',
-            'update_event',
-            'delete_event',
-            // Tourism Spots
-            'view_any_tourism::spot',
-            'view_tourism::spot',
-            'create_tourism::spot',
-            'update_tourism::spot',
-            'delete_tourism::spot',
-            // Tourism Reviews
-            'view_any_tourism::review',
-            'view_tourism::review',
-            'update_tourism::review',
-            'delete_tourism::review',
-            // Organizers
-            'view_any_organizer',
-            'view_organizer',
-            'create_organizer',
-            'update_organizer',
-            'delete_organizer',
-            // Event RSVPs
-            'view_any_event::rsvp',
-            'view_event::rsvp',
-            'update_event::rsvp',
-            'delete_event::rsvp',
-        ];
-
-        $availableOperatorFilamentPermissions = Permission::query()
-            ->whereIn('name', $operatorFilamentPermissions)
-            ->pluck('name')
-            ->all();
-
-        $operatorRole->syncPermissions(array_unique(array_merge(
-            $operatorBasePermissions,
-            $availableOperatorFilamentPermissions
-        )));
+        // Remove legacy operator role (roles suportados: admin, moderator, user)
+        Role::where('name', 'operator')->delete();
 
         // Admin Role - All permissions
         $adminRole = Role::firstOrCreate(['name' => 'admin']);
@@ -231,7 +158,6 @@ class RolesAndPermissionsSeeder extends Seeder
             [
                 ['user', $userRole->permissions->pluck('name')->join(', ')],
                 ['moderator', $moderatorRole->permissions->pluck('name')->join(', ')],
-                ['operator', $operatorRole->permissions->pluck('name')->join(', ')],
                 ['admin', 'All permissions'],
             ]
         );

@@ -34,6 +34,11 @@ class ModerationQueue extends Page implements HasTable
 
     protected static string $view = 'filament.admin.pages.moderation-queue';
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->can('page_ModerationQueue') ?? false;
+    }
+
     protected function getTableQuery(): Builder
     {
         $flags = DB::table('content_flags')

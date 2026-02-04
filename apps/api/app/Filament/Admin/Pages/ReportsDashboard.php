@@ -21,13 +21,18 @@ class ReportsDashboard extends Page implements HasTable
 
     protected static ?string $navigationIcon = 'heroicon-o-chart-bar';
 
-    protected static ?string $navigationLabel = 'Reports Dashboard';
+    protected static ?string $navigationLabel = 'Dashboard de Denuncias';
 
     protected static ?string $navigationGroup = 'Moderacao';
 
     protected static ?int $navigationSort = 7;
 
     protected static string $view = 'filament.admin.pages.reports-dashboard';
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->can('page_ReportsDashboard') ?? false;
+    }
 
     protected function getHeaderWidgets(): array
     {

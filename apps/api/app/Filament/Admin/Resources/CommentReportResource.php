@@ -131,27 +131,53 @@ class CommentReportResource extends BaseResource
                     ->icon('heroicon-o-x-circle')
                     ->color('gray')
                     ->requiresConfirmation()
-                    ->action(fn($record) => $record->update(['status' => ReportStatus::Dismissed]))
-                    ->visible(fn($record) => $record->status === ReportStatus::Pending),
+                    ->action(function (CommentReport $record): void {
+                        $record->update(['status' => ReportStatus::Dismissed]);
+
+                        activity()
+                            ->causedBy(auth()->user())
+                            ->performedOn($record)
+                            ->withProperties([
+                                'status' => ReportStatus::Dismissed->value,
+                            ])
+                            ->log('comment_report_dismissed');
+                    })
+                    ->visible(fn (CommentReport $record) => $record->status === ReportStatus::Pending
+                        && (auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false)),
                 Action::make('deleteComment')
-                    ->label('Remover Comentário')
+                    ->label('Remover Comentario')
                     ->icon('heroicon-o-trash')
                     ->color('danger')
                     ->requiresConfirmation()
-                    ->modalHeading('Remover Comentário')
-                    ->modalDescription('O comentário será removido permanentemente.')
-                    ->action(function ($record) {
+                    ->modalHeading('Remover Comentario')
+                    ->modalDescription('O comentario sera removido permanentemente.')
+                    ->action(function (CommentReport $record): void {
+                        $commentId = $record->comment_id;
+                        $topicId = $record->comment?->topic_id;
+
                         $record->comment?->delete();
                         $record->update(['status' => ReportStatus::ActionTaken]);
+
+                        activity()
+                            ->causedBy(auth()->user())
+                            ->performedOn($record)
+                            ->withProperties([
+                                'status' => ReportStatus::ActionTaken->value,
+                                'comment_id' => $commentId,
+                                'topic_id' => $topicId,
+                            ])
+                            ->log('comment_report_comment_deleted');
                     })
-                    ->visible(fn($record) => $record->status === ReportStatus::Pending),
+                    ->visible(fn (CommentReport $record) => $record->status === ReportStatus::Pending
+                        && (auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false)),
             ])
             ->bulkActions([
                 Tables\Actions\BulkAction::make('dismissAll')
                     ->label('Ignorar selecionados')
                     ->icon('heroicon-o-x-circle')
                     ->requiresConfirmation()
-                    ->action(fn($records) => $records->each->update(['status' => ReportStatus::Dismissed])),
+                    ->action(fn($records) => $records->each->update(['status' => ReportStatus::Dismissed]))
+                    ->visible(fn (): bool => auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false),
             ]);
     }
 

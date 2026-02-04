@@ -15,6 +15,11 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class AdminOverviewStats extends BaseWidget
 {
+    public static function canView(): bool
+    {
+        return auth()->user()?->can('widget_AdminOverviewStats') ?? false;
+    }
+
     protected function getStats(): array
     {
         $openFlags = ContentFlag::query()

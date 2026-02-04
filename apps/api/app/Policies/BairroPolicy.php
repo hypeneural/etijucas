@@ -22,26 +22,26 @@ class BairroPolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->hasAnyRole(['admin', 'moderator', 'operator']);
+        return $user->hasAnyRole(['admin', 'moderator']);
     }
 
     public function view(User $user): bool
     {
-        return $user->hasAnyRole(['admin', 'moderator', 'operator']);
+        return $user->hasAnyRole(['admin', 'moderator']);
     }
 
     public function create(User $user): bool
     {
-        return $user->hasAnyRole(['admin', 'operator']);
+        return $user->hasRole('admin');
     }
 
     public function update(User $user): bool
     {
-        return $user->hasAnyRole(['admin', 'operator']);
+        return $user->hasRole('admin');
     }
 
     public function delete(User $user): bool
     {
-        return $user->hasAnyRole(['admin', 'operator']);
+        return $user->hasRole('admin');
     }
 }

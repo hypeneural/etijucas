@@ -146,8 +146,17 @@ class ContentFlagResource extends BaseResource
                     ->color('info')
                     ->action(function (ContentFlag $record): void {
                         $record->markReviewing(auth()->user());
+
+                        activity()
+                            ->causedBy(auth()->user())
+                            ->performedOn($record)
+                            ->withProperties([
+                                'status' => FlagStatus::Reviewing->value,
+                            ])
+                            ->log('content_flag_reviewing');
                     })
-                    ->visible(fn (ContentFlag $record) => $record->status === FlagStatus::Open),
+                    ->visible(fn (ContentFlag $record) => $record->status === FlagStatus::Open
+                        && (auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false)),
                 Action::make('dismiss')
                     ->label('Dispensar')
                     ->icon('heroicon-o-x-circle')
@@ -155,8 +164,17 @@ class ContentFlagResource extends BaseResource
                     ->requiresConfirmation()
                     ->action(function (ContentFlag $record): void {
                         $record->markDismissed(auth()->user());
+
+                        activity()
+                            ->causedBy(auth()->user())
+                            ->performedOn($record)
+                            ->withProperties([
+                                'status' => FlagStatus::Dismissed->value,
+                            ])
+                            ->log('content_flag_dismissed');
                     })
-                    ->visible(fn (ContentFlag $record) => in_array($record->status, [FlagStatus::Open, FlagStatus::Reviewing], true)),
+                    ->visible(fn (ContentFlag $record) => in_array($record->status, [FlagStatus::Open, FlagStatus::Reviewing], true)
+                        && (auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false)),
                 Action::make('takeAction')
                     ->label('Acao tomada')
                     ->icon('heroicon-o-check-circle')
@@ -212,8 +230,9 @@ class ContentFlagResource extends BaseResource
                     ->action(function (ContentFlag $record, array $data): void {
                         $record->markActionTaken(auth()->user(), FlagAction::from($data['action']));
 
+                        $restrictionId = null;
                         if (($data['action'] ?? null) === FlagAction::RestrictUser->value) {
-                            UserRestriction::create([
+                            $restriction = UserRestriction::create([
                                 'user_id' => $data['user_id'],
                                 'type' => $data['restriction_type'],
                                 'scope' => $data['restriction_scope'],
@@ -222,9 +241,21 @@ class ContentFlagResource extends BaseResource
                                 'starts_at' => now(),
                                 'ends_at' => $data['restriction_ends_at'] ?? null,
                             ]);
+                            $restrictionId = $restriction->id;
                         }
+
+                        activity()
+                            ->causedBy(auth()->user())
+                            ->performedOn($record)
+                            ->withProperties([
+                                'status' => FlagStatus::ActionTaken->value,
+                                'action' => $data['action'] ?? null,
+                                'restriction_id' => $restrictionId,
+                            ])
+                            ->log('content_flag_action_taken');
                     })
-                    ->visible(fn (ContentFlag $record) => in_array($record->status, [FlagStatus::Open, FlagStatus::Reviewing], true)),
+                    ->visible(fn (ContentFlag $record) => in_array($record->status, [FlagStatus::Open, FlagStatus::Reviewing], true)
+                        && (auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false)),
             ]);
     }
 

@@ -23,26 +23,26 @@ class TourismSpotPolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->hasAnyRole(['admin', 'operator']);
+        return $user->hasRole('admin');
     }
 
     public function view(User $user, TourismSpot $spot): bool
     {
-        return $user->hasAnyRole(['admin', 'operator']);
+        return $user->hasRole('admin');
     }
 
     public function create(User $user): bool
     {
-        return $user->hasAnyRole(['admin', 'operator']);
+        return $user->hasRole('admin');
     }
 
     public function update(User $user, TourismSpot $spot): bool
     {
-        return $user->hasAnyRole(['admin', 'operator']);
+        return $user->hasRole('admin');
     }
 
     public function delete(User $user, TourismSpot $spot): bool
     {
-        return $user->hasAnyRole(['admin', 'operator']);
+        return $user->hasRole('admin');
     }
 }

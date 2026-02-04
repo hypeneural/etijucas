@@ -117,6 +117,7 @@ Sistema
 - ModerationQueue unifica flags, reports do forum e denuncias cidadas.
 - Pages operacionais para denuncias com KPIs e foco em qualidade de geolocalizacao.
 - Shield gerou permissoes para resources, pages e widgets; roles base seedadas.
+- Politica unica: todas as policies ficam em `apps/api/app/Policies` e sao registradas no Gate.
 
 ## Analise das denuncias no admin
 - `CitizenReportResource` com action dedicada para update de status e registro no historico.

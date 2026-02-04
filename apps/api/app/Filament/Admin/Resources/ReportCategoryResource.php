@@ -77,7 +77,10 @@ class ReportCategoryResource extends BaseResource
                     ->schema([
                         TagsInput::make('tips')
                             ->label('Dicas')
-                            ->separator(','),
+                            ->separator(',')
+                            ->default([])
+                            ->rules(['array'])
+                            ->dehydrateStateUsing(fn (?array $state): array => array_values(array_filter($state ?? []))),
                     ]),
             ]);
     }

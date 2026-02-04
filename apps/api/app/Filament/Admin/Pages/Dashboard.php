@@ -11,6 +11,11 @@ class Dashboard extends BaseDashboard
 {
     protected static ?string $navigationIcon = 'heroicon-o-home';
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->can('page_Dashboard') ?? false;
+    }
+
     protected function getHeaderWidgets(): array
     {
         return [

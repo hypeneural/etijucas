@@ -23,26 +23,26 @@ class TourismReviewPolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->hasAnyRole(['admin', 'operator']);
+        return $user->hasRole('admin');
     }
 
     public function view(User $user, TourismReview $review): bool
     {
-        return $user->hasAnyRole(['admin', 'operator']);
+        return $user->hasRole('admin');
     }
 
     public function create(User $user): bool
     {
-        return $user->hasAnyRole(['admin', 'operator']);
+        return $user->hasRole('admin');
     }
 
     public function update(User $user, TourismReview $review): bool
     {
-        return $user->hasAnyRole(['admin', 'operator']);
+        return $user->hasRole('admin');
     }
 
     public function delete(User $user, TourismReview $review): bool
     {
-        return $user->hasAnyRole(['admin', 'operator']);
+        return $user->hasRole('admin');
     }
 }

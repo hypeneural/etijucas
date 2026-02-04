@@ -141,7 +141,7 @@ class TourismReviewResource extends BaseResource
                 EditAction::make()->requiresConfirmation(),
                 DeleteAction::make()
                     ->requiresConfirmation()
-                    ->visible(fn(): bool => auth()->user()?->hasAnyRole(['admin', 'operator']) ?? false),
+                    ->visible(fn(): bool => auth()->user()?->hasRole('admin') ?? false),
             ]);
     }
 

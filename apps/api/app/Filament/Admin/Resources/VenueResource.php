@@ -149,6 +149,6 @@ class VenueResource extends BaseResource
 
     public static function canCreate(): bool
     {
-        return auth()->user()?->hasAnyRole(['admin', 'operator']) ?? false;
+        return auth()->user()?->hasRole('admin') ?? false;
     }
 }

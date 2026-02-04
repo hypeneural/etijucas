@@ -129,27 +129,50 @@ class TopicReportResource extends BaseResource
                     ->icon('heroicon-o-x-circle')
                     ->color('gray')
                     ->requiresConfirmation()
-                    ->action(fn($record) => $record->update(['status' => ReportStatus::Dismissed]))
-                    ->visible(fn($record) => $record->status === ReportStatus::Pending),
+                    ->action(function (TopicReport $record): void {
+                        $record->update(['status' => ReportStatus::Dismissed]);
+
+                        activity()
+                            ->causedBy(auth()->user())
+                            ->performedOn($record)
+                            ->withProperties([
+                                'status' => ReportStatus::Dismissed->value,
+                            ])
+                            ->log('topic_report_dismissed');
+                    })
+                    ->visible(fn (TopicReport $record) => $record->status === ReportStatus::Pending
+                        && (auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false)),
                 Action::make('hideTopic')
-                    ->label('Ocultar Tópico')
+                    ->label('Ocultar Topico')
                     ->icon('heroicon-o-eye-slash')
                     ->color('danger')
                     ->requiresConfirmation()
-                    ->modalHeading('Ocultar Tópico')
-                    ->modalDescription('O tópico será ocultado e a denúncia marcada como processada.')
-                    ->action(function ($record) {
+                    ->modalHeading('Ocultar Topico')
+                    ->modalDescription('O topico sera ocultado e a denuncia marcada como processada.')
+                    ->action(function (TopicReport $record): void {
+                        $topicId = $record->topic_id;
                         $record->topic?->update(['status' => TopicStatus::Hidden]);
                         $record->update(['status' => ReportStatus::ActionTaken]);
+
+                        activity()
+                            ->causedBy(auth()->user())
+                            ->performedOn($record)
+                            ->withProperties([
+                                'status' => ReportStatus::ActionTaken->value,
+                                'topic_id' => $topicId,
+                            ])
+                            ->log('topic_report_topic_hidden');
                     })
-                    ->visible(fn($record) => $record->status === ReportStatus::Pending),
+                    ->visible(fn (TopicReport $record) => $record->status === ReportStatus::Pending
+                        && (auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false)),
             ])
             ->bulkActions([
                 Tables\Actions\BulkAction::make('dismissAll')
                     ->label('Ignorar selecionados')
                     ->icon('heroicon-o-x-circle')
                     ->requiresConfirmation()
-                    ->action(fn($records) => $records->each->update(['status' => ReportStatus::Dismissed])),
+                    ->action(fn($records) => $records->each->update(['status' => ReportStatus::Dismissed]))
+                    ->visible(fn (): bool => auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false),
             ]);
     }
 

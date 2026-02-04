@@ -11,6 +11,11 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class ReportsOverviewStats extends BaseWidget
 {
+    public static function canView(): bool
+    {
+        return auth()->user()?->can('widget_ReportsOverviewStats') ?? false;
+    }
+
     protected function getStats(): array
     {
         $total = CitizenReport::query()->count();

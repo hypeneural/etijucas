@@ -142,7 +142,7 @@ class OrganizerResource extends BaseResource
                 EditAction::make()->requiresConfirmation(),
                 DeleteAction::make()
                     ->requiresConfirmation()
-                    ->visible(fn(): bool => auth()->user()?->hasAnyRole(['admin', 'operator']) ?? false),
+                    ->visible(fn(): bool => auth()->user()?->hasRole('admin') ?? false),
             ]);
     }
 
@@ -157,6 +157,6 @@ class OrganizerResource extends BaseResource
 
     public static function canCreate(): bool
     {
-        return auth()->user()?->hasAnyRole(['admin', 'operator']) ?? false;
+        return auth()->user()?->hasRole('admin') ?? false;
     }
 }

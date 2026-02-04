@@ -1,315 +1,114 @@
-# 📋 Sistema de Denúncias - Documentação Técnica
+# Sistema de Denuncias - Documentacao Tecnica
 
-> **Fiscaliza Tijucas** - Módulo de Denúncias Cidadãs  
-> Última atualização: 2026-02-03
+Ultima atualizacao: 2026-02-04
 
----
+## Visao geral
+O modulo de Denuncias permite que cidadaos reportem problemas urbanos com descricao, fotos e localizacao. O fluxo e mobile-first e o back-end valida regras e status. O painel Filament e a interface administrativa (nao consome a API).
 
-## 🎯 Visão Geral
-
-O módulo de Denúncias permite que cidadãos reportem problemas urbanos (buracos, iluminação, lixo, etc.) com fotos, localização GPS e descrição. O sistema é **mobile-first**, **offline-first** e **native-first**.
-
----
-
-## 🏗️ Arquitetura
-
+## Arquitetura (resumo)
 ### Backend (Laravel 12)
+- Dominio: `apps/api/app/Domains/Reports`
+- Models: `CitizenReport`, `ReportCategory`, `ReportStatusHistory`
+- Enums: `ReportStatus`, `LocationQuality`
+- Controller/API: `ReportController`, Requests e Resources
+- Media: Spatie Media Library (colecao `report_images`)
 
-```
-apps/api/app/Domains/Reports/
-├── Models/
-│   ├── CitizenReport.php      # Denúncia principal
-│   ├── ReportCategory.php     # Categorias (buraco, iluminação, etc.)
-│   └── ReportMedia.php        # Fotos/vídeos anexados
-├── Http/
-│   ├── Controllers/
-│   │   └── ReportController.php
-│   ├── Requests/
-│   │   └── CreateReportRequest.php
-│   └── Resources/
-│       └── ReportResource.php
-├── Enums/
-│   └── ReportStatus.php       # recebido, em_analise, resolvido, rejeitado
-├── Services/
-│   └── ReportService.php
-└── Policies/
-    └── ReportPolicy.php
-```
+### Frontend (React)
+- Wizard de criacao (categoria, localizacao, detalhes, fotos, revisao)
+- Lista publica e detalhe de denuncia
+- Minhas denuncias (autenticado)
 
-### Frontend (React + TypeScript)
-
-```
-apps/web/src/
-├── pages/
-│   ├── ReportWizardPage.tsx   # Wizard de criação (4 steps)
-│   ├── MyReportsPage.tsx      # Minhas denúncias (logado)
-│   └── ReportDetailPage.tsx   # Detalhe da denúncia
-├── screens/
-│   └── ReportScreen.tsx       # Lista pública (/denuncias)
-├── components/report/
-│   ├── StepCategory.tsx       # Seleção de categoria
-│   ├── StepLocation.tsx       # Mapa + GPS
-│   ├── StepDetails.tsx        # Título + descrição
-│   ├── StepPhotos.tsx         # Upload de fotos
-│   ├── StepReview.tsx         # Revisão final
-│   ├── LocationMap.tsx        # Componente de mapa
-│   └── CategoryIcon.tsx       # Ícone dinâmico (Iconify MDI)
-├── hooks/
-│   ├── useMyReports.ts        # CRUD + cache
-│   └── useReportCategories.ts # Categorias da API
-└── services/
-    └── report.service.ts      # API calls
-```
-
----
-
-## 🔧 Funcionalidades Implementadas
-
-### ✅ Backend
-
-| Feature | Status | Descrição |
-|---------|--------|-----------|
-| CRUD Denúncias | ✅ | Criar, listar, visualizar, atualizar |
-| Upload de Mídia | ✅ | Fotos com thumbnails automáticos |
-| Categorias Dinâmicas | ✅ | Via banco com ícones MDI |
-| Geolocalização | ✅ | latitude/longitude/address |
-| Protocolo Único | ✅ | Geração automática com retry |
-| Status Workflow | ✅ | recebido → em_analise → resolvido |
-| Histórico de Status | ✅ | JSON com timestamps |
-| API Pública | ✅ | Listagem sem autenticação |
-| API Autenticada | ✅ | Minhas denúncias |
-| Filament CRUD | ✅ | Admin panel completo |
-
-### ✅ Frontend
-
-| Feature | Status | Descrição |
-|---------|--------|-----------|
-| Wizard 5 Steps | ✅ | Categoria → Local → Detalhes → Fotos → Revisão |
-| Ícones MDI | ✅ | Via `@iconify/react` + API |
-| Grid 3 Colunas | ✅ | Mobile-first na seleção de categoria |
-| Mapa Interativo | ✅ | Leaflet com GPS e busca |
-| Upload de Fotos | ✅ | Câmera/galeria com preview |
-| Lista Pública | ✅ | `/denuncias` com filtros |
-| Minhas Denúncias | ✅ | `/minhas-denuncias` (autenticado) |
-| Detalhe | ✅ | `/denuncia/:id` com galeria e mapa |
-| Thumbnails | ✅ | Exibição de fotos nas listas |
-| Cache TanStack | ✅ | staleTime 30s, gcTime 5min |
-| Offline Drafts | ✅ | Rascunhos em IndexedDB |
-
----
-
-## 📊 Modelo de Dados
+## Modelo de dados (real)
+### report_categories
+- id (UUID)
+- name (string)
+- slug (string, unico)
+- icon (string)
+- color (string)
+- tips (JSON, array de strings)
+- active (boolean)
+- sort_order (int)
+- created_at, updated_at
 
 ### citizen_reports
-```sql
-id              UUID PRIMARY KEY
-user_id         UUID FK (nullable para anônimas)
-category_id     UUID FK
-title           VARCHAR(200)
-description     TEXT NULLABLE
-status          ENUM (recebido, em_analise, resolvido, rejeitado)
-protocol        VARCHAR(20) UNIQUE
-latitude        DECIMAL(10,7)
-longitude       DECIMAL(10,7)
-address         TEXT NULLABLE
-status_history  JSON
-is_anonymous    BOOLEAN
-resolved_at     TIMESTAMP NULLABLE
-created_at      TIMESTAMP
-updated_at      TIMESTAMP
-```
+- id (UUID)
+- user_id (UUID, FK users)
+- category_id (UUID, FK report_categories)
+- bairro_id (UUID, FK bairros, nullable)
+- title (string)
+- description (text)
+- status (string: recebido, em_analise, resolvido, rejeitado)
+- protocol (string unico)
+- address_text (string, nullable)
+- address_source (string: manual, gps, mapa)
+- location_quality (string: precisa, aproximada, manual)
+- latitude (decimal(10,7), nullable)
+- longitude (decimal(10,7), nullable)
+- location_accuracy_m (int, nullable)
+- created_at, updated_at, resolved_at (nullable), deleted_at
 
-### report_categories
-```sql
-id          UUID PRIMARY KEY
-name        VARCHAR(100)
-slug        VARCHAR(100) UNIQUE
-icon        VARCHAR(50)   -- Iconify MDI (ex: mdi:road-variant)
-color       VARCHAR(20)   -- Hex (ex: #ef4444)
-tips        JSON          -- Dicas para o usuário
-active      BOOLEAN
-sort_order  INTEGER
-```
+Indices principais:
+- (user_id, created_at)
+- (status, created_at)
+- bairro_id
+- category_id
 
-### report_media
-```sql
-id          UUID PRIMARY KEY
-report_id   UUID FK
-url         VARCHAR(500)
-thumb_url   VARCHAR(500)
-type        ENUM (image, video)
-```
+### report_status_history
+- id (UUID)
+- report_id (UUID, FK citizen_reports)
+- status (string)
+- note (text, nullable)
+- created_by (UUID, FK users, nullable)
+- created_at
 
----
+### media (Spatie)
+- Tabela `media` (padrao Spatie)
+- Colecao `report_images`
+- Conversoes: `thumb`, `web`
 
-## 🔌 Endpoints API
+## Admin (Filament)
+### Recursos
+- `CitizenReportResource`
+  - Edicao e visualizacao da denuncia
+  - Action de atualizar status (com historico + audit log)
+  - RelationManagers: `StatusHistory`, `Media`
+- `ReportCategoryResource`
+  - CRUD de categorias
+  - Campo `tips` como array (TagsInput)
 
-### Públicos (sem auth)
-```
-GET  /api/v1/reports                    # Lista pública
-GET  /api/v1/reports/{id}               # Detalhe
-GET  /api/v1/reports/stats              # KPIs
-GET  /api/v1/report-categories          # Categorias
-```
+### Pages operacionais
+- `ModerationQueue`
+  - Fila unificada (flags, reports do forum, denuncias)
+- `ReportsDashboard`
+  - KPIs + lista de denuncias pendentes
+- `GeoIssues`
+  - Denuncias sem localizacao precisa
+  - Acoes rapidas: abrir mapa, ajustar qualidade, corrigir localizacao
 
-### Autenticados (Bearer Token)
-```
-GET  /api/v1/me/reports                 # Minhas denúncias
-POST /api/v1/me/reports                 # Criar denúncia
-POST /api/v1/me/reports/{id}/media      # Upload de mídia
-```
+### Roles (admin painel)
+- admin: acesso total
+- moderator: moderacao (denuncias, reports, flags, widgets)
+- user: sem acesso ao painel
 
----
+## Fluxo admin (denuncias)
+1. Moderador acessa `ReportsDashboard` ou `ModerationQueue`.
+2. Abre a denuncia e revisa detalhes e midia.
+3. Atualiza status via action (gera historico e audit log).
+4. Se houver problema de localizacao, usa `GeoIssues` para corrigir.
 
-## 🎨 Categorias Atuais
+## API (resumo)
+Publicos:
+- `GET /api/v1/reports`
+- `GET /api/v1/reports/{id}`
+- `GET /api/v1/reports/stats`
+- `GET /api/v1/report-categories`
 
-| Slug | Nome | Ícone MDI | Cor |
-|------|------|-----------|-----|
-| `buraco` | Buraco na Rua | `mdi:road-variant` | #ef4444 |
-| `iluminacao` | Iluminação Pública | `mdi:lightbulb-on-outline` | #f59e0b |
-| `lixo` | Lixo/Entulho | `mdi:trash-can-outline` | #10b981 |
-| `calcada` | Calçada Danificada | `mdi:walk` | #3b82f6 |
-| `arvore` | Árvore/Mato Alto | `mdi:tree` | #22c55e |
-| `vazamento` | Vazamento/Esgoto | `mdi:pipe` | #06b6d4 |
-| `estacionamento` | Estacionamento Irregular | `mdi:parking` | #8b5cf6 |
-| `perturbacao` | Perturbação do Sossego | `mdi:volume-high` | #f97316 |
-| `outros` | Outros | `mdi:dots-horizontal` | #64748b |
+Autenticados:
+- `GET /api/v1/me/reports`
+- `POST /api/v1/me/reports`
+- `POST /api/v1/me/reports/{id}/media`
 
----
-
-## 🚧 O QUE FALTA FAZER
-
-### Alta Prioridade
-
-- [ ] **Mapa Interativo de Denúncias** (próxima feature)
-  - Tela fullscreen com mapa
-  - Pinos com ícone da categoria
-  - Modal ao clicar no pino
-  - Zoom in/out
-  - Cluster de pinos próximos
-
-- [ ] **Notificações Push**
-  - Atualização de status
-  - Nova resposta da prefeitura
-
-### Média Prioridade
-
-- [ ] **Comentários/Feedback**
-  - Prefeitura responder ao cidadão
-  - Cidadão adicionar informações
-
-- [ ] **Votação/Apoio**
-  - Outros cidadãos apoiarem uma denúncia
-  - Ranking por relevância
-
-- [ ] **Fotos Antes/Depois**
-  - Comparativo visual da resolução
-
-### Baixa Prioridade
-
-- [ ] **Exportar PDF**
-  - Protocolo completo em PDF
-
-- [ ] **Integração WhatsApp**
-  - Notificações via WhatsApp
-
----
-
-## 🗺️ PRÓXIMA FEATURE: Mapa de Denúncias
-
-### Objetivo
-Criar uma tela **fullscreen mobile-first** com mapa interativo mostrando todas as denúncias como pinos. Ao clicar em um pino, abre um modal com detalhes.
-
-### Especificação
-
-#### UI/UX
-```
-┌─────────────────────────────────┐
-│  ← Denúncias          🔍 [✓]   │  ← Header fixo
-├─────────────────────────────────┤
-│                                 │
-│         [MAPA LEAFLET]          │
-│                                 │
-│      📍   📍                    │
-│         📍    📍   📍           │
-│    📍         📍                │
-│              📍                 │
-│                                 │
-├─────────────────────────────────┤
-│  [Categoria] [Status] [Zoom]    │  ← Filtros bottom
-└─────────────────────────────────┘
-```
-
-#### Componentes
-1. **ReportsMapScreen.tsx** - Tela principal
-2. **MapMarker.tsx** - Pino customizado com CategoryIcon
-3. **ReportPreviewModal.tsx** - Modal de preview ao clicar
-
-#### API
-```
-GET /api/v1/reports/map?bounds=lat1,lng1,lat2,lng2
-```
-Retorna denúncias dentro do viewport para otimizar performance.
-
-#### Bibliotecas
-- `react-leaflet` (já instalado)
-- `leaflet.markercluster` (agrupar pinos próximos)
-
-#### Interações
-- **Tap no pino** → Abre modal com preview
-- **Tap "Ver mais"** → Navega para `/denuncia/:id`
-- **Pinch zoom** → Zoom in/out nativo
-- **Drag** → Move o mapa
-- **Filtros** → Dropdown de categoria/status
-
----
-
-## 📱 Fluxo do Usuário
-
-```mermaid
-flowchart TD
-    A[Home] --> B{Logado?}
-    B -->|Não| C[/denuncias - Lista Pública]
-    B -->|Sim| D[/minhas-denuncias]
-    
-    C --> E[Detalhe da Denúncia]
-    D --> E
-    
-    B -->|Sim| F[/denuncia/nova]
-    F --> G[1. Categoria]
-    G --> H[2. Localização]
-    H --> I[3. Detalhes]
-    I --> J[4. Fotos]
-    J --> K[5. Revisão]
-    K --> L[Enviar]
-    L --> M[Protocolo Gerado]
-    M --> D
-```
-
----
-
-## 🔧 Comandos Úteis
-
+## Comandos uteis
 ```bash
-# Rodar seeder de categorias
 cd apps/api && php artisan db:seed --class=ReportCategorySeeder
-
-# Build frontend
-cd apps/web && pnpm build
-
-# Dev server
-cd apps/web && pnpm dev
 ```
-
----
-
-## 📁 Arquivos Chave
-
-| Arquivo | Descrição |
-|---------|-----------|
-| `apps/api/app/Domains/Reports/Models/CitizenReport.php` | Model principal |
-| `apps/api/app/Domains/Reports/Http/Controllers/ReportController.php` | Controller API |
-| `apps/api/database/seeders/ReportCategorySeeder.php` | Seed das categorias |
-| `apps/web/src/pages/ReportWizardPage.tsx` | Wizard de criação |
-| `apps/web/src/components/report/CategoryIcon.tsx` | Renderização de ícones |
-| `apps/web/src/hooks/useMyReports.ts` | Hooks de cache |

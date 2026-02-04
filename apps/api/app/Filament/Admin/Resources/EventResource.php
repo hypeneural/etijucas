@@ -8,7 +8,10 @@ use App\Domain\Events\Enums\AgeRating;
 use App\Domain\Events\Enums\EventStatus;
 use App\Domain\Events\Enums\EventType;
 use App\Filament\Admin\Resources\EventResource\Pages;
+use App\Filament\Admin\Resources\EventResource\RelationManagers\DaysRelationManager;
+use App\Filament\Admin\Resources\EventResource\RelationManagers\LinksRelationManager;
 use App\Filament\Admin\Resources\EventResource\RelationManagers\MediaRelationManager;
+use App\Filament\Admin\Resources\EventResource\RelationManagers\RsvpsRelationManager;
 use App\Filament\Admin\Resources\EventResource\RelationManagers\SchedulesRelationManager;
 use App\Filament\Admin\Resources\EventResource\RelationManagers\TagsRelationManager;
 use App\Filament\Admin\Resources\EventResource\RelationManagers\TicketRelationManager;
@@ -287,11 +290,14 @@ class EventResource extends BaseResource
             MediaRelationManager::class,
             TagsRelationManager::class,
             TicketRelationManager::class,
+            LinksRelationManager::class,
+            DaysRelationManager::class,
+            RsvpsRelationManager::class,
         ];
     }
 
     public static function canCreate(): bool
     {
-        return auth()->user()?->hasAnyRole(['admin', 'operator']) ?? false;
+        return auth()->user()?->hasRole('admin') ?? false;
     }
 }
