@@ -71,7 +71,7 @@ class CitizenReportResource extends BaseResource
                         Select::make('status')
                             ->label('Status')
                             ->options(collect(ReportStatus::cases())
-                                ->mapWithKeys(fn (ReportStatus $status) => [$status->value => $status->label()])
+                                ->mapWithKeys(fn(ReportStatus $status) => [$status->value => $status->label()])
                                 ->toArray())
                             ->required()
                             ->disabled()
@@ -96,7 +96,7 @@ class CitizenReportResource extends BaseResource
                             ->dehydrated(false),
                         Select::make('assigned_to')
                             ->label('Respons?vel')
-                            ->options(fn () => User::role(['admin', 'moderator'])
+                            ->options(fn() => User::role(['admin', 'moderator'])
                                 ->orderBy('nome')
                                 ->pluck('nome', 'id')
                                 ->toArray())
@@ -104,7 +104,7 @@ class CitizenReportResource extends BaseResource
                             ->preload()
                             ->disabled()
                             ->dehydrated(false)
-                            ->visible(fn (): bool => auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false),
+                            ->visible(fn(): bool => auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false),
                         DateTimePicker::make('assigned_at')
                             ->label('Atribu?do em')
                             ->disabled()
@@ -126,7 +126,7 @@ class CitizenReportResource extends BaseResource
                         Select::make('location_quality')
                             ->label('Qualidade')
                             ->options(collect(LocationQuality::cases())
-                                ->mapWithKeys(fn (LocationQuality $quality) => [$quality->value => $quality->label()])
+                                ->mapWithKeys(fn(LocationQuality $quality) => [$quality->value => $quality->label()])
                                 ->toArray()),
                         TextInput::make('latitude')
                             ->label('Latitude')
@@ -144,7 +144,7 @@ class CitizenReportResource extends BaseResource
                         Placeholder::make('map_preview')
                             ->label('Mapa')
                             ->content(function (?CitizenReport $record): HtmlString {
-                                if (! $record) {
+                                if (!$record) {
                                     return new HtmlString('<span class="text-sm text-gray-500">Sem dados de localizacao.</span>');
                                 }
 
@@ -161,7 +161,7 @@ class CitizenReportResource extends BaseResource
                                     $embedUrl = 'https://maps.google.com/maps?q=' . $query . '&z=15&output=embed';
                                 }
 
-                                if (! $mapUrl || ! $embedUrl) {
+                                if (!$mapUrl || !$embedUrl) {
                                     return new HtmlString('<span class="text-sm text-gray-500">Sem localizacao informada.</span>');
                                 }
 
@@ -183,7 +183,7 @@ class CitizenReportResource extends BaseResource
                                 ->label('Abrir mapa')
                                 ->icon('heroicon-o-map')
                                 ->url(function (?CitizenReport $record): ?string {
-                                    if (! $record) {
+                                    if (!$record) {
                                         return null;
                                     }
 
@@ -200,7 +200,7 @@ class CitizenReportResource extends BaseResource
                                     return null;
                                 })
                                 ->openUrlInNewTab()
-                                ->visible(fn (?CitizenReport $record): bool => (bool) $record
+                                ->visible(fn(?CitizenReport $record): bool => (bool) $record
                                     && (filled($record->latitude) || filled($record->address_text))),
                         ])
                             ->columnSpanFull(),
@@ -246,10 +246,10 @@ class CitizenReportResource extends BaseResource
                 TextColumn::make('status')
                     ->label('Status')
                     ->badge()
-                    ->formatStateUsing(fn (ReportStatus $state): string => $state->label())
-                    ->color(fn (ReportStatus $state): string => match ($state) {
+                    ->formatStateUsing(fn(ReportStatus $state): string => $state->label())
+                    ->color(fn(ReportStatus $state): string => match ($state) {
                         ReportStatus::Recebido => 'info',
-                        ReportStatus::EmAn?lise => 'warning',
+                        ReportStatus::EmAnalise => 'warning',
                         ReportStatus::Resolvido => 'success',
                         ReportStatus::Rejeitado => 'danger',
                     }),
@@ -275,21 +275,23 @@ class CitizenReportResource extends BaseResource
                         $end = $record->resolved_at ?? now();
                         $days = $record->created_at?->diffInDays($end) ?? 0;
 
-                        if (in_array($record->status, [ReportStatus::Recebido, ReportStatus::EmAn?lise], true)
-                            && $days >= self::SLA_DAYS) {
+                        if (
+                            in_array($record->status, [ReportStatus::Recebido, ReportStatus::EmAnalise], true)
+                            && $days >= self::SLA_DAYS
+                        ) {
                             return 'danger';
                         }
 
                         return 'gray';
                     })
-                    ->tooltip(fn (): string => 'SLA padrao: ' . self::SLA_DAYS . ' dias'),
+                    ->tooltip(fn(): string => 'SLA padrao: ' . self::SLA_DAYS . ' dias'),
                 ...static::baseTableColumns(),
             ])
             ->filters([
                 SelectFilter::make('status')
                     ->label('Status')
                     ->options(collect(ReportStatus::cases())
-                        ->mapWithKeys(fn (ReportStatus $status) => [$status->value => $status->label()])
+                        ->mapWithKeys(fn(ReportStatus $status) => [$status->value => $status->label()])
                         ->toArray()),
                 SelectFilter::make('category_id')
                     ->label('Categoria')
@@ -301,20 +303,20 @@ class CitizenReportResource extends BaseResource
                     ->preload(),
                 SelectFilter::make('assigned_to')
                     ->label('Respons?vel')
-                    ->options(fn () => User::role(['admin', 'moderator'])
+                    ->options(fn() => User::role(['admin', 'moderator'])
                         ->orderBy('nome')
                         ->pluck('nome', 'id')
                         ->toArray()),
                 Tables\Filters\Filter::make('sem_responsavel')
                     ->label('Sem responsavel')
-                    ->query(fn (Builder $query): Builder => $query->whereNull('assigned_to')),
+                    ->query(fn(Builder $query): Builder => $query->whereNull('assigned_to')),
                 Tables\Filters\Filter::make('sla_atrasado')
                     ->label('SLA atrasado')
                     ->query(function (Builder $query): Builder {
                         return $query->whereIn('status', [
-                                ReportStatus::Recebido->value,
-                                ReportStatus::EmAn?lise->value,
-                            ])
+                            ReportStatus::Recebido->value,
+                            ReportStatus::EmAnalise->value,
+                        ])
                             ->where('created_at', '<=', now()->subDays(self::SLA_DAYS));
                     }),
                 ...static::baseTableFilters(),
@@ -337,14 +339,14 @@ class CitizenReportResource extends BaseResource
                             $user
                         );
                     })
-                    ->visible(fn (): bool => auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false),
+                    ->visible(fn(): bool => auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false),
                 Action::make('assign')
                     ->label('Atribuir')
                     ->icon('heroicon-o-user-group')
                     ->form([
                         Select::make('assigned_to')
                             ->label('Respons?vel')
-                            ->options(fn () => User::role(['admin', 'moderator'])
+                            ->options(fn() => User::role(['admin', 'moderator'])
                                 ->orderBy('nome')
                                 ->pluck('nome', 'id')
                                 ->toArray())
@@ -363,7 +365,7 @@ class CitizenReportResource extends BaseResource
                             $data['note'] ?? null
                         );
                     })
-                    ->visible(fn (): bool => auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false),
+                    ->visible(fn(): bool => auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false),
                 Action::make('updateStatus')
                     ->label('Alterar status')
                     ->icon('heroicon-o-adjustments-horizontal')
@@ -372,7 +374,7 @@ class CitizenReportResource extends BaseResource
                         Select::make('status')
                             ->label('Status')
                             ->options(collect(ReportStatus::cases())
-                                ->mapWithKeys(fn (ReportStatus $status) => [$status->value => $status->label()])
+                                ->mapWithKeys(fn(ReportStatus $status) => [$status->value => $status->label()])
                                 ->toArray())
                             ->required(),
                         Textarea::make('note')
@@ -387,7 +389,7 @@ class CitizenReportResource extends BaseResource
                             auth()->user()
                         );
                     })
-                    ->visible(fn (): bool => auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false),
+                    ->visible(fn(): bool => auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false),
                 ...static::baseTableActions(),
             ]);
     }
