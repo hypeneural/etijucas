@@ -451,12 +451,12 @@ class HomeAggregatorService
         $today = Carbon::today();
 
         // Dynamic badges
-        $eventosHoje = Event::whereDate('start_date', $today)
+        $eventosHoje = Event::whereDate('start_datetime', $today)
             ->where('status', 'published')
             ->count();
 
         $reportsPerto = CitizenReport::when($bairroId, fn($q) => $q->where('bairro_id', $bairroId))
-            ->whereIn('status', ['pending', 'in_progress'])
+            ->whereIn('status', ['recebido', 'em_analise'])
             ->count();
 
         // Get today's garbage collection type (mock - should come from real API)
@@ -539,11 +539,11 @@ class HomeAggregatorService
     private function getEventsBlock(int $priority, ?string $bairroId): array
     {
         $events = Event::where('status', 'published')
-            ->where('start_date', '>=', now())
-            ->when($bairroId, fn($q) => $q->where('bairro_id', $bairroId))
-            ->orderBy('start_date')
+            ->where('start_datetime', '>=', now())
+            ->with('venue:id,name,bairro_id')
+            ->orderBy('start_datetime')
             ->limit(10)
-            ->get(['id', 'titulo', 'start_date', 'end_date', 'local', 'cover_image'])
+            ->get(['id', 'title', 'slug', 'start_datetime', 'end_datetime', 'venue_id', 'cover_image_url'])
             ->toArray();
 
         return [
@@ -558,11 +558,10 @@ class HomeAggregatorService
 
     private function getTourismBlock(int $priority): array
     {
-        $spots = TourismSpot::where('is_active', true)
-            ->where('is_featured', true)
-            ->orderByDesc('rating')
+        $spots = TourismSpot::where('is_destaque', true)
+            ->orderByDesc('rating_avg')
             ->limit(6)
-            ->get(['id', 'nome', 'descricao_curta', 'categoria', 'imagem_capa', 'rating'])
+            ->get(['id', 'titulo', 'slug', 'desc_curta', 'categoria', 'image_url', 'rating_avg'])
             ->toArray();
 
         return [
