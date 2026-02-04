@@ -178,22 +178,12 @@ class ReportController extends Controller
 
     /**
      * GET /api/v1/reports/{id}
-     * Get report details (owner or admin only)
+     * Get report details (public - anyone can view)
      */
     public function show(Request $request, string $id): JsonResponse
     {
-        $user = $request->user();
-
         $report = CitizenReport::with(['category', 'bairro', 'statusHistory.createdBy', 'media'])
             ->findOrFail($id);
-
-        // Check authorization
-        if ($report->user_id !== $user->id && !$user->hasAnyRole(['admin', 'moderator'])) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Você não tem permissão para ver esta denúncia.',
-            ], 403);
-        }
 
         return response()->json([
             'success' => true,
