@@ -191,11 +191,22 @@ class CitizenReportResource extends BaseResource
                             ->rows(3),
                     ])
                     ->action(function (CitizenReport $record, array $data): void {
+                        $previousStatus = $record->status;
                         $record->updateStatus(
                             ReportStatus::from($data['status']),
                             $data['note'] ?? null,
                             auth()->id()
                         );
+
+                        activity()
+                            ->causedBy(auth()->user())
+                            ->performedOn($record)
+                            ->withProperties([
+                                'old' => $previousStatus?->value,
+                                'new' => $data['status'],
+                                'note' => $data['note'] ?? null,
+                            ])
+                            ->log('citizen_report_status_updated');
                     })
                     ->visible(fn (): bool => auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false),
                 ...static::baseTableActions(),

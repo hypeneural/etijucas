@@ -10,12 +10,45 @@ class CommentPolicy
 {
     use HandlesAuthorization;
 
+    public function before(User $user, string $ability): bool|null
+    {
+        if ($user->hasRole('admin')) {
+            return true;
+        }
+
+        return null;
+    }
+
+    /**
+     * Determine if the user can view any comments.
+     */
+    public function viewAny(User $user): bool
+    {
+        return $user->hasAnyRole(['admin', 'moderator']);
+    }
+
+    /**
+     * Determine if the user can view the comment.
+     */
+    public function view(User $user, Comment $comment): bool
+    {
+        return $user->hasAnyRole(['admin', 'moderator']);
+    }
+
     /**
      * Determine if the user can create comments.
      */
     public function create(User $user): bool
     {
         return true;
+    }
+
+    /**
+     * Determine if the user can update the comment.
+     */
+    public function update(User $user, Comment $comment): bool
+    {
+        return $user->hasAnyRole(['admin', 'moderator']);
     }
 
     /**

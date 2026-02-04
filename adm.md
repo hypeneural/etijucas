@@ -259,7 +259,8 @@ Em todos:
 - [x] Criar `GeoIssues` para itens sem localizacao ou baixa qualidade.
 
 ## Fase 5 - Performance e qualidade
-- [ ] Revisar indices para filtros padrao (`status`, `category_id`, `bairro_id`, `created_at`).
-- [ ] Garantir `with/withCount` em todos os Resources criados.
-- [ ] Auditar actions sensiveis com Activity Log.
-- [ ] Testes minimos para Actions criticas (status, moderacao, publicacao).
+- [x] Revisar indices para filtros padrao (`status`, `category_id`, `bairro_id`, `created_at`).
+- [x] Garantir `with/withCount` em todos os Resources criados.
+- [x] Auditar actions sensiveis com Activity Log (status de denuncias).
+- [x] Teste minimo: alteracao de status de denuncias (CitizenReport).
+- [ ] Testes para acoes de moderacao (forum) e publicacao (events).

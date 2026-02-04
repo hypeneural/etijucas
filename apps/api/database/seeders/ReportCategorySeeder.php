@@ -15,7 +15,7 @@ class ReportCategorySeeder extends Seeder
         $categories = [
             [
                 'name' => 'Buraco na Rua',
-                'slug' => 'buraco-na-rua',
+                'slug' => 'buraco',
                 'icon' => 'mdi:road-variant',
                 'color' => '#ef4444',
                 'tips' => [
@@ -27,7 +27,7 @@ class ReportCategorySeeder extends Seeder
             ],
             [
                 'name' => 'Iluminação Pública',
-                'slug' => 'iluminacao-publica',
+                'slug' => 'iluminacao',
                 'icon' => 'mdi:lightbulb-on-outline',
                 'color' => '#f59e0b',
                 'tips' => [
@@ -39,7 +39,7 @@ class ReportCategorySeeder extends Seeder
             ],
             [
                 'name' => 'Lixo/Entulho',
-                'slug' => 'lixo-entulho',
+                'slug' => 'lixo',
                 'icon' => 'mdi:trash-can-outline',
                 'color' => '#10b981',
                 'tips' => [
@@ -51,7 +51,7 @@ class ReportCategorySeeder extends Seeder
             ],
             [
                 'name' => 'Calçada Danificada',
-                'slug' => 'calcada-danificada',
+                'slug' => 'calcada',
                 'icon' => 'mdi:walk',
                 'color' => '#3b82f6',
                 'tips' => [
@@ -63,7 +63,7 @@ class ReportCategorySeeder extends Seeder
             ],
             [
                 'name' => 'Árvore/Mato Alto',
-                'slug' => 'arvore-mato-alto',
+                'slug' => 'arvore',
                 'icon' => 'mdi:tree',
                 'color' => '#22c55e',
                 'tips' => [
@@ -75,7 +75,7 @@ class ReportCategorySeeder extends Seeder
             ],
             [
                 'name' => 'Vazamento/Esgoto',
-                'slug' => 'vazamento-esgoto',
+                'slug' => 'vazamento',
                 'icon' => 'mdi:pipe',
                 'color' => '#06b6d4',
                 'tips' => [
@@ -86,7 +86,7 @@ class ReportCategorySeeder extends Seeder
                 'sort_order' => 60,
             ],
             [
-                'name' => 'Estacionamento',
+                'name' => 'Estacionamento Irregular',
                 'slug' => 'estacionamento',
                 'icon' => 'mdi:parking',
                 'color' => '#8b5cf6',
@@ -99,7 +99,7 @@ class ReportCategorySeeder extends Seeder
             ],
             [
                 'name' => 'Perturbação do Sossego',
-                'slug' => 'perturbacao-do-sossego',
+                'slug' => 'perturbacao',
                 'icon' => 'mdi:volume-high',
                 'color' => '#f97316',
                 'tips' => [
@@ -129,5 +129,16 @@ class ReportCategorySeeder extends Seeder
                 $category
             );
         }
+
+        // Delete duplicate categories with new slugs (cleanup)
+        ReportCategory::whereIn('slug', [
+            'buraco-na-rua',
+            'iluminacao-publica',
+            'lixo-entulho',
+            'calcada-danificada',
+            'arvore-mato-alto',
+            'vazamento-esgoto',
+            'perturbacao-do-sossego',
+        ])->delete();
     }
 }

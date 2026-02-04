@@ -17,7 +17,6 @@ import {
     FileText,
     Loader2,
     WifiOff,
-    Camera,
     Calendar,
     Eye,
     ExternalLink,
@@ -35,6 +34,7 @@ import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { LocationMap } from '@/components/report/LocationMap';
+import { CategoryIcon } from '@/components/report/CategoryIcon';
 import { BottomTabBar, TabId } from '@/components/layout/BottomTabBar';
 import { useAppStore } from '@/store/useAppStore';
 
@@ -88,15 +88,9 @@ function ImageGallery({ images, onImageClick }: {
     images: Array<{ id: string; thumbUrl: string; url: string }>;
     onImageClick: (index: number) => void;
 }) {
+    // Don't render anything if no images
     if (!images || images.length === 0) {
-        return (
-            <div className="flex items-center justify-center h-48 bg-muted/50 rounded-2xl">
-                <div className="text-center text-muted-foreground">
-                    <Camera className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">Sem fotos</p>
-                </div>
-            </div>
-        );
+        return null;
     }
 
     if (images.length === 1) {
@@ -351,7 +345,6 @@ export default function ReportDetailPage() {
 
     // Handle tab change (fixo no rodapé)
     const handleTabChange = (tab: TabId) => {
-        setActiveTab(tab);
         navigate(`/?tab=${tab}`);
     };
 
@@ -446,8 +439,19 @@ export default function ReportDetailPage() {
                     {/* Category & Date */}
                     <div className="flex flex-wrap gap-2">
                         {report.category && (
-                            <Badge variant="secondary" className="gap-1.5 pl-2">
-                                <span className="text-lg leading-none">{report.category.icon}</span>
+                            <Badge
+                                variant="secondary"
+                                className="gap-1.5 pl-1.5 pr-2.5"
+                                style={{
+                                    backgroundColor: `${report.category.color}20`,
+                                    color: report.category.color,
+                                }}
+                            >
+                                <CategoryIcon
+                                    icon={report.category.icon}
+                                    color={report.category.color}
+                                    size="sm"
+                                />
                                 {report.category.name}
                             </Badge>
                         )}

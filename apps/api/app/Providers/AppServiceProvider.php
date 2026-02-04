@@ -4,8 +4,10 @@ namespace App\Providers;
 
 use App\Console\Commands\MakeAdminCrud;
 use App\Domains\Reports\Models\CitizenReport;
+use App\Domains\Tourism\Models\TourismReview;
 use App\Domains\Tourism\Models\TourismSpot;
 use App\Models\Bairro;
+use App\Models\Comment;
 use App\Models\ContentFlag;
 use App\Models\Event;
 use App\Models\EventCategory;
@@ -17,11 +19,13 @@ use App\Models\Venue;
 use App\Policies\ActivityPolicy;
 use App\Policies\BairroPolicy;
 use App\Policies\CitizenReportPolicy;
+use App\Policies\CommentPolicy;
 use App\Policies\ContentFlagPolicy;
 use App\Policies\EventPolicy;
 use App\Policies\EventCategoryPolicy;
 use App\Policies\PhonePolicy;
 use App\Policies\TagPolicy;
+use App\Policies\TourismReviewPolicy;
 use App\Policies\TourismSpotPolicy;
 use App\Policies\UserPolicy;
 use App\Policies\UserRestrictionPolicy;
@@ -62,6 +66,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Venue::class, VenuePolicy::class);
         Gate::policy(Event::class, EventPolicy::class);
         Gate::policy(TourismSpot::class, TourismSpotPolicy::class);
+        Gate::policy(TourismReview::class, TourismReviewPolicy::class);
+        Gate::policy(Comment::class, CommentPolicy::class);
         Gate::policy(CitizenReport::class, CitizenReportPolicy::class);
 
         // Rate Limiters
