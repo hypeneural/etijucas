@@ -63,6 +63,9 @@ class User extends Authenticatable implements HasMedia, FilamentUser, HasName, H
         'address',
         'avatar_url',
         'notification_settings',
+        'profile_completed',
+        'terms_accepted',
+        'terms_accepted_at',
     ];
 
     /**

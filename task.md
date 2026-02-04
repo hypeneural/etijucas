@@ -1,31 +1,37 @@
 # Checklist - Admin (Filament)
 
-## Prioridade Alta (seguranca, acesso, consistencia)
-- [x] Unificar policies em `apps/api/app/Policies` e remover duplicadas de `app/Domains/*/Policies`.
-- [x] Registrar policies faltantes no `AppServiceProvider` (CommentReport, TopicReport, Topic, Role).
-- [x] Ajustar `make:admin-crud` para chamar `shield:generate` com `Resource` + `--panel=admin`.
-- [x] Gerar permissoes Shield para resources/pages/widgets e rodar seeder de roles.
-- [x] Definir estrategia de permissao para widgets (`widget_*`) e refletir no seeder (admin/moderator).
-- [x] Auditar acoes de moderacao (TopicReport, CommentReport, ContentFlag) com Activity Log.
-- [x] Restringir acoes destrutivas e delete de midia por role/permissao (ex: media em `CitizenReport`).
-- [x] Revisar `RolePolicy` (mantida baseada em permissoes do Shield; admin com acesso total).
-- [x] Consolidar roles para `admin`, `moderator`, `user` (remover `operator` do seeder e ajustar policies/resources).
+## Prioridade Alta (fundacao e consistencia)
+- [ ] Centralizar regras de negocio em `app/Domains/*/Actions` ou `Services` e usar as mesmas Actions no Filament e na API.
+- [ ] Remover logica duplicada entre Controllers e Resources (migrar `mutateFormData` e Actions para Services).
+- [x] Padronizar acoes de moderacao com helpers reutilizaveis (ex: `ModerationActionService`).
+- [ ] Implementar upload de midia via Media Library para Event/Tourism/Organizer/Topic, mantendo compatibilidade com URLs temporariamente.
 
-## Prioridade Media (agilidade e UX do admin)
-- [x] Adicionar RelationManager de RSVPs dentro de `EventResource`.
-- [x] Incluir RelationManagers para `EventLinks` e `EventDays` se estiverem ativos no dominio.
-- [x] Melhorar `GeoIssues` com acao rapida (corrigir localizacao / abrir mapa / ajustar qualidade).
-- [x] Padronizar labels e navegacao das pages operacionais (PT-BR consistente).
-- [x] Atualizar `denuncias.md` para refletir o schema real e fluxo do admin.
+## Prioridade Media (padroes de UI e organizacao)
+- [ ] Padronizar `form()` e `table()` usando `BaseResource` e Traits onde ainda houver inconsistencias.
+- [ ] Revisar e unificar labels PT-BR em Resources/Pages/Widgets (sem mistura EN/PT).
+- [ ] Revisar queries de pages customizadas para `with/withCount` e filtros alinhados a indices.
 
-## Prioridade Media (dados e consistencia)
-- [x] Migrar `report_categories.tips` para coluna JSON (DB + casts + validacao).
-- [x] Validar serializacao de `tips` no `ReportCategoryResource`.
+## Prioridade Media (performance e confiabilidade)
+- [ ] Aplicar `getEloquentQuery()` com `with/withCount` em todos os Resources (auditar N+1).
+- [ ] Garantir indices para filtros comuns (status, created_at, category_id, bairro_id).
+- [ ] Usar `->deferLoading()` em tabelas pesadas quando fizer sentido.
+- [ ] Cache curto (30-120s) para widgets de KPI.
+
+## Prioridade Baixa (evolucao do admin)
+- [ ] Criar pagina de configuracoes do sistema se existirem parametros globais.
+- [ ] Criar widgets operacionais por dominio (KPIs de moderacao, eventos, turismo).
+
+## Alinhamento API x Admin (acoes compartilhadas)
+- [ ] Definir Actions por dominio (Events, Moderation, Reports) e usar em Controllers + Filament.
+- [ ] Documentar o fluxo de cada Action no admin (entrada/saida/efeitos colaterais).
+
+## Upload de imagens (migracao gradual)
+- [ ] Definir colecoes Media Library por dominio: Events (`event_cover`, `event_banner`, `event_gallery`), Tourism (`tourism_cover`, `tourism_gallery`), Organizer (`organizer_avatar`), Topic (`topic_image`).
+- [ ] Substituir campos `*_url` por `SpatieMediaLibraryFileUpload` via `HasMediaLibraryTrait`.
+- [ ] Criar Action "Importar da URL" usando `addMediaFromUrl` para dados legados.
+- [ ] Remover campos `*_url` depois da migracao e atualizar frontend/Resources.
 
 ## Verificacao e Qualidade
-- [x] Validar acesso por role em todos os Resources, Pages e Widgets (revisao estatica + ajustes de `canAccess/canView`).
 - [ ] Testar `ModerationQueue` com dados reais e links corretos.
-- [x] Revisar links e rotas do `ModerationQueue` (flags/edit, topic/comment report view, citizen report edit).
-- [x] Validar update de status de denuncia com historico + audit log.
-- [ ] Testes para moderacao (forum) e publicacao de eventos.
-- [ ] Verificar performance com dados volumosos (N+1 e indices).
+- [ ] Testes de moderacao (forum) e publicacao de eventos.
+- [ ] Verificar performance com dados volumosos (N+1, indices, pagination).

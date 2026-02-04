@@ -224,6 +224,7 @@ export default function LoginPage() {
                         {/* WhatsApp Login Link */}
                         <Link
                             to="/login/otp"
+                            state={isPhoneValid ? { phone: cleanPhone(phone) } : undefined}
                             className={cn(
                                 'flex items-center justify-center gap-2 w-full h-12 rounded-2xl font-semibold',
                                 'bg-gradient-to-r from-green-500 to-green-600 text-white',

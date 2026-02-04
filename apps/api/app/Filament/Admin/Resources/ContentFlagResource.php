@@ -8,12 +8,12 @@ use App\Domain\Moderation\Enums\FlagAction;
 use App\Domain\Moderation\Enums\FlagContentType;
 use App\Domain\Moderation\Enums\FlagReason;
 use App\Domain\Moderation\Enums\FlagStatus;
+use App\Domain\Moderation\Services\ModerationActionService;
 use App\Domain\Moderation\Enums\RestrictionScope;
 use App\Domain\Moderation\Enums\RestrictionType;
 use App\Filament\Admin\Resources\ContentFlagResource\Pages;
 use App\Models\ContentFlag;
 use App\Models\User;
-use App\Models\UserRestriction;
 use Filament\Forms;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
@@ -145,15 +145,8 @@ class ContentFlagResource extends BaseResource
                     ->icon('heroicon-o-eye')
                     ->color('info')
                     ->action(function (ContentFlag $record): void {
-                        $record->markReviewing(auth()->user());
-
-                        activity()
-                            ->causedBy(auth()->user())
-                            ->performedOn($record)
-                            ->withProperties([
-                                'status' => FlagStatus::Reviewing->value,
-                            ])
-                            ->log('content_flag_reviewing');
+                        app(ModerationActionService::class)
+                            ->markFlagReviewing($record, auth()->user());
                     })
                     ->visible(fn (ContentFlag $record) => $record->status === FlagStatus::Open
                         && (auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false)),
@@ -163,15 +156,8 @@ class ContentFlagResource extends BaseResource
                     ->color('gray')
                     ->requiresConfirmation()
                     ->action(function (ContentFlag $record): void {
-                        $record->markDismissed(auth()->user());
-
-                        activity()
-                            ->causedBy(auth()->user())
-                            ->performedOn($record)
-                            ->withProperties([
-                                'status' => FlagStatus::Dismissed->value,
-                            ])
-                            ->log('content_flag_dismissed');
+                        app(ModerationActionService::class)
+                            ->dismissFlag($record, auth()->user());
                     })
                     ->visible(fn (ContentFlag $record) => in_array($record->status, [FlagStatus::Open, FlagStatus::Reviewing], true)
                         && (auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false)),
@@ -228,31 +214,8 @@ class ContentFlagResource extends BaseResource
                             ->visible(fn (Get $get) => $get('action') === FlagAction::RestrictUser->value),
                     ])
                     ->action(function (ContentFlag $record, array $data): void {
-                        $record->markActionTaken(auth()->user(), FlagAction::from($data['action']));
-
-                        $restrictionId = null;
-                        if (($data['action'] ?? null) === FlagAction::RestrictUser->value) {
-                            $restriction = UserRestriction::create([
-                                'user_id' => $data['user_id'],
-                                'type' => $data['restriction_type'],
-                                'scope' => $data['restriction_scope'],
-                                'reason' => $data['restriction_reason'] ?? 'Aplicada via moderacao',
-                                'created_by' => auth()->id(),
-                                'starts_at' => now(),
-                                'ends_at' => $data['restriction_ends_at'] ?? null,
-                            ]);
-                            $restrictionId = $restriction->id;
-                        }
-
-                        activity()
-                            ->causedBy(auth()->user())
-                            ->performedOn($record)
-                            ->withProperties([
-                                'status' => FlagStatus::ActionTaken->value,
-                                'action' => $data['action'] ?? null,
-                                'restriction_id' => $restrictionId,
-                            ])
-                            ->log('content_flag_action_taken');
+                        app(ModerationActionService::class)
+                            ->takeFlagAction($record, auth()->user(), $data);
                     })
                     ->visible(fn (ContentFlag $record) => in_array($record->status, [FlagStatus::Open, FlagStatus::Reviewing], true)
                         && (auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false)),

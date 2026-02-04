@@ -12,7 +12,7 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     MessageCircle,
@@ -37,17 +37,22 @@ type Step = 'phone' | 'otp' | 'success';
 
 export default function WhatsAppLoginPage() {
     const navigate = useNavigate();
+    const location = useLocation();
     const [searchParams] = useSearchParams();
     const setAuth = useAuthStore((state) => state.setAuth);
 
+    // Get phone from location state (passed from LoginPage)
+    const passedPhone = (location.state as { phone?: string })?.phone;
+
     // Flow state
     const [step, setStep] = useState<Step>('phone');
-    const [phone, setPhone] = useState('');
+    const [phone, setPhone] = useState(passedPhone || '');
     const [sid, setSid] = useState<string | null>(null);
     const [maskedPhone, setMaskedPhone] = useState<string | null>(null);
     const [code, setCode] = useState('');
     const [expiresIn, setExpiresIn] = useState(300);
     const [cooldown, setCooldown] = useState(0);
+    const [autoRequestSent, setAutoRequestSent] = useState(false);
 
     // UI state
     const [isLoading, setIsLoading] = useState(false);
@@ -68,6 +73,14 @@ export default function WhatsAppLoginPage() {
             handleMagicLink(sidParam);
         }
     }, [searchParams]);
+
+    // Auto-request OTP if phone was passed from LoginPage
+    useEffect(() => {
+        if (passedPhone && validatePhone(passedPhone) && !autoRequestSent && !sid) {
+            setAutoRequestSent(true);
+            handleRequestOtp();
+        }
+    }, [passedPhone]);
 
     // Auto-fill OTP from clipboard detection
     useEffect(() => {

@@ -6,7 +6,7 @@ namespace App\Filament\Admin\Resources;
 
 use App\Domain\Forum\Enums\ReportMotivo;
 use App\Domain\Forum\Enums\ReportStatus;
-use App\Domain\Forum\Enums\TopicStatus;
+use App\Domain\Moderation\Services\ModerationActionService;
 use App\Filament\Admin\Resources\TopicReportResource\Pages;
 use App\Models\TopicReport;
 use Filament\Forms;
@@ -130,15 +130,8 @@ class TopicReportResource extends BaseResource
                     ->color('gray')
                     ->requiresConfirmation()
                     ->action(function (TopicReport $record): void {
-                        $record->update(['status' => ReportStatus::Dismissed]);
-
-                        activity()
-                            ->causedBy(auth()->user())
-                            ->performedOn($record)
-                            ->withProperties([
-                                'status' => ReportStatus::Dismissed->value,
-                            ])
-                            ->log('topic_report_dismissed');
+                        app(ModerationActionService::class)
+                            ->dismissTopicReport($record, auth()->user());
                     })
                     ->visible(fn (TopicReport $record) => $record->status === ReportStatus::Pending
                         && (auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false)),
@@ -150,18 +143,8 @@ class TopicReportResource extends BaseResource
                     ->modalHeading('Ocultar Topico')
                     ->modalDescription('O topico sera ocultado e a denuncia marcada como processada.')
                     ->action(function (TopicReport $record): void {
-                        $topicId = $record->topic_id;
-                        $record->topic?->update(['status' => TopicStatus::Hidden]);
-                        $record->update(['status' => ReportStatus::ActionTaken]);
-
-                        activity()
-                            ->causedBy(auth()->user())
-                            ->performedOn($record)
-                            ->withProperties([
-                                'status' => ReportStatus::ActionTaken->value,
-                                'topic_id' => $topicId,
-                            ])
-                            ->log('topic_report_topic_hidden');
+                        app(ModerationActionService::class)
+                            ->hideTopicFromReport($record, auth()->user());
                     })
                     ->visible(fn (TopicReport $record) => $record->status === ReportStatus::Pending
                         && (auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false)),

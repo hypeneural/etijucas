@@ -6,6 +6,7 @@ namespace App\Filament\Admin\Resources;
 
 use App\Domain\Forum\Enums\ReportMotivo;
 use App\Domain\Forum\Enums\ReportStatus;
+use App\Domain\Moderation\Services\ModerationActionService;
 use App\Filament\Admin\Resources\CommentReportResource\Pages;
 use App\Models\CommentReport;
 use Filament\Forms;
@@ -132,15 +133,8 @@ class CommentReportResource extends BaseResource
                     ->color('gray')
                     ->requiresConfirmation()
                     ->action(function (CommentReport $record): void {
-                        $record->update(['status' => ReportStatus::Dismissed]);
-
-                        activity()
-                            ->causedBy(auth()->user())
-                            ->performedOn($record)
-                            ->withProperties([
-                                'status' => ReportStatus::Dismissed->value,
-                            ])
-                            ->log('comment_report_dismissed');
+                        app(ModerationActionService::class)
+                            ->dismissCommentReport($record, auth()->user());
                     })
                     ->visible(fn (CommentReport $record) => $record->status === ReportStatus::Pending
                         && (auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false)),
@@ -152,21 +146,8 @@ class CommentReportResource extends BaseResource
                     ->modalHeading('Remover Comentario')
                     ->modalDescription('O comentario sera removido permanentemente.')
                     ->action(function (CommentReport $record): void {
-                        $commentId = $record->comment_id;
-                        $topicId = $record->comment?->topic_id;
-
-                        $record->comment?->delete();
-                        $record->update(['status' => ReportStatus::ActionTaken]);
-
-                        activity()
-                            ->causedBy(auth()->user())
-                            ->performedOn($record)
-                            ->withProperties([
-                                'status' => ReportStatus::ActionTaken->value,
-                                'comment_id' => $commentId,
-                                'topic_id' => $topicId,
-                            ])
-                            ->log('comment_report_comment_deleted');
+                        app(ModerationActionService::class)
+                            ->deleteCommentFromReport($record, auth()->user());
                     })
                     ->visible(fn (CommentReport $record) => $record->status === ReportStatus::Pending
                         && (auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false)),
