@@ -104,7 +104,7 @@ export function QuickAccessGridVivo({ data, className }: QuickAccessGridVivoProp
     };
 
     const handleClick = (item: QuickAccessItem) => {
-        haptic('light');
+        haptic.light();
         navigate(item.route);
     };
 
@@ -121,7 +121,7 @@ export function QuickAccessGridVivo({ data, className }: QuickAccessGridVivoProp
                 {items.map((item) => {
                     const Icon = iconMap[item.icon] || FileText;
                     const colorClass = itemColors[item.id] || 'bg-muted text-muted-foreground';
-                    const badgeColorClass = badgeColors[item.badge_color || 'blue'];
+                    const badgeColorClass = badgeColors[item.badge_color ?? ''] || badgeColors['blue'];
 
                     return (
                         <motion.button
