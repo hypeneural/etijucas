@@ -11,9 +11,10 @@
   - [x] selecionar `vereador_id` (searchable/preload).
   - [x] `voto` (SIM/NAO/ABSTENCAO/NAO_VOTOU), `justificativa`, `url_video`.
   - [x] ao salvar/deletar, garantir `recalcularVotos()`.
-- [ ] Adicionar politicas/roles para admin/moderator:
-  - [ ] admin: CRUD completo.
-  - [ ] moderator: moderacao de comentarios e leitura de votacoes.
+- [x] Adicionar politicas/roles para admin/moderator:
+  - [x] admin: CRUD completo.
+  - [x] moderator: moderacao de comentarios e leitura de votacoes.
+  - [x] widgets de votacoes liberados para moderator (via permissions).
 - [x] Resource de comentarios (Votacao): filtrar `commentable_type = Votacao`.
 
 ## Prioridade Media (UX/UI e fluxo operacional)
@@ -21,18 +22,32 @@
   - [x] Sections separadas: Identificacao, Descricao, Sessao, Resultado, Midia/Links.
   - [x] `tags` com `TagsInput` e helper text.
   - [x] `status` com badges e cores.
-- [ ] VotoRegistro RelationManager:
-  - [ ] default sort por vereador (nome) e voto.
-  - [ ] filtros rapidos por tipo de voto.
-  - [ ] actions em lote (ex: marcar como NAO_VOTOU).
-- [ ] ViewAction com resumo (counts, resultado, total votos).
+- [x] VotoRegistro RelationManager:
+  - [x] default sort por vereador (nome).
+  - [x] filtros rapidos por tipo de voto.
+  - [x] actions em lote (ex: marcar como NAO_VOTOU).
+- [x] ViewAction com resumo (counts, resultado, total votos).
 - [x] Botao rapido "Recalcular Votos" na votacao (Action).
+- [x] Filtro por ano em `VotacaoResource` (data).
+- [x] Filtros por partido/legislatura/em exercicio em `VereadorResource` + sort padrao por nome.
+- [x] Mostrar avatar no grid de `VereadorResource`.
+- [x] Mostrar `protocolo` na tabela de `VotacaoResource` (searchable).
+- [x] Action para importar foto do vereador a partir de `foto_url` (Media Library).
+- [x] Melhorar grid de `PartidoResource` com logo + cor (ColorColumn).
+- [x] Bulk action para importar fotos de vereadores via URL (Media Library).
+
+## Prioridade Media (cadastros auxiliares)
+- [x] Criar `PartidoResource` (sigla, nome, cor, logo).
+- [x] Criar `LegislaturaResource` (numero, periodo, atual).
+- [x] Adicionar `MandatosRelationManager` em `VereadorResource` (partido, legislatura, cargo, periodo).
+- [x] Criar policies e registrar no Gate para `Partido`, `Legislatura`, `Mandato`.
 
 ## Prioridade Media (comentarios / moderacao)
 - [x] `VotacaoCommentResource`:
   - [x] listagem com usuario, texto, likes, is_anon, created_at.
   - [x] filtros por `has_image`, `is_anon`, `likes_count`.
   - [x] actions: remover, ocultar (soft delete), resetar likes.
+  - [x] restore/force delete com ajuste de `comments_count`.
 - [x] Se usar `Comment` global, criar scope `votacao()` no model para facilitar.
 
 ## Prioridade Baixa (estatisticas e dashboards)
@@ -43,12 +58,16 @@
   - [x] likes, dislikes, comments.
 
 ## Verificacao e Qualidade
-- [ ] Validar permissoes em todos os Resources (admin/moderator).
+- [x] Validar permissoes em todos os Resources (admin/moderator).
+- [x] Rodar `php artisan db:seed --class=RolesAndPermissionsSeeder` (apos novos resources).
 - [ ] Testar fluxo completo:
   - [ ] criar vereador com foto.
-  - [ ] criar votacao + registrar votos.
-  - [ ] validar contadores e status automatico.
+  - [x] criar votacao + registrar votos.
+  - [x] validar contadores e status automatico.
   - [ ] criar/moderar comentario de votacao.
-- [ ] Performance:
-  - [ ] `with/withCount` nos Resources.
-  - [ ] indices para filtros (status, data, vereador_id).
+- [ ] Testar CRUD auxiliar:
+  - [ ] criar partido e legislatura (admin).
+  - [ ] adicionar mandato em vereador (relation manager).
+- [x] Performance:
+  - [x] `with/withCount` nos Resources.
+  - [x] indices para filtros (status, data, vereador_id).

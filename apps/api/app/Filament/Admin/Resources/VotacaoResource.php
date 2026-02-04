@@ -10,6 +10,7 @@ use App\Filament\Admin\Resources\VotacaoResource\Pages;
 use App\Filament\Admin\Resources\VotacaoResource\RelationManagers\VotosRelationManager;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TagsInput;
@@ -17,6 +18,9 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Tables;
 use Filament\Tables\Actions\Action;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -141,6 +145,10 @@ class VotacaoResource extends BaseResource
                     ->searchable()
                     ->sortable()
                     ->limit(50),
+                TextColumn::make('protocolo')
+                    ->label('Protocolo')
+                    ->searchable()
+                    ->toggleable(),
                 TextColumn::make('tipo')
                     ->label('Tipo')
                     ->toggleable(),
@@ -192,6 +200,22 @@ class VotacaoResource extends BaseResource
                 ...static::baseTableColumns(),
             ])
             ->filters([
+                SelectFilter::make('ano')
+                    ->label('Ano')
+                    ->options(fn () => Votacao::query()
+                        ->selectRaw('YEAR(data) as ano')
+                        ->whereNotNull('data')
+                        ->distinct()
+                        ->orderByDesc('ano')
+                        ->pluck('ano', 'ano')
+                        ->toArray())
+                    ->query(function (Builder $query, array $data): Builder {
+                        if (! array_key_exists('value', $data) || ! $data['value']) {
+                            return $query;
+                        }
+
+                        return $query->whereYear('data', $data['value']);
+                    }),
                 SelectFilter::make('status')
                     ->label('Status')
                     ->options(collect(StatusVotacao::cases())
@@ -212,7 +236,58 @@ class VotacaoResource extends BaseResource
                     ->requiresConfirmation()
                     ->action(fn (Votacao $record) => $record->recalcularVotos())
                     ->visible(fn (): bool => auth()->user()?->hasRole('admin') ?? false),
-                ...static::baseTableActions(),
+                ViewAction::make()
+                    ->label('Resumo')
+                    ->modalHeading(fn (Votacao $record): string => "Resumo: {$record->titulo}")
+                    ->form([
+                        Section::make('Votacao')
+                            ->columns(2)
+                            ->schema([
+                                Placeholder::make('status')
+                                    ->label('Status')
+                                    ->content(fn (Votacao $record): string => $record->status?->label() ?? '-'),
+                                Placeholder::make('resultado')
+                                    ->label('Resultado')
+                                    ->content(fn (Votacao $record): string => $record->resultado),
+                                Placeholder::make('total_votos')
+                                    ->label('Total de votos')
+                                    ->content(fn (Votacao $record): int => $record->total_votos),
+                                Placeholder::make('sessao')
+                                    ->label('Sessao')
+                                    ->content(fn (Votacao $record): string => $record->sessao ?? '-'),
+                            ]),
+                        Section::make('Contagem')
+                            ->columns(4)
+                            ->schema([
+                                Placeholder::make('votos_sim')
+                                    ->label('Sim')
+                                    ->content(fn (Votacao $record): int => $record->votos_sim),
+                                Placeholder::make('votos_nao')
+                                    ->label('Nao')
+                                    ->content(fn (Votacao $record): int => $record->votos_nao),
+                                Placeholder::make('votos_abstencao')
+                                    ->label('Abstencao')
+                                    ->content(fn (Votacao $record): int => $record->votos_abstencao),
+                                Placeholder::make('votos_ausente')
+                                    ->label('Ausente')
+                                    ->content(fn (Votacao $record): int => $record->votos_ausente),
+                            ]),
+                        Section::make('Engajamento')
+                            ->columns(3)
+                            ->schema([
+                                Placeholder::make('likes_count')
+                                    ->label('Likes')
+                                    ->content(fn (Votacao $record): int => $record->likes_count ?? 0),
+                                Placeholder::make('dislikes_count')
+                                    ->label('Dislikes')
+                                    ->content(fn (Votacao $record): int => $record->dislikes_count ?? 0),
+                                Placeholder::make('comments_count')
+                                    ->label('Comentarios')
+                                    ->content(fn (Votacao $record): int => $record->comments_count ?? 0),
+                            ]),
+                    ]),
+                EditAction::make()->requiresConfirmation(),
+                DeleteAction::make()->requiresConfirmation(),
             ]);
     }
 
@@ -235,5 +310,15 @@ class VotacaoResource extends BaseResource
     public static function canCreate(): bool
     {
         return auth()->user()?->hasRole('admin') ?? false;
+    }
+
+    public static function getDefaultTableSortColumn(): ?string
+    {
+        return 'data';
+    }
+
+    public static function getDefaultTableSortDirection(): ?string
+    {
+        return 'desc';
     }
 }

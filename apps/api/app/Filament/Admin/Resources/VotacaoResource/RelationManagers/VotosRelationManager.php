@@ -15,6 +15,7 @@ use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Illuminate\Database\Eloquent\Builder;
 
 class VotosRelationManager extends RelationManager
 {
@@ -56,6 +57,7 @@ class VotosRelationManager extends RelationManager
     public function table(Tables\Table $table): Tables\Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with('vereador'))
             ->columns([
                 TextColumn::make('vereador.nome')
                     ->label('Vereador')
@@ -84,18 +86,69 @@ class VotosRelationManager extends RelationManager
                     ->dateTime('d/m/Y H:i')
                     ->sortable(),
             ])
-            ->defaultSort('created_at', 'desc')
+            ->defaultSort('vereador.nome', 'asc')
             ->filters([
+                SelectFilter::make('vereador_id')
+                    ->label('Vereador')
+                    ->relationship('vereador', 'nome')
+                    ->preload()
+                    ->searchable(),
                 SelectFilter::make('voto')
                     ->label('Voto')
                     ->options(collect(TipoVoto::cases())
                         ->mapWithKeys(fn (TipoVoto $tipo) => [$tipo->value => $tipo->label()])
                         ->toArray()),
+                Tables\Filters\Filter::make('sem_justificativa')
+                    ->label('Sem justificativa')
+                    ->query(fn (Builder $query): Builder => $query->whereNull('justificativa')),
             ])
             ->actions([
-                Tables\Actions\CreateAction::make(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\CreateAction::make()
+                    ->visible(fn (): bool => auth()->user()?->hasRole('admin') ?? false),
+                Tables\Actions\EditAction::make()
+                    ->visible(fn (): bool => auth()->user()?->hasRole('admin') ?? false),
+                Tables\Actions\DeleteAction::make()
+                    ->visible(fn (): bool => auth()->user()?->hasRole('admin') ?? false),
+            ])
+            ->bulkActions([
+                Tables\Actions\BulkAction::make('definir_voto')
+                    ->label('Definir voto')
+                    ->icon('heroicon-o-check-badge')
+                    ->form([
+                        Select::make('voto')
+                            ->label('Voto')
+                            ->options(collect(TipoVoto::cases())
+                                ->mapWithKeys(fn (TipoVoto $tipo) => [$tipo->value => $tipo->label()])
+                                ->toArray())
+                            ->required(),
+                        Textarea::make('justificativa')
+                            ->label('Justificativa')
+                            ->rows(3),
+                        TextInput::make('url_video')
+                            ->label('URL do video')
+                            ->url()
+                            ->maxLength(500),
+                    ])
+                    ->action(function ($records, array $data): void {
+                        foreach ($records as $record) {
+                            $record->update([
+                                'voto' => $data['voto'],
+                                'justificativa' => $data['justificativa'] ?? null,
+                                'url_video' => $data['url_video'] ?? null,
+                            ]);
+                        }
+                    })
+                    ->visible(fn (): bool => auth()->user()?->hasRole('admin') ?? false),
+                Tables\Actions\BulkAction::make('marcar_ausente')
+                    ->label('Marcar como ausente')
+                    ->icon('heroicon-o-minus-circle')
+                    ->requiresConfirmation()
+                    ->action(function ($records): void {
+                        foreach ($records as $record) {
+                            $record->update(['voto' => TipoVoto::NAO_VOTOU]);
+                        }
+                    })
+                    ->visible(fn (): bool => auth()->user()?->hasRole('admin') ?? false),
             ]);
     }
 }

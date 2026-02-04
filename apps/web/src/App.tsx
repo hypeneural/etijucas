@@ -32,6 +32,7 @@ const ReportWizardPage = lazy(() => import("./pages/ReportWizardPage"));
 const MyReportsPage = lazy(() => import("./pages/MyReportsPage"));
 const ReportDetailPage = lazy(() => import("./pages/ReportDetailPage"));
 const TourismDetailPage = lazy(() => import("./pages/TourismDetailPage"));
+const WeatherPage = lazy(() => import("./pages/WeatherPage"));
 
 // Feature screens (will become pages)
 const UsefulPhonesScreen = lazy(() => import("./screens/UsefulPhonesScreen"));
@@ -156,6 +157,9 @@ const App = () => {
             <Route path="/pontos-turisticos" element={<TourismScreen />} />
             <Route path="/ponto-turistico/:id" element={<TourismDetailPage />} />
             <Route path="/turismo" element={<Navigate to="/pontos-turisticos" replace />} />
+
+            {/* Previsão do Tempo */}
+            <Route path="/previsao" element={<WeatherPage />} />
 
             {/* Catch-all - redirect to home */}
             <Route path="*" element={<Navigate to="/" replace />} />

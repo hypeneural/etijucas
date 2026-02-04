@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -44,6 +45,34 @@ class RolesAndPermissionsSeeder extends Seeder
             // Moderacao
             'flags.manage',
             'restrictions.manage',
+            // Widgets (Filament)
+            'widget_VotesOverviewStats',
+            'widget_VotesEngagementStats',
+            'widget_VotesByYearChart',
+            // Filament Votacoes
+            'view_any_votacao',
+            'view_votacao',
+            'create_votacao',
+            'update_votacao',
+            'delete_votacao',
+            // Filament Vereadores
+            'view_any_vereador',
+            'view_vereador',
+            'create_vereador',
+            'update_vereador',
+            'delete_vereador',
+            // Filament Partidos
+            'view_any_partido',
+            'view_partido',
+            'create_partido',
+            'update_partido',
+            'delete_partido',
+            // Filament Legislaturas
+            'view_any_legislatura',
+            'view_legislatura',
+            'create_legislatura',
+            'update_legislatura',
+            'delete_legislatura',
         ];
 
         foreach ($permissions as $permission) {
@@ -55,6 +84,7 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // User Role - Basic permissions
         $userRole = Role::firstOrCreate(['name' => 'user']);
+        DB::table('role_has_permissions')->where('role_id', $userRole->id)->delete();
         $userRole->syncPermissions([
             'topics.create',
             'topics.update.own',
@@ -67,6 +97,7 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // Moderator Role - User permissions + moderation
         $moderatorRole = Role::firstOrCreate(['name' => 'moderator']);
+        DB::table('role_has_permissions')->where('role_id', $moderatorRole->id)->delete();
         $moderatorBasePermissions = [
             // Inherited from user
             'topics.create',
@@ -126,6 +157,9 @@ class RolesAndPermissionsSeeder extends Seeder
             // Widgets
             'widget_AdminOverviewStats',
             'widget_ReportsOverviewStats',
+            'widget_VotesOverviewStats',
+            'widget_VotesEngagementStats',
+            'widget_VotesByYearChart',
             // Citizen Reports
             'view_any_citizen::report',
             'view_citizen::report',
@@ -133,6 +167,17 @@ class RolesAndPermissionsSeeder extends Seeder
             // Report Categories
             'view_any_report::category',
             'view_report::category',
+            // Votacoes & Vereadores (read-only for moderator)
+            'view_any_votacao',
+            'view_votacao',
+            'view_any_vereador',
+            'view_vereador',
+            // Partidos (read-only for moderator)
+            'view_any_partido',
+            'view_partido',
+            // Legislaturas (read-only for moderator)
+            'view_any_legislatura',
+            'view_legislatura',
         ];
 
         $availableFilamentPermissions = Permission::query()
@@ -150,6 +195,7 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // Admin Role - All permissions
         $adminRole = Role::firstOrCreate(['name' => 'admin']);
+        DB::table('role_has_permissions')->where('role_id', $adminRole->id)->delete();
         $adminRole->syncPermissions(Permission::all());
 
         $this->command->info('Roles and permissions seeded successfully!');

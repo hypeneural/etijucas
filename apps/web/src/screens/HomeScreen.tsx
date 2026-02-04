@@ -15,6 +15,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { TabId } from '@/components/layout/BottomTabBar';
 import { useToast } from '@/hooks/use-toast';
 import { hapticFeedback } from '@/hooks/useHaptics';
+import { WeatherHomeCard } from '@/components/weather/WeatherHomeCard';
 
 // Mock alerts (TODO: replace with real API)
 import { alerts as mockAlerts } from '@/data/mockData';
@@ -203,6 +204,11 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
         {/* Install App Card - inline */}
         <div className="px-4 pb-2">
           <InstallCard />
+        </div>
+
+        {/* Weather Card */}
+        <div className="px-4 pb-4">
+          <WeatherHomeCard />
         </div>
 
         <TodayBentoGrid onNavigate={onNavigate} />

@@ -18,6 +18,8 @@ use Filament\Tables;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -169,7 +171,29 @@ class VotacaoCommentResource extends BaseResource
                 EditAction::make()->requiresConfirmation(),
                 DeleteAction::make()
                     ->requiresConfirmation()
+                    ->using(function (Comment $record): bool {
+                        $commentable = $record->commentable;
+                        if ($commentable instanceof Votacao) {
+                            $commentable->decrement('comments_count');
+                        }
+
+                        return (bool) $record->delete();
+                    })
                     ->visible(fn(): bool => auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false),
+                RestoreAction::make()
+                    ->requiresConfirmation()
+                    ->using(function (Comment $record): bool {
+                        $restored = (bool) $record->restore();
+                        if ($restored && $record->commentable instanceof Votacao) {
+                            $record->commentable->increment('comments_count');
+                        }
+
+                        return $restored;
+                    })
+                    ->visible(fn(): bool => auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false),
+                ForceDeleteAction::make()
+                    ->requiresConfirmation()
+                    ->visible(fn(): bool => auth()->user()?->hasRole('admin') ?? false),
             ]);
     }
 
