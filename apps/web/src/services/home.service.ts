@@ -7,9 +7,9 @@
 import { apiClient } from '@/api/client';
 import { HomeDataResponse, BoletimDoDiaPayload, TijucanosCounterPayload } from '@/types/home.types';
 
-const HOME_ENDPOINT = '/v1/home';
-const BOLETIM_ENDPOINT = '/v1/today/brief';
-const STATS_ENDPOINT = '/v1/stats/users';
+const HOME_ENDPOINT = '/home';
+const BOLETIM_ENDPOINT = '/today/brief';
+const STATS_ENDPOINT = '/stats/users';
 
 export interface HomeQueryParams {
     bairro_id?: string;
