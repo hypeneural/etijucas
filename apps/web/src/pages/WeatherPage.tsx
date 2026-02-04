@@ -1,9 +1,10 @@
 /**
  * WeatherPage - Página completa de Previsão do Tempo
- * 3 abas: Hoje (hora a hora), 10 Dias, Mar
+ * Modo Simples: Perguntas humanas ("Vai chover?", "Dá praia?")
+ * Modo Detalhado: 3 abas (Hoje, 10 Dias, Mar)
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Icon } from '@iconify/react';
@@ -17,13 +18,35 @@ import { getWeatherInfo, getWindDirection, type WeatherHourPoint, type WeatherDa
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { SimpleWeatherView } from '@/components/weather/SimpleWeatherView';
+import { PresetChips } from '@/components/weather/PresetChips';
+
+type ViewMode = 'simple' | 'detailed';
+
+// Persistir preferência no localStorage
+const STORAGE_KEY = 'weather-view-mode';
+
+function getStoredMode(): ViewMode {
+    if (typeof window === 'undefined') return 'simple';
+    return (localStorage.getItem(STORAGE_KEY) as ViewMode) || 'simple';
+}
+
+function storeMode(mode: ViewMode) {
+    localStorage.setItem(STORAGE_KEY, mode);
+}
 
 export default function WeatherPage() {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('hoje');
+    const [viewMode, setViewMode] = useState<ViewMode>(getStoredMode);
+
+    // Persist mode preference
+    useEffect(() => {
+        storeMode(viewMode);
+    }, [viewMode]);
 
     const { data: forecast, isLoading: loadingForecast, refetch: refetchForecast } = useWeatherForecast({ hours: 48, days: 10 });
-    const { data: marine, isLoading: loadingMarine, refetch: refetchMarine } = useMarineForecast({ hours: 48, days: 10 });
+    const { data: marine, isLoading: loadingMarine, refetch: refetchMarine } = useMarineForecast({ hours: 48, days: 8 });
 
     const isLoading = loadingForecast || loadingMarine;
 
@@ -72,65 +95,141 @@ export default function WeatherPage() {
 
             {/* Main content with tabs */}
             <main className="pb-20">
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                    <div className="sticky top-[120px] z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl px-4 py-2 border-b border-gray-200/50 dark:border-gray-700/50">
-                        <TabsList className="grid w-full grid-cols-3 bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
-                            <TabsTrigger
-                                value="hoje"
-                                className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow"
-                            >
-                                <Icon icon="mdi:clock-outline" className="h-4 w-4 mr-1" />
-                                Hoje
-                            </TabsTrigger>
-                            <TabsTrigger
-                                value="dias"
-                                className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow"
-                            >
-                                <Icon icon="mdi:calendar" className="h-4 w-4 mr-1" />
-                                10 Dias
-                            </TabsTrigger>
-                            <TabsTrigger
-                                value="mar"
-                                className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow"
-                            >
-                                <Icon icon="mdi:waves" className="h-4 w-4 mr-1" />
-                                Mar
-                            </TabsTrigger>
-                        </TabsList>
+                {/* Mode Toggle */}
+                <div className="px-4 py-3">
+                    <div className="flex items-center justify-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl p-1 max-w-[280px] mx-auto">
+                        <motion.button
+                            onClick={() => setViewMode('simple')}
+                            className={cn(
+                                "flex-1 py-2 px-4 text-sm font-medium rounded-lg transition-all relative",
+                                viewMode === 'simple'
+                                    ? "text-primary"
+                                    : "text-muted-foreground hover:text-foreground"
+                            )}
+                        >
+                            {viewMode === 'simple' && (
+                                <motion.div
+                                    layoutId="modeIndicator"
+                                    className="absolute inset-0 bg-white dark:bg-gray-700 rounded-lg shadow"
+                                    transition={{ type: "spring", damping: 20, stiffness: 300 }}
+                                />
+                            )}
+                            <span className="relative z-10 flex items-center justify-center gap-1">
+                                <Icon icon="mdi:lightbulb-outline" className="h-4 w-4" />
+                                Simples
+                            </span>
+                        </motion.button>
+                        <motion.button
+                            onClick={() => setViewMode('detailed')}
+                            className={cn(
+                                "flex-1 py-2 px-4 text-sm font-medium rounded-lg transition-all relative",
+                                viewMode === 'detailed'
+                                    ? "text-primary"
+                                    : "text-muted-foreground hover:text-foreground"
+                            )}
+                        >
+                            {viewMode === 'detailed' && (
+                                <motion.div
+                                    layoutId="modeIndicator"
+                                    className="absolute inset-0 bg-white dark:bg-gray-700 rounded-lg shadow"
+                                    transition={{ type: "spring", damping: 20, stiffness: 300 }}
+                                />
+                            )}
+                            <span className="relative z-10 flex items-center justify-center gap-1">
+                                <Icon icon="mdi:chart-line" className="h-4 w-4" />
+                                Detalhado
+                            </span>
+                        </motion.button>
                     </div>
+                </div>
 
-                    <AnimatePresence mode="wait">
-                        <TabsContent value="hoje" className="mt-0 px-4 pt-4">
-                            {loadingForecast ? (
-                                <HourlyLoadingSkeleton />
-                            ) : forecast?.hourly ? (
-                                <HourlyForecast hours={forecast.hourly} />
-                            ) : (
-                                <EmptyState message="Dados não disponíveis" />
-                            )}
-                        </TabsContent>
+                <AnimatePresence mode="wait">
+                    {viewMode === 'simple' ? (
+                        <motion.div
+                            key="simple"
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            transition={{ duration: 0.2 }}
+                            className="px-4 pt-2"
+                        >
+                            {/* Preset Chips */}
+                            <PresetChips className="mb-4" />
 
-                        <TabsContent value="dias" className="mt-0 px-4 pt-4">
-                            {loadingForecast ? (
-                                <DailyLoadingSkeleton />
-                            ) : forecast?.daily ? (
-                                <DailyForecast days={forecast.daily} />
-                            ) : (
-                                <EmptyState message="Dados não disponíveis" />
-                            )}
-                        </TabsContent>
+                            {/* Simple View with Insights */}
+                            <SimpleWeatherView />
+                        </motion.div>
+                    ) : (
+                        <motion.div
+                            key="detailed"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 20 }}
+                            transition={{ duration: 0.2 }}
+                        >
+                            {/* Tabs for detailed view */}
+                            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                                <div className="sticky top-[120px] z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl px-4 py-2 border-b border-gray-200/50 dark:border-gray-700/50">
+                                    <TabsList className="grid w-full grid-cols-3 bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
+                                        <TabsTrigger
+                                            value="hoje"
+                                            className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow"
+                                        >
+                                            <Icon icon="mdi:clock-outline" className="h-4 w-4 mr-1" />
+                                            Hoje
+                                        </TabsTrigger>
+                                        <TabsTrigger
+                                            value="dias"
+                                            className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow"
+                                        >
+                                            <Icon icon="mdi:calendar" className="h-4 w-4 mr-1" />
+                                            10 Dias
+                                        </TabsTrigger>
+                                        <TabsTrigger
+                                            value="mar"
+                                            className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow"
+                                        >
+                                            <Icon icon="mdi:waves" className="h-4 w-4 mr-1" />
+                                            Mar
+                                        </TabsTrigger>
+                                    </TabsList>
+                                </div>
 
-                        <TabsContent value="mar" className="mt-0 px-4 pt-4">
-                            {loadingMarine ? (
-                                <MarineLoadingSkeleton />
-                            ) : marine?.hourly ? (
-                                <MarineForecast hours={marine.hourly} />
-                            ) : (
-                                <EmptyState message="Dados do mar indisponíveis" />
-                            )}
-                        </TabsContent>
-                    </AnimatePresence>
-                </Tabs>
+                                <AnimatePresence mode="wait">
+                                    <TabsContent value="hoje" className="mt-0 px-4 pt-4">
+                                        {loadingForecast ? (
+                                            <HourlyLoadingSkeleton />
+                                        ) : forecast?.hourly ? (
+                                            <HourlyForecast hours={forecast.hourly} />
+                                        ) : (
+                                            <EmptyState message="Dados não disponíveis" />
+                                        )}
+                                    </TabsContent>
+
+                                    <TabsContent value="dias" className="mt-0 px-4 pt-4">
+                                        {loadingForecast ? (
+                                            <DailyLoadingSkeleton />
+                                        ) : forecast?.daily ? (
+                                            <DailyForecast days={forecast.daily} />
+                                        ) : (
+                                            <EmptyState message="Dados não disponíveis" />
+                                        )}
+                                    </TabsContent>
+
+                                    <TabsContent value="mar" className="mt-0 px-4 pt-4">
+                                        {loadingMarine ? (
+                                            <MarineLoadingSkeleton />
+                                        ) : marine?.hourly ? (
+                                            <MarineForecast hours={marine.hourly} />
+                                        ) : (
+                                            <EmptyState message="Dados do mar indisponíveis" />
+                                        )}
+                                    </TabsContent>
+                                </AnimatePresence>
+                            </Tabs>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
                 {/* Cache info */}
                 {forecast?.cache && (

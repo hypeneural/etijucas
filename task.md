@@ -1,76 +1,29 @@
-﻿# Task - Admin (Filament) Votacoes / Vereadores
+# Task - Melhorias Administrativas (Painel Filament)
 
-## Prioridade Alta (fundacao e CRUDs essenciais)
-- [x] Criar `VereadorResource` (Filament) com campos principais e validacoes.
-- [x] Implementar upload de foto do vereador via Media Library:
-  - [x] `Vereador` implementar `HasMedia` + collection `vereador_avatar`.
-  - [x] Form com `SpatieMediaLibraryFileUpload`.
-  - [x] Sync `foto_url` para compatibilidade (legado).
-- [x] Criar `VotacaoResource` com form completo (titulo, subtitulo, descricao, ementa, tipo, status, data, sessao, links, tags).
-- [x] Criar `VotoRegistro` RelationManager dentro de `VotacaoResource`:
-  - [x] selecionar `vereador_id` (searchable/preload).
-  - [x] `voto` (SIM/NAO/ABSTENCAO/NAO_VOTOU), `justificativa`, `url_video`.
-  - [x] ao salvar/deletar, garantir `recalcularVotos()`.
-- [x] Adicionar politicas/roles para admin/moderator:
-  - [x] admin: CRUD completo.
-  - [x] moderator: moderacao de comentarios e leitura de votacoes.
-  - [x] widgets de votacoes liberados para moderator (via permissions).
-- [x] Resource de comentarios (Votacao): filtrar `commentable_type = Votacao`.
+## Prioridade alta
+- [ ] Normalizar labels PT-BR quebrados no modulo Forum (admin e front).
+- [ ] Incluir grupo de navegacao `Forum` no painel e revisar ordenacao dos menus por fluxo operacional.
+- [ ] Criar fluxo de atribuicao de responsavel nas denuncias (responsavel_id + status + nota).
+- [ ] Exibir SLA/tempo em aberto nas denuncias e destacar atrasos.
+- [ ] Adicionar acao rapida para mudar status da denuncia com nota diretamente na listagem.
+- [ ] Adicionar auditoria obrigatoria para acoes de moderacao (denuncias, forum, flags).
+- [ ] Criar pagina de calendario (mes/semana) para eventos no admin.
+- [ ] Adicionar actions rapidas em eventos: publicar, despublicar, destacar, duplicar.
+- [ ] Revisar permissoes de pages/widgets e garantir admin vs moderator.
 
-## Prioridade Media (UX/UI e fluxo operacional)
-- [x] Padrao de UX no form de votação:
-  - [x] Sections separadas: Identificacao, Descricao, Sessao, Resultado, Midia/Links.
-  - [x] `tags` com `TagsInput` e helper text.
-  - [x] `status` com badges e cores.
-- [x] VotoRegistro RelationManager:
-  - [x] default sort por vereador (nome).
-  - [x] filtros rapidos por tipo de voto.
-  - [x] actions em lote (ex: marcar como NAO_VOTOU).
-  - [x] action "Gerar votos" para criar registros faltantes (em lote).
-- [x] ViewAction com resumo (counts, resultado, total votos).
-- [x] Botao rapido "Recalcular Votos" na votacao (Action).
-- [x] Filtro por ano em `VotacaoResource` (data).
-- [x] Filtros por partido/legislatura/em exercicio em `VereadorResource` + sort padrao por nome.
-- [x] Mostrar avatar no grid de `VereadorResource`.
-- [x] Mostrar `protocolo` na tabela de `VotacaoResource` (searchable).
-- [x] Action para importar foto do vereador a partir de `foto_url` (Media Library).
-- [x] Melhorar grid de `PartidoResource` com logo + cor (ColorColumn).
-- [x] Bulk action para importar fotos de vereadores via URL (Media Library).
-- [x] RelationManager de comentarios dentro de `VotacaoResource`.
-- [x] Padronizar uploads com `image()` + `imageEditor()` + tipos aceitos no `HasMediaLibraryTrait`.
+## Prioridade media
+- [ ] Consolidar fila de moderacao com filtros por prioridade/tipo e links diretos.
+- [ ] Melhorar filtros de denuncias (categoria, bairro, status, data) com indices garantidos.
+- [ ] Adicionar preview de mapa no formulario de denuncia e acao rapida de ajuste.
+- [ ] Adicionar acao rapida de ocultar/restaurar comentario no forum.
+- [ ] Exibir contexto do conteudo denunciado (trecho + link) em reports.
+- [ ] Exibir KPIs de moderacao com cache curto (30-120s).
+- [ ] Implementar `deferLoading()` em tabelas volumosas do admin.
+- [ ] Melhorar busca nas listagens (titulo, protocolo, usuario, bairro).
 
-## Prioridade Media (cadastros auxiliares)
-- [x] Criar `PartidoResource` (sigla, nome, cor, logo).
-- [x] Criar `LegislaturaResource` (numero, periodo, atual).
-- [x] Adicionar `MandatosRelationManager` em `VereadorResource` (partido, legislatura, cargo, periodo).
-- [x] Criar policies e registrar no Gate para `Partido`, `Legislatura`, `Mandato`.
-
-## Prioridade Media (comentarios / moderacao)
-- [x] `VotacaoCommentResource`:
-  - [x] listagem com usuario, texto, likes, is_anon, created_at.
-  - [x] filtros por `has_image`, `is_anon`, `likes_count`.
-  - [x] actions: remover, ocultar (soft delete), resetar likes.
-  - [x] restore/force delete com ajuste de `comments_count`.
-- [x] Se usar `Comment` global, criar scope `votacao()` no model para facilitar.
-
-## Prioridade Baixa (estatisticas e dashboards)
-- [x] Widget KPI de votacoes:
-  - [x] total votacoes, aprovadas, rejeitadas, em andamento.
-  - [x] grafico por ano.
-- [x] Widget de engajamento:
-  - [x] likes, dislikes, comments.
-
-## Verificacao e Qualidade
-- [x] Validar permissoes em todos os Resources (admin/moderator).
-- [x] Rodar `php artisan db:seed --class=RolesAndPermissionsSeeder` (apos novos resources).
-- [x] Testar fluxo completo (script `apps/api/scripts/admin_votes_smoke.php`):
-  - [x] criar vereador com foto.
-  - [x] criar votacao + registrar votos.
-  - [x] validar contadores e status automatico.
-  - [x] criar/moderar comentario de votacao.
-- [x] Testar CRUD auxiliar (script `apps/api/scripts/admin_votes_smoke.php`):
-  - [x] criar partido e legislatura (admin).
-  - [x] adicionar mandato em vereador (relation manager).
-- [x] Performance:
-  - [x] `with/withCount` nos Resources.
-  - [x] indices para filtros (status, data, vereador_id).
+## Prioridade baixa
+- [ ] Padronizar badges e cores de status em todos os recursos.
+- [ ] Revisar helper texts e placeholders para reduzir erro humano.
+- [ ] Refino visual de formularios longos (sections e colunas consistentes).
+- [ ] Padronizar imports por URL com actions de migracao de midia.
+- [ ] Revisar consistencia de nomenclatura entre API e painel (ex.: status e enums).
