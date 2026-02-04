@@ -14,10 +14,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class Event extends Model
+class Event extends Model implements HasMedia
 {
-    use HasFactory, HasUuids, SoftDeletes;
+    use HasFactory, HasUuids, SoftDeletes, InteractsWithMedia;
 
     protected $keyType = 'string';
     public $incrementing = false;
@@ -113,7 +115,7 @@ class Event extends Model
         return $this->belongsToMany(Tag::class, 'event_tags');
     }
 
-    public function media(): HasMany
+    public function legacyMedia(): HasMany
     {
         return $this->hasMany(EventMedia::class)->orderBy('display_order');
     }
@@ -506,5 +508,42 @@ class Event extends Model
                 $event->slug = \Illuminate\Support\Str::slug($event->title);
             }
         });
+    }
+
+    // =====================================================
+    // Media Collections
+    // =====================================================
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('event_cover')
+            ->singleFile()
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
+
+        $this->addMediaCollection('event_banner')
+            ->singleFile()
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
+
+        $this->addMediaCollection('event_banner_mobile')
+            ->singleFile()
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
+
+        $this->addMediaCollection('event_gallery')
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
+    }
+
+    public function registerMediaConversions(\Spatie\MediaLibrary\MediaCollections\Models\Media $media = null): void
+    {
+        $this->addMediaConversion('thumb')
+            ->width(400)
+            ->height(400)
+            ->performOnCollections('event_cover', 'event_banner', 'event_banner_mobile', 'event_gallery')
+            ->nonQueued();
+
+        $this->addMediaConversion('web')
+            ->width(1600)
+            ->height(1600)
+            ->performOnCollections('event_cover', 'event_banner', 'event_banner_mobile', 'event_gallery')
+            ->nonQueued();
     }
 }

@@ -7,12 +7,13 @@
 - [x] Migrar `Topic` para upload via Media Library (form + sync de `foto_url`).
 - [x] Migrar `Organizer` para upload via Media Library (avatar).
 - [x] Migrar `TourismSpot` para upload via Media Library (cover + gallery).
-- [ ] Migrar `Event` para upload via Media Library (cover + banner + gallery).
+- [x] Migrar `Event` para upload via Media Library (cover + banner + gallery).
 
 ## Prioridade Media (padroes de UI e organizacao)
 - [ ] Padronizar `form()` e `table()` usando `BaseResource` e Traits onde ainda houver inconsistencias.
 - [ ] Revisar e unificar labels PT-BR em Resources/Pages/Widgets (sem mistura EN/PT).
 - [ ] Revisar queries de pages customizadas para `with/withCount` e filtros alinhados a indices.
+- [x] Ajustar `media_count` de eventos para refletir Media Library (com legado).
 
 ## Prioridade Media (performance e confiabilidade)
 - [ ] Aplicar `getEloquentQuery()` com `with/withCount` em todos os Resources (auditar N+1).

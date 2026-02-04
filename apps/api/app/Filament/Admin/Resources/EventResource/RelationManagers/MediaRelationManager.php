@@ -16,7 +16,7 @@ use Filament\Tables\Columns\TextColumn;
 
 class MediaRelationManager extends RelationManager
 {
-    protected static string $relationship = 'media';
+    protected static string $relationship = 'legacyMedia';
 
     protected static ?string $title = 'Midias';
 

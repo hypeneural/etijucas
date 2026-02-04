@@ -146,8 +146,21 @@ class EventResource extends JsonResource
     {
         $gallery = [];
 
-        if ($this->relationLoaded('media')) {
-            $gallery = $this->media->map(fn($media) => [
+        if (method_exists($this->resource, 'getMedia')) {
+            $mediaItems = $this->resource->getMedia('event_gallery');
+            if ($mediaItems->isNotEmpty()) {
+                $gallery = $mediaItems->map(fn($media) => [
+                    'id' => $media->id,
+                    'type' => 'image',
+                    'url' => $media->getUrl(),
+                    'thumbnail' => $media->getUrl('thumb') ?: $media->getUrl(),
+                    'caption' => $media->getCustomProperty('caption'),
+                ])->toArray();
+            }
+        }
+
+        if (empty($gallery) && $this->relationLoaded('legacyMedia')) {
+            $gallery = $this->legacyMedia->map(fn($media) => [
                 'id' => $media->id,
                 'type' => $media->media_type->value,
                 'url' => $media->url,
@@ -156,10 +169,14 @@ class EventResource extends JsonResource
             ])->toArray();
         }
 
+        $coverImage = $this->resource?->getFirstMediaUrl('event_cover') ?: $this->cover_image_url;
+        $bannerImage = $this->resource?->getFirstMediaUrl('event_banner') ?: $this->banner_image_url;
+        $bannerImageMobile = $this->resource?->getFirstMediaUrl('event_banner_mobile') ?: $this->banner_image_mobile_url;
+
         return [
-            'coverImage' => $this->cover_image_url,
-            'bannerImage' => $this->banner_image_url,
-            'bannerImageMobile' => $this->banner_image_mobile_url,
+            'coverImage' => $coverImage,
+            'bannerImage' => $bannerImage,
+            'bannerImageMobile' => $bannerImageMobile,
             'gallery' => $gallery,
         ];
     }

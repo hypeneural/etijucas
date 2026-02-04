@@ -7,6 +7,7 @@ namespace App\Filament\Admin\Resources;
 use App\Domain\Events\Enums\AgeRating;
 use App\Domain\Events\Enums\EventStatus;
 use App\Domain\Events\Enums\EventType;
+use App\Filament\Admin\Resources\Concerns\HasMediaLibraryTrait;
 use App\Filament\Admin\Resources\EventResource\Pages;
 use App\Filament\Admin\Resources\EventResource\RelationManagers\DaysRelationManager;
 use App\Filament\Admin\Resources\EventResource\RelationManagers\LinksRelationManager;
@@ -27,10 +28,13 @@ use Filament\Tables;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 
 class EventResource extends BaseResource
 {
+    use HasMediaLibraryTrait;
+
     protected static ?string $model = Event::class;
 
     protected static ?string $navigationGroup = 'Conteudo';
@@ -43,7 +47,16 @@ class EventResource extends BaseResource
 
     protected static array $defaultEagerLoad = ['category', 'venue', 'organizer'];
 
-    protected static array $defaultWithCount = ['rsvps', 'media'];
+    protected static array $defaultWithCount = [
+        'rsvps',
+        'legacyMedia as legacy_media_count',
+        'media as media_library_count' => fn (Builder $query) => $query->whereIn('collection_name', [
+            'event_cover',
+            'event_banner',
+            'event_banner_mobile',
+            'event_gallery',
+        ]),
+    ];
 
     public static function form(Forms\Form $form): Forms\Form
     {
@@ -134,16 +147,28 @@ class EventResource extends BaseResource
                 Section::make('Midia')
                     ->columns(2)
                     ->schema([
+                        static::mediaUploadField('cover', 'event_cover', 1)
+                            ->label('Capa')
+                            ->helperText('Upload preferencial.'),
+                        static::mediaUploadField('banner', 'event_banner', 1)
+                            ->label('Banner')
+                            ->helperText('Upload preferencial.'),
+                        static::mediaUploadField('banner_mobile', 'event_banner_mobile', 1)
+                            ->label('Banner mobile')
+                            ->helperText('Upload preferencial.'),
+                        static::mediaUploadField('gallery', 'event_gallery', 8)
+                            ->label('Galeria')
+                            ->helperText('Imagens adicionais do evento.'),
                         TextInput::make('cover_image_url')
-                            ->label('Capa URL')
+                            ->label('Capa URL (legado)')
                             ->url()
                             ->maxLength(500),
                         TextInput::make('banner_image_url')
-                            ->label('Banner URL')
+                            ->label('Banner URL (legado)')
                             ->url()
                             ->maxLength(500),
                         TextInput::make('banner_image_mobile_url')
-                            ->label('Banner mobile URL')
+                            ->label('Banner mobile URL (legado)')
                             ->url()
                             ->maxLength(500),
                     ]),
@@ -234,8 +259,11 @@ class EventResource extends BaseResource
                     ->alignCenter(),
                 TextColumn::make('media_count')
                     ->label('Midias')
-                    ->sortable()
-                    ->alignCenter(),
+                    ->alignCenter()
+                    ->getStateUsing(fn (Event $record): int => (int) ($record->media_library_count ?? 0) + (int) ($record->legacy_media_count ?? 0))
+                    ->sortable(query: fn (Builder $query, string $direction): Builder => $query->orderByRaw(
+                        '(COALESCE(media_library_count, 0) + COALESCE(legacy_media_count, 0)) ' . $direction
+                    )),
                 ...static::baseTableColumns(),
             ])
             ->filters([

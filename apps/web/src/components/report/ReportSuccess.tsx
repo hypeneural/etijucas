@@ -1,4 +1,5 @@
 import { useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import {
@@ -9,6 +10,9 @@ import {
     Copy,
     PartyPopper,
     Sparkles,
+    List,
+    Map,
+    FileText,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -21,6 +25,7 @@ interface ReportSuccessProps {
 
 export function ReportSuccess({ protocolNumber, onClose }: ReportSuccessProps) {
     const { toast } = useToast();
+    const navigate = useNavigate();
 
     // Fire confetti on mount
     const fireConfetti = useCallback(() => {
@@ -262,25 +267,38 @@ export function ReportSuccess({ protocolNumber, onClose }: ReportSuccessProps) {
                         onClick={onClose}
                     >
                         <Home className="h-5 w-5 mr-2" />
-                        Voltar para o início
+                        Início do App
                     </Button>
+
+                    <div className="grid grid-cols-2 gap-3">
+                        <Button
+                            variant="outline"
+                            size="lg"
+                            className="h-12 rounded-2xl text-sm"
+                            onClick={() => navigate('/minhas-denuncias')}
+                        >
+                            <List className="h-4 w-4 mr-2" />
+                            Minhas Denúncias
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="lg"
+                            className="h-12 rounded-2xl text-sm"
+                            onClick={() => navigate('/denuncias/mapa')}
+                        >
+                            <Map className="h-4 w-4 mr-2" />
+                            Mapa
+                        </Button>
+                    </div>
 
                     <Button
                         variant="ghost"
                         size="lg"
                         className="w-full h-12 rounded-2xl text-base"
-                        onClick={() => {
-                            // Fire more confetti!
-                            confetti({
-                                particleCount: 100,
-                                spread: 70,
-                                origin: { y: 0.6 },
-                                colors: ['#22c55e', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6'],
-                            });
-                        }}
+                        onClick={() => navigate('/denuncias')}
                     >
-                        <PartyPopper className="h-5 w-5 mr-2" />
-                        Celebrar mais! 🎉
+                        <FileText className="h-5 w-5 mr-2" />
+                        Todas as Denúncias
                     </Button>
                 </motion.div>
             </motion.div>

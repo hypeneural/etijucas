@@ -21,6 +21,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { StepHeader } from './HelpTooltip';
+import { CategoryIcon } from './CategoryIcon';
 import { useReportCategories } from '@/hooks/useReportCategories';
 import type { ReportDraft } from '@/types/report';
 
@@ -96,12 +97,18 @@ export function StepReview({
             <Card className="p-4">
                 <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                        <div
-                            className="p-3 rounded-xl text-2xl"
-                            style={{ backgroundColor: selectedCategory?.color + '20' }}
-                        >
-                            {selectedCategory?.icon || '❓'}
-                        </div>
+                        {selectedCategory ? (
+                            <CategoryIcon
+                                icon={selectedCategory.icon}
+                                color={selectedCategory.color}
+                                size="lg"
+                                withBackground
+                            />
+                        ) : (
+                            <div className="p-3 rounded-xl bg-muted">
+                                ❓
+                            </div>
+                        )}
                         <div>
                             <p className="text-sm text-muted-foreground">Categoria</p>
                             <p className="font-semibold">{selectedCategory?.name || 'Não selecionada'}</p>

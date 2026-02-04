@@ -442,6 +442,7 @@ class EventController extends Controller
             'days.schedules',
             'tags',
             'media',
+            'legacyMedia',
             'links',
             'rsvps.user',
         ]);
