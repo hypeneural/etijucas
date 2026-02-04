@@ -23,8 +23,9 @@
 - [x] Validar serializacao de `tips` no `ReportCategoryResource`.
 
 ## Verificacao e Qualidade
-- [ ] Validar acesso por role em todos os Resources, Pages e Widgets.
+- [x] Validar acesso por role em todos os Resources, Pages e Widgets (revisao estatica + ajustes de `canAccess/canView`).
 - [ ] Testar `ModerationQueue` com dados reais e links corretos.
+- [x] Revisar links e rotas do `ModerationQueue` (flags/edit, topic/comment report view, citizen report edit).
 - [x] Validar update de status de denuncia com historico + audit log.
 - [ ] Testes para moderacao (forum) e publicacao de eventos.
 - [ ] Verificar performance com dados volumosos (N+1 e indices).

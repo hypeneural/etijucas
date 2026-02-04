@@ -29,6 +29,17 @@ class OtpService
     protected int $rateLimitWindow = 5;
 
     /**
+     * Idempotency window in seconds.
+     * If the same phone requests OTP within this window, return existing.
+     */
+    protected int $idempotencyWindow = 30;
+
+    /**
+     * Session expiration in minutes (matches OTP expiration).
+     */
+    protected int $sessionExpirationMinutes = 5;
+
+    /**
      * Generate a new OTP code for a phone number.
      */
     public function generate(string $phone, string $type = 'login'): OtpCode
@@ -54,6 +65,92 @@ class OtpService
         $this->trackRateLimit($phone);
 
         return $otp;
+    }
+
+    /**
+     * Generate OTP with Session ID for magic link support.
+     * Implements idempotency: if called within window, returns existing OTP/session.
+     *
+     * @return array{otp: OtpCode, sid: string, isNew: bool}
+     */
+    public function generateWithSession(string $phone, string $type = 'login'): array
+    {
+        // Check for existing valid OTP (idempotency)
+        $existingOtp = $this->getLatestOtp($phone, $type);
+        $idempotencyKey = $this->getIdempotencyKey($phone);
+        $existingSid = Cache::get($idempotencyKey);
+
+        if ($existingOtp && $existingSid) {
+            // Return existing if within idempotency window
+            return [
+                'otp' => $existingOtp,
+                'sid' => $existingSid,
+                'isNew' => false,
+            ];
+        }
+
+        // Generate new OTP
+        $otp = $this->generate($phone, $type);
+
+        // Generate session ID (8-char opaque token)
+        $sid = Str::random(8);
+
+        // Store session context in cache
+        $sessionData = [
+            'phone' => $phone,
+            'otp_id' => $otp->id,
+            'created_at' => now()->toIso8601String(),
+        ];
+        Cache::put($this->getSessionKey($sid), $sessionData, now()->addMinutes($this->sessionExpirationMinutes));
+
+        // Track idempotency
+        Cache::put($idempotencyKey, $sid, $this->idempotencyWindow);
+
+        return [
+            'otp' => $otp,
+            'sid' => $sid,
+            'isNew' => true,
+        ];
+    }
+
+    /**
+     * Get session context by session ID (for magic link).
+     *
+     * @return array{phone: string, expires_in: int}|null
+     */
+    public function getSessionContext(string $sid): ?array
+    {
+        $sessionData = Cache::get($this->getSessionKey($sid));
+
+        if (!$sessionData) {
+            return null;
+        }
+
+        // Calculate remaining time
+        $createdAt = \Carbon\Carbon::parse($sessionData['created_at']);
+        $expiresAt = $createdAt->addMinutes($this->sessionExpirationMinutes);
+        $expiresIn = max(0, now()->diffInSeconds($expiresAt, false));
+
+        return [
+            'phone' => $sessionData['phone'],
+            'expires_in' => (int) $expiresIn,
+        ];
+    }
+
+    /**
+     * Get Session cache key.
+     */
+    protected function getSessionKey(string $sid): string
+    {
+        return 'otp_session:' . $sid;
+    }
+
+    /**
+     * Get Idempotency cache key.
+     */
+    protected function getIdempotencyKey(string $phone): string
+    {
+        return 'otp_idempotency:' . $phone;
     }
 
     /**

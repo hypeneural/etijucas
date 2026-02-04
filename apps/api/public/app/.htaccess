@@ -1,6 +1,9 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteBase /
+    # Forward admin/API routes to Laravel if this SPA directory is the document root
+    RewriteCond %{REQUEST_URI} ^/(admin|filament|livewire|sanctum|api) [NC]
+    RewriteRule ^ ../index.php [L]
     RewriteCond %{REQUEST_FILENAME} -f [OR]
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]

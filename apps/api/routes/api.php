@@ -48,6 +48,21 @@ Route::prefix('v1')->group(function () {
             ->middleware('throttle:5,1');
         Route::post('reset-password', [\App\Http\Controllers\Auth\ResetPasswordController::class, 'reset'])
             ->middleware('throttle:5,1');
+
+        // Passwordless OTP Login (WhatsApp)
+        Route::prefix('otp')->group(function () {
+            Route::post('login', [\App\Http\Controllers\Auth\PasswordlessAuthController::class, 'requestOtp'])
+                ->middleware('throttle:5,1');
+            Route::get('session/{sid}', [\App\Http\Controllers\Auth\PasswordlessAuthController::class, 'getSessionContext'])
+                ->middleware('throttle:30,1');
+            Route::post('verify', [\App\Http\Controllers\Auth\PasswordlessAuthController::class, 'verifyOtp'])
+                ->middleware('throttle:10,1');
+        });
+
+        // Authenticated profile completion (requires token from OTP verify)
+        Route::middleware('auth:sanctum')->group(function () {
+            Route::post('profile/complete', [\App\Http\Controllers\Auth\PasswordlessAuthController::class, 'completeProfile']);
+        });
     });
 
     // Public Data (cached)
