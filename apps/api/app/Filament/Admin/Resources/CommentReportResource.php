@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Resources;
 
-use App\Domain\F?rum\Enums\ReportMotivo;
-use App\Domain\F?rum\Enums\ReportStatus;
+use App\Domain\Forum\Enums\ReportMotivo;
+use App\Domain\Forum\Enums\ReportStatus;
 use App\Domain\Moderation\Services\ModerationActionService;
 use App\Filament\Admin\Resources\CommentReportResource\Pages;
 use App\Models\CommentReport;
@@ -23,7 +23,7 @@ class CommentReportResource extends BaseResource
 {
     protected static ?string $model = CommentReport::class;
 
-    protected static ?string $navigationGroup = 'F?rum';
+    protected static ?string $navigationGroup = 'Forum';
 
     protected static ?string $navigationIcon = 'heroicon-o-flag';
 
@@ -61,7 +61,7 @@ class CommentReportResource extends BaseResource
                             ->columnSpanFull()
                             ->disabled(),
                     ]),
-                Section::make('Comentário Den?nciado')
+                Section::make('Comentário Denunciado')
                     ->schema([
                         Forms\Components\Placeholder::make('comment_texto')
                             ->label('Texto')
@@ -95,7 +95,7 @@ class CommentReportResource extends BaseResource
                         : null)
                     ->openUrlInNewTab(),
                 TextColumn::make('user.nome')
-                    ->label('Den?nciante')
+                    ->label('Denunciante')
                     ->searchable(),
                 TextColumn::make('motivo')
                     ->label('Motivo')
@@ -145,20 +145,20 @@ class CommentReportResource extends BaseResource
                         app(ModerationActionService::class)
                             ->dismissCommentReport($record, auth()->user());
                     })
-                    ->visible(fn (CommentReport $record) => $record->status === ReportStatus::Pending
+                    ->visible(fn(CommentReport $record) => $record->status === ReportStatus::Pending
                         && (auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false)),
                 Action::make('deleteComment')
-                    ->label('Remover Coment?rio')
+                    ->label('Remover Comentário')
                     ->icon('heroicon-o-trash')
                     ->color('danger')
                     ->requiresConfirmation()
-                    ->modalHeading('Remover Coment?rio')
-                    ->modalDescription('O coment?rio ser? removido permanentemente.')
+                    ->modalHeading('Remover Comentário')
+                    ->modalDescription('O comentário será removido permanentemente.')
                     ->action(function (CommentReport $record): void {
                         app(ModerationActionService::class)
                             ->deleteCommentFromReport($record, auth()->user());
                     })
-                    ->visible(fn (CommentReport $record) => $record->status === ReportStatus::Pending
+                    ->visible(fn(CommentReport $record) => $record->status === ReportStatus::Pending
                         && (auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false)),
             ])
             ->bulkActions([
@@ -167,7 +167,7 @@ class CommentReportResource extends BaseResource
                     ->icon('heroicon-o-x-circle')
                     ->requiresConfirmation()
                     ->action(fn($records) => $records->each->update(['status' => ReportStatus::Dismissed]))
-                    ->visible(fn (): bool => auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false),
+                    ->visible(fn(): bool => auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false),
             ]);
     }
 

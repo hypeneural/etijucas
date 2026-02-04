@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Resources;
 
-use App\Domain\F?rum\Enums\TopicCategory;
-use App\Domain\F?rum\Enums\TopicStatus;
-use App\Domains\F?rum\Actions\HideTopicAction;
-use App\Domains\F?rum\Actions\RestoreTopicAction;
+use App\Domain\Forum\Enums\TopicCategory;
+use App\Domain\Forum\Enums\TopicStatus;
+use App\Domains\Forum\Actions\HideTopicAction;
+use App\Domains\Forum\Actions\RestoreTopicAction;
 use App\Filament\Admin\Resources\Concerns\HasMediaLibraryTrait;
 use App\Filament\Admin\Resources\TopicResource\Pages;
 use App\Filament\Admin\Resources\TopicResource\RelationManagers\CommentsRelationManager;
@@ -35,7 +35,7 @@ class TopicResource extends BaseResource
 
     protected static ?string $model = Topic::class;
 
-    protected static ?string $navigationGroup = 'F?rum';
+    protected static ?string $navigationGroup = 'Forum';
 
     protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-left-right';
 
@@ -103,7 +103,7 @@ class TopicResource extends BaseResource
                             ->label('URL da Foto (legado)')
                             ->url()
                             ->maxLength(500)
-                            ->helperText('Opcional. Use o upload acima sempre que poss?vel.'),
+                            ->helperText('Opcional. Use o upload acima sempre que possível.'),
                     ]),
                 Section::make('Autor')
                     ->columns(2)
@@ -206,7 +206,7 @@ class TopicResource extends BaseResource
                 ViewAction::make(),
                 EditAction::make(),
                 Action::make('importLegacyPhoto')
-                    ->label('Importar m?dia (URL)')
+                    ->label('Importar mídia (URL)')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->requiresConfirmation()
                     ->action(function (Topic $record): void {
@@ -233,7 +233,7 @@ class TopicResource extends BaseResource
                             ->success()
                             ->send();
                     })
-                    ->visible(fn (): bool => auth()->user()?->hasRole('admin') ?? false),
+                    ->visible(fn(): bool => auth()->user()?->hasRole('admin') ?? false),
                 Action::make('hide')
                     ->label('Ocultar')
                     ->icon('heroicon-o-eye-slash')

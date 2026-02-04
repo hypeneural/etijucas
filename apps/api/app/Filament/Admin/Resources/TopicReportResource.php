@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Resources;
 
-use App\Domain\F?rum\Enums\ReportMotivo;
-use App\Domain\F?rum\Enums\ReportStatus;
+use App\Domain\Forum\Enums\ReportMotivo;
+use App\Domain\Forum\Enums\ReportStatus;
 use App\Domain\Moderation\Services\ModerationActionService;
 use App\Filament\Admin\Resources\TopicReportResource\Pages;
 use App\Models\TopicReport;
@@ -23,7 +23,7 @@ class TopicReportResource extends BaseResource
 {
     protected static ?string $model = TopicReport::class;
 
-    protected static ?string $navigationGroup = 'F?rum';
+    protected static ?string $navigationGroup = 'Forum';
 
     protected static ?string $navigationIcon = 'heroicon-o-flag';
 
@@ -138,7 +138,7 @@ class TopicReportResource extends BaseResource
                         app(ModerationActionService::class)
                             ->dismissTopicReport($record, auth()->user());
                     })
-                    ->visible(fn (TopicReport $record) => $record->status === ReportStatus::Pending
+                    ->visible(fn(TopicReport $record) => $record->status === ReportStatus::Pending
                         && (auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false)),
                 Action::make('hideTopic')
                     ->label('Ocultar T?pico')
@@ -151,7 +151,7 @@ class TopicReportResource extends BaseResource
                         app(ModerationActionService::class)
                             ->hideTopicFromReport($record, auth()->user());
                     })
-                    ->visible(fn (TopicReport $record) => $record->status === ReportStatus::Pending
+                    ->visible(fn(TopicReport $record) => $record->status === ReportStatus::Pending
                         && (auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false)),
             ])
             ->bulkActions([
@@ -160,7 +160,7 @@ class TopicReportResource extends BaseResource
                     ->icon('heroicon-o-x-circle')
                     ->requiresConfirmation()
                     ->action(fn($records) => $records->each->update(['status' => ReportStatus::Dismissed]))
-                    ->visible(fn (): bool => auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false),
+                    ->visible(fn(): bool => auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false),
             ]);
     }
 

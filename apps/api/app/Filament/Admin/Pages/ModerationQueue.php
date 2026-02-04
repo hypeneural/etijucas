@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Pages;
 
-use App\Domain\F?rum\Enums\ReportStatus as F?rumReportStatus;
+use App\Domain\Forum\Enums\ReportStatus as ForumReportStatus;
 use App\Domain\Moderation\Enums\FlagStatus;
 use App\Domains\Reports\Enums\ReportStatus as CitizenReportStatus;
 use App\Filament\Admin\Resources\CitizenReportResource;
@@ -74,7 +74,7 @@ class ModerationQueue extends Page implements HasTable
                 'topic_reports.descricao as description',
                 'topic_reports.created_at as created_at',
             ])
-            ->where('topic_reports.status', F?rumReportStatus::Pending->value);
+            ->where('topic_reports.status', ForumReportStatus::Pending->value);
 
         $commentReports = DB::table('comment_reports')
             ->leftJoin('comments', 'comment_reports.comment_id', '=', 'comments.id')
@@ -87,7 +87,7 @@ class ModerationQueue extends Page implements HasTable
                 'comment_reports.descricao as description',
                 'comment_reports.created_at as created_at',
             ])
-            ->where('comment_reports.status', F?rumReportStatus::Pending->value);
+            ->where('comment_reports.status', ForumReportStatus::Pending->value);
 
         $citizenReports = DB::table('citizen_reports')
             ->select([
@@ -124,14 +124,14 @@ class ModerationQueue extends Page implements HasTable
             TextColumn::make('kind')
                 ->label('Tipo')
                 ->badge()
-                ->formatStateUsing(fn (string $state): string => match ($state) {
+                ->formatStateUsing(fn(string $state): string => match ($state) {
                     'flag' => 'Flag',
                     'topic_report' => 'T?pico',
                     'comment_report' => 'Coment?rio',
                     'citizen_report' => 'Den?ncia',
                     default => $state,
                 })
-                ->color(fn (string $state): string => match ($state) {
+                ->color(fn(string $state): string => match ($state) {
                     'flag' => 'warning',
                     'topic_report', 'comment_report' => 'info',
                     'citizen_report' => 'success',
@@ -144,32 +144,32 @@ class ModerationQueue extends Page implements HasTable
                     return match ($record->kind) {
                         'flag' => FlagStatus::tryFrom($state)?->label() ?? $state,
                         'citizen_report' => CitizenReportStatus::tryFrom($state)?->label() ?? $state,
-                        default => F?rumReportStatus::tryFrom($state)?->label() ?? $state,
+                        default => ForumReportStatus::tryFrom($state)?->label() ?? $state,
                     };
                 })
                 ->color(function (string $state, $record): string {
                     return match ($record->kind) {
                         'flag' => match (FlagStatus::tryFrom($state)) {
-                            FlagStatus::Open => 'warning',
-                            FlagStatus::Reviewing => 'info',
-                            FlagStatus::ActionTaken => 'success',
-                            FlagStatus::Dismissed => 'gray',
-                            default => 'gray',
-                        },
+                                FlagStatus::Open => 'warning',
+                                FlagStatus::Reviewing => 'info',
+                                FlagStatus::ActionTaken => 'success',
+                                FlagStatus::Dismissed => 'gray',
+                                default => 'gray',
+                            },
                         'citizen_report' => match (CitizenReportStatus::tryFrom($state)) {
-                            CitizenReportStatus::Recebido => 'info',
-                            CitizenReportStatus::EmAnalise => 'warning',
-                            CitizenReportStatus::Resolvido => 'success',
-                            CitizenReportStatus::Rejeitado => 'danger',
-                            default => 'gray',
-                        },
-                        default => match (F?rumReportStatus::tryFrom($state)) {
-                            F?rumReportStatus::Pending => 'warning',
-                            F?rumReportStatus::Reviewed => 'info',
-                            F?rumReportStatus::Dismissed => 'gray',
-                            F?rumReportStatus::ActionTaken => 'success',
-                            default => 'gray',
-                        },
+                                CitizenReportStatus::Recebido => 'info',
+                                CitizenReportStatus::EmAnalise => 'warning',
+                                CitizenReportStatus::Resolvido => 'success',
+                                CitizenReportStatus::Rejeitado => 'danger',
+                                default => 'gray',
+                            },
+                        default => match (ForumReportStatus::tryFrom($state)) {
+                                ForumReportStatus::Pending => 'warning',
+                                ForumReportStatus::Reviewed => 'info',
+                                ForumReportStatus::Dismissed => 'gray',
+                                ForumReportStatus::ActionTaken => 'success',
+                                default => 'gray',
+                            },
                     };
                 }),
             TextColumn::make('title')
@@ -223,7 +223,7 @@ class ModerationQueue extends Page implements HasTable
                 ->options([
                     FlagStatus::Open->value => FlagStatus::Open->label(),
                     FlagStatus::Reviewing->value => FlagStatus::Reviewing->label(),
-                    F?rumReportStatus::Pending->value => F?rumReportStatus::Pending->label(),
+                    ForumReportStatus::Pending->value => ForumReportStatus::Pending->label(),
                     CitizenReportStatus::Recebido->value => CitizenReportStatus::Recebido->label(),
                     CitizenReportStatus::EmAnalise->value => CitizenReportStatus::EmAnalise->label(),
                 ]),

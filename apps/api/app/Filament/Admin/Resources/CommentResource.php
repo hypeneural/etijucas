@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Resources;
 
-use App\Domain\F?rum\Enums\ReportStatus as F?rumReportStatus;
+use App\Domain\Forum\Enums\ReportStatus as ForumReportStatus;
+use App\Domains\Forum\Actions\HideCommentAction;
+use App\Domains\Forum\Actions\RestoreCommentAction;
 use App\Filament\Admin\Resources\CommentResource\Pages;
 use App\Models\Comment;
 use Filament\Forms;
@@ -15,6 +17,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Tables;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\ForceDeleteAction;
@@ -30,15 +33,15 @@ class CommentResource extends BaseResource
 {
     protected static ?string $model = Comment::class;
 
-    protected static ?string $navigationGroup = 'F?rum';
+    protected static ?string $navigationGroup = 'Forum';
 
     protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-left-right';
 
-    protected static ?string $navigationLabel = 'Coment?rios';
+    protected static ?string $navigationLabel = 'Comentários';
 
-    protected static ?string $modelLabel = 'Coment?rio';
+    protected static ?string $modelLabel = 'Comentário';
 
-    protected static ?string $pluralModelLabel = 'Coment?rios';
+    protected static ?string $pluralModelLabel = 'Comentários';
 
     protected static ?int $navigationSort = 2;
 
@@ -50,7 +53,7 @@ class CommentResource extends BaseResource
     {
         return $form
             ->schema([
-                Section::make('Coment?rio')
+                Section::make('Comentário')
                     ->columns(2)
                     ->schema([
                         Textarea::make('texto')
@@ -63,9 +66,9 @@ class CommentResource extends BaseResource
                             ->url()
                             ->maxLength(500),
                         Toggle::make('is_anon')
-                            ->label('An?nimo'),
+                            ->label('Anônimo'),
                         TextInput::make('depth')
-                            ->label('N?vel')
+                            ->label('Nível')
                             ->numeric()
                             ->disabled()
                             ->dehydrated(false),
@@ -79,7 +82,7 @@ class CommentResource extends BaseResource
                     ->columns(2)
                     ->schema([
                         Select::make('topic_id')
-                            ->label('T?pico')
+                            ->label('Tópico')
                             ->relationship('topic', 'titulo')
                             ->searchable()
                             ->preload()
@@ -106,12 +109,12 @@ class CommentResource extends BaseResource
             ->deferLoading()
             ->columns([
                 TextColumn::make('topic.titulo')
-                    ->label('T?pico')
+                    ->label('Tópico')
                     ->searchable()
                     ->limit(40)
                     ->sortable(),
                 TextColumn::make('texto')
-                    ->label('Coment?rio')
+                    ->label('Comentário')
                     ->searchable()
                     ->limit(50),
                 TextColumn::make('user.nome')
@@ -119,11 +122,11 @@ class CommentResource extends BaseResource
                     ->searchable()
                     ->toggleable(),
                 IconColumn::make('is_anon')
-                    ->label('An?nimo')
+                    ->label('Anônimo')
                     ->boolean()
                     ->toggleable(),
                 TextColumn::make('depth')
-                    ->label('N?vel')
+                    ->label('Nível')
                     ->sortable()
                     ->alignCenter(),
                 TextColumn::make('replies_count')
@@ -131,7 +134,7 @@ class CommentResource extends BaseResource
                     ->sortable()
                     ->alignCenter(),
                 TextColumn::make('reports_count')
-                    ->label('Den?ncias')
+                    ->label('Denúncias')
                     ->sortable()
                     ->alignCenter()
                     ->color(fn(int $state): string => $state > 0 ? 'danger' : 'gray'),
@@ -143,7 +146,7 @@ class CommentResource extends BaseResource
             ])
             ->filters([
                 SelectFilter::make('topic_id')
-                    ->label('T?pico')
+                    ->label('Tópico')
                     ->relationship('topic', 'titulo')
                     ->preload(),
                 SelectFilter::make('user_id')
@@ -151,10 +154,10 @@ class CommentResource extends BaseResource
                     ->relationship('user', 'nome')
                     ->preload(),
                 Tables\Filters\Filter::make('has_reports')
-                    ->label('Com den?ncias')
+                    ->label('Com denúncias')
                     ->query(fn(Builder $query): Builder => $query->has('reports')),
                 Tables\Filters\Filter::make('is_anon')
-                    ->label('An?nimos')
+                    ->label('Anônimos')
                     ->query(fn(Builder $query): Builder => $query->where('is_anon', true)),
                 ...static::baseTableFilters(),
             ])
@@ -164,7 +167,7 @@ class CommentResource extends BaseResource
                 DeleteAction::make()
                     ->requiresConfirmation()
                     ->using(function (Comment $record): bool {
-                        if (! $record->trashed() && $record->topic) {
+                        if (!$record->trashed() && $record->topic) {
                             $record->topic->decrementComments();
                         }
 
@@ -228,7 +231,7 @@ class CommentResource extends BaseResource
 
     public static function getNavigationBadge(): ?string
     {
-        return (string) static::getModel()::whereHas('reports', fn($q) => $q->where('status', F?rumReportStatus::Pending))->count() ?: null;
+        return (string) static::getModel()::whereHas('reports', fn($q) => $q->where('status', ForumReportStatus::Pending))->count() ?: null;
     }
 
     public static function getNavigationBadgeColor(): ?string
