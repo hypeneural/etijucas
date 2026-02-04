@@ -70,7 +70,7 @@ export function VoteListCard({ vote, index = 0 }: VoteListCardProps) {
     };
 
     const handleClick = () => {
-        navigate(`/votacao/${vote.id}`);
+        navigate(`/votacoes/${vote.id}`);
     };
 
     return (
