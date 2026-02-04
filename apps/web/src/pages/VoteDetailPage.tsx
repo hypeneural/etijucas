@@ -21,6 +21,7 @@ import {
     CouncilorDetailSheet,
     EmptyState,
     SourceFooter,
+    VotacaoComments,
     type SortOption,
     type VoteFilter,
 } from '@/components/votes';
@@ -340,6 +341,11 @@ export default function VoteDetailPage() {
                                     </motion.div>
                                 )}
                             </AnimatePresence>
+                        </section>
+
+                        {/* Public Comments Section */}
+                        <section className="px-4 py-4">
+                            <VotacaoComments votacaoId={votacao.id} />
                         </section>
 
                         {/* Source Footer */}

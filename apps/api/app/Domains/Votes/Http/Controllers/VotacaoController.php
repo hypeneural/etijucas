@@ -73,14 +73,14 @@ class VotacaoController extends Controller
     }
 
     /**
-     * GET /api/v1/votacoes/{id}
+     * GET /api/v1/votacoes/{votacao}
      * Get voting session details with all votes
      */
-    public function show(Request $request, string $id): JsonResponse
+    public function show(Request $request, Votacao $votacao): JsonResponse
     {
-        $votacao = Votacao::with([
+        $votacao->load([
             'votos.vereador.mandatoAtual.partido',
-        ])->findOrFail($id);
+        ]);
 
         return response()->json([
             'success' => true,

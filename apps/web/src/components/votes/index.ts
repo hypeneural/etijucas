@@ -9,6 +9,7 @@ export { SourceFooter } from './SourceFooter';
 export { VoteSkeleton } from './VoteSkeleton';
 export { VoteListCard } from './VoteListCard';
 export { VotesFiltersBar, EmptyListState, VoteListSkeleton } from './VotesFiltersBar';
+export { VotacaoComments } from './VotacaoComments';
 
 // Re-export filter types
 export type { SortOption, VoteFilter } from './VoteFiltersBar';

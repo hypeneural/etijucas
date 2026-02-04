@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Domains\Votes\Models;
 
 use App\Domains\Votes\Enums\StatusVotacao;
+use App\Models\Comment;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Votacao extends Model
@@ -53,6 +55,14 @@ class Votacao extends Model
     public function votos(): HasMany
     {
         return $this->hasMany(VotoRegistro::class, 'votacao_id');
+    }
+
+    /**
+     * Comments on this voting session (polymorphic)
+     */
+    public function comments(): MorphMany
+    {
+        return $this->morphMany(Comment::class, 'commentable');
     }
 
     // =========================================

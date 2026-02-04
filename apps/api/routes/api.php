@@ -157,11 +157,22 @@ Route::prefix('v1')->group(function () {
         Route::get('/', [\App\Domains\Votes\Http\Controllers\VotacaoController::class, 'index']);
         Route::get('/stats', [\App\Domains\Votes\Http\Controllers\VotacaoController::class, 'stats']);
         Route::get('/anos', [\App\Domains\Votes\Http\Controllers\VotacaoController::class, 'anos']);
-        Route::get('/{id}', [\App\Domains\Votes\Http\Controllers\VotacaoController::class, 'show']);
+        Route::get('/{votacao}', [\App\Domains\Votes\Http\Controllers\VotacaoController::class, 'show']);
+
+        // Comments (PUBLIC - read only)
+        Route::get('/{votacao}/comments', [\App\Domains\Votes\Http\Controllers\VotacaoCommentController::class, 'index']);
+
+        // Comments (AUTH REQUIRED - write operations)
+        Route::middleware('auth:sanctum')->group(function () {
+            Route::post('/{votacao}/comments', [\App\Domains\Votes\Http\Controllers\VotacaoCommentController::class, 'store']);
+            Route::post('/{votacao}/comments/{comment}/like', [\App\Domains\Votes\Http\Controllers\VotacaoCommentController::class, 'like']);
+            Route::delete('/{votacao}/comments/{comment}', [\App\Domains\Votes\Http\Controllers\VotacaoCommentController::class, 'destroy']);
+        });
     });
 
     Route::get('partidos', [\App\Domains\Votes\Http\Controllers\PartidoController::class, 'index']);
     Route::get('legislaturas', [\App\Domains\Votes\Http\Controllers\PartidoController::class, 'legislaturas']);
+
 
 
     // =====================================================

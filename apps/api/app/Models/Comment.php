@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Comment extends Model
@@ -23,6 +24,8 @@ class Comment extends Model
         'topic_id',
         'user_id',
         'parent_id',
+        'commentable_type',
+        'commentable_id',
         'texto',
         'image_url',
         'is_anon',
@@ -46,6 +49,14 @@ class Comment extends Model
     public function topic(): BelongsTo
     {
         return $this->belongsTo(Topic::class);
+    }
+
+    /**
+     * Polymorphic relation - can be Topic, Votacao, etc.
+     */
+    public function commentable(): MorphTo
+    {
+        return $this->morphTo();
     }
 
     public function user(): BelongsTo
