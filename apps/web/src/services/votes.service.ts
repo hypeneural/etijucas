@@ -18,6 +18,33 @@ import type {
 } from '@/types/votes';
 
 // ==========================================
+// API Response Types
+// ==========================================
+
+interface PaginatedResponse<T> {
+    data: T[];
+    links?: {
+        first: string;
+        last: string;
+        prev: string | null;
+        next: string | null;
+    };
+    meta?: {
+        current_page: number;
+        from: number;
+        last_page: number;
+        per_page: number;
+        to: number;
+        total: number;
+    };
+}
+
+interface SingleResponse<T> {
+    success: boolean;
+    data: T;
+}
+
+// ==========================================
 // Vereadores Service
 // ==========================================
 
@@ -43,28 +70,28 @@ export const vereadoresService = {
             ? `${ENDPOINTS.votes.vereadores}?${queryString}`
             : ENDPOINTS.votes.vereadores;
 
-        const response = await apiClient.get<{ data: VereadorList[] }>(url);
-        return response.data.data;
+        const response = await apiClient.get<PaginatedResponse<VereadorList>>(url);
+        return response.data;
     },
 
     /**
      * Get councilor details by slug
      */
     async getBySlug(slug: string): Promise<VereadorFull> {
-        const response = await apiClient.get<{ success: boolean; data: VereadorFull }>(
+        const response = await apiClient.get<SingleResponse<VereadorFull>>(
             ENDPOINTS.votes.vereador(slug)
         );
-        return response.data.data;
+        return response.data;
     },
 
     /**
-     * Get councilor's voting history
+     * Get councilor's voting history with their votes
      */
     async getVotacoes(slug: string): Promise<VotacaoList[]> {
-        const response = await apiClient.get<{ data: VotacaoList[] }>(
+        const response = await apiClient.get<SingleResponse<VotacaoList[]>>(
             ENDPOINTS.votes.vereadorVotacoes(slug)
         );
-        return response.data.data;
+        return response.data;
     },
 };
 
@@ -120,38 +147,38 @@ export const votacoesService = {
             ? `${ENDPOINTS.votes.votacoes}?${queryString}`
             : ENDPOINTS.votes.votacoes;
 
-        const response = await apiClient.get(url);
-        return response.data;
+        const response = await apiClient.get<PaginatedResponse<VotacaoList>>(url);
+        return response;
     },
 
     /**
      * Get voting session details by ID
      */
     async getById(id: string): Promise<VotacaoFull> {
-        const response = await apiClient.get<{ success: boolean; data: VotacaoFull }>(
+        const response = await apiClient.get<SingleResponse<VotacaoFull>>(
             ENDPOINTS.votes.votacao(id)
         );
-        return response.data.data;
+        return response.data;
     },
 
     /**
      * Get voting statistics
      */
     async getStats(): Promise<VotacoesStats> {
-        const response = await apiClient.get<{ success: boolean; data: VotacoesStats }>(
+        const response = await apiClient.get<SingleResponse<VotacoesStats>>(
             ENDPOINTS.votes.votacoesStats
         );
-        return response.data.data;
+        return response.data;
     },
 
     /**
      * Get available years for filtering
      */
     async getAnos(): Promise<number[]> {
-        const response = await apiClient.get<{ success: boolean; data: number[] }>(
+        const response = await apiClient.get<SingleResponse<number[]>>(
             ENDPOINTS.votes.votacoesAnos
         );
-        return response.data.data;
+        return response.data;
     },
 };
 
@@ -164,16 +191,16 @@ export const votesReferenceService = {
      * Get all political parties
      */
     async getPartidos(): Promise<Partido[]> {
-        const response = await apiClient.get<{ data: Partido[] }>(ENDPOINTS.votes.partidos);
-        return response.data.data;
+        const response = await apiClient.get<PaginatedResponse<Partido>>(ENDPOINTS.votes.partidos);
+        return response.data;
     },
 
     /**
      * Get all legislative terms
      */
     async getLegislaturas(): Promise<Legislatura[]> {
-        const response = await apiClient.get<{ data: Legislatura[] }>(ENDPOINTS.votes.legislaturas);
-        return response.data.data;
+        const response = await apiClient.get<PaginatedResponse<Legislatura>>(ENDPOINTS.votes.legislaturas);
+        return response.data;
     },
 };
 
