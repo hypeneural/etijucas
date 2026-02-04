@@ -119,9 +119,9 @@ class RolesAndPermissionsSeeder extends Seeder
             'view_any_activity::log',
             'view_activity::log',
             // Moderation queue page
-            'page_moderation_queue',
-            'page_reports_dashboard',
-            'page_geo_issues',
+            'page_ModerationQueue',
+            'page_ReportsDashboard',
+            'page_GeoIssues',
             // Citizen Reports
             'view_any_citizen::report',
             'view_citizen::report',

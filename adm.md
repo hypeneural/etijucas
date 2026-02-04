@@ -258,6 +258,7 @@ Em todos:
 - [x] CRUD principal: `TourismSpot`.
 - [x] CRUD principal: `CitizenReport`.
 - [x] Gerar permissoes Shield para novos resources e rodar seeder de roles.
+- [x] Gerar permissoes Shield para todos os resources/pages/widgets do painel.
 - [x] CRUD moderacao: `Comment` (Forum).
 - [x] CRUD moderacao: `TourismReview` (Turismo).
 - [x] CRUD moderacao: `Flags/Reports` (TopicReport, CommentReport, ContentFlag).
