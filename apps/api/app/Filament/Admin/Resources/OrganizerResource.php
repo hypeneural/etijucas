@@ -13,7 +13,9 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
+use Filament\Notifications\Notification;
 use Filament\Tables;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\ViewAction;
@@ -145,6 +147,35 @@ class OrganizerResource extends BaseResource
                 ...static::baseTableFilters(),
             ])
             ->actions([
+                Action::make('importLegacyAvatar')
+                    ->label('Importar avatar (URL)')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->requiresConfirmation()
+                    ->action(function (Organizer $record): void {
+                        $imported = 0;
+                        $skipped = 0;
+                        $failed = 0;
+
+                        if (!$record->avatar_url) {
+                            $skipped++;
+                        } elseif ($record->getMedia('avatar')->isNotEmpty()) {
+                            $skipped++;
+                        } else {
+                            try {
+                                $record->addMediaFromUrl($record->avatar_url)->toMediaCollection('avatar');
+                                $imported++;
+                            } catch (\Throwable $exception) {
+                                $failed++;
+                            }
+                        }
+
+                        Notification::make()
+                            ->title('Importacao concluida')
+                            ->body("Importados: {$imported}. Ignorados: {$skipped}. Falhas: {$failed}.")
+                            ->success()
+                            ->send();
+                    })
+                    ->visible(fn (): bool => auth()->user()?->hasRole('admin') ?? false),
                 ViewAction::make(),
                 EditAction::make()->requiresConfirmation(),
                 DeleteAction::make()

@@ -7,6 +7,7 @@ namespace App\Filament\Admin\Resources;
 use App\Domain\Events\Enums\AgeRating;
 use App\Domain\Events\Enums\EventStatus;
 use App\Domain\Events\Enums\EventType;
+use App\Domain\Events\Enums\MediaType;
 use App\Filament\Admin\Resources\Concerns\HasMediaLibraryTrait;
 use App\Filament\Admin\Resources\EventResource\Pages;
 use App\Filament\Admin\Resources\EventResource\RelationManagers\DaysRelationManager;
@@ -24,7 +25,9 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
+use Filament\Notifications\Notification;
 use Filament\Tables;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -298,6 +301,82 @@ class EventResource extends BaseResource
                 ...static::baseTableFilters(),
             ])
             ->actions([
+                Action::make('importLegacyMedia')
+                    ->label('Importar midia (URL)')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->requiresConfirmation()
+                    ->action(function (Event $record): void {
+                        $imported = 0;
+                        $skipped = 0;
+                        $failed = 0;
+
+                        $importSingle = function (string $field, string $collection) use ($record, &$imported, &$skipped, &$failed): void {
+                            $url = $record->{$field};
+                            if (!$url) {
+                                $skipped++;
+                                return;
+                            }
+
+                            if ($record->getMedia($collection)->isNotEmpty()) {
+                                $skipped++;
+                                return;
+                            }
+
+                            try {
+                                $record->addMediaFromUrl($url)->toMediaCollection($collection);
+                                $imported++;
+                            } catch (\Throwable $exception) {
+                                $failed++;
+                            }
+                        };
+
+                        $importSingle('cover_image_url', 'event_cover');
+                        $importSingle('banner_image_url', 'event_banner');
+                        $importSingle('banner_image_mobile_url', 'event_banner_mobile');
+
+                        $existingGalleryUrls = $record->getMedia('event_gallery')
+                            ->map(fn ($media) => $media->getCustomProperty('source_url'))
+                            ->filter()
+                            ->values()
+                            ->all();
+
+                        foreach ($record->legacyMedia as $legacyMedia) {
+                            if (!$legacyMedia->url) {
+                                $skipped++;
+                                continue;
+                            }
+
+                            if ($legacyMedia->media_type !== MediaType::Image) {
+                                $skipped++;
+                                continue;
+                            }
+
+                            if (in_array($legacyMedia->url, $existingGalleryUrls, true)) {
+                                $skipped++;
+                                continue;
+                            }
+
+                            try {
+                                $record->addMediaFromUrl($legacyMedia->url)
+                                    ->withCustomProperties([
+                                        'caption' => $legacyMedia->caption,
+                                        'source_url' => $legacyMedia->url,
+                                    ])
+                                    ->toMediaCollection('event_gallery');
+                                $imported++;
+                                $existingGalleryUrls[] = $legacyMedia->url;
+                            } catch (\Throwable $exception) {
+                                $failed++;
+                            }
+                        }
+
+                        Notification::make()
+                            ->title('Importacao concluida')
+                            ->body("Importados: {$imported}. Ignorados: {$skipped}. Falhas: {$failed}.")
+                            ->success()
+                            ->send();
+                    })
+                    ->visible(fn (): bool => auth()->user()?->hasRole('admin') ?? false),
                 ...static::baseTableActions(),
             ]);
     }

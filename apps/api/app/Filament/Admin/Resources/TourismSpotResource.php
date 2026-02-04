@@ -15,7 +15,9 @@ use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
+use Filament\Notifications\Notification;
 use Filament\Tables;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -220,6 +222,73 @@ class TourismSpotResource extends BaseResource
                 ...static::baseTableFilters(),
             ])
             ->actions([
+                Action::make('importLegacyMedia')
+                    ->label('Importar midia (URL)')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->requiresConfirmation()
+                    ->action(function (TourismSpot $record): void {
+                        $imported = 0;
+                        $skipped = 0;
+                        $failed = 0;
+
+                        if ($record->image_url && $record->getMedia('tourism_cover')->isEmpty()) {
+                            try {
+                                $record->addMediaFromUrl($record->image_url)->toMediaCollection('tourism_cover');
+                                $imported++;
+                            } catch (\Throwable $exception) {
+                                $failed++;
+                            }
+                        } else {
+                            $skipped++;
+                        }
+
+                        $galleryUrls = [];
+                        if ($record->gallery) {
+                            if (is_array($record->gallery)) {
+                                $galleryUrls = $record->gallery;
+                            } else {
+                                $decoded = json_decode((string) $record->gallery, true);
+                                if (is_array($decoded)) {
+                                    $galleryUrls = $decoded;
+                                } else {
+                                    $galleryUrls = preg_split('/\s*,\s*|\R+/', (string) $record->gallery) ?: [];
+                                }
+                            }
+                        }
+
+                        $galleryUrls = array_values(array_filter(array_map('trim', $galleryUrls)));
+                        if (!empty($galleryUrls)) {
+                            $existingGalleryUrls = $record->getMedia('tourism_gallery')
+                                ->map(fn ($media) => $media->getCustomProperty('source_url'))
+                                ->filter()
+                                ->values()
+                                ->all();
+
+                            foreach ($galleryUrls as $url) {
+                                if (!$url || in_array($url, $existingGalleryUrls, true)) {
+                                    $skipped++;
+                                    continue;
+                                }
+
+                                try {
+                                    $record->addMediaFromUrl($url)
+                                        ->withCustomProperties(['source_url' => $url])
+                                        ->toMediaCollection('tourism_gallery');
+                                    $imported++;
+                                    $existingGalleryUrls[] = $url;
+                                } catch (\Throwable $exception) {
+                                    $failed++;
+                                }
+                            }
+                        }
+
+                        Notification::make()
+                            ->title('Importacao concluida')
+                            ->body("Importados: {$imported}. Ignorados: {$skipped}. Falhas: {$failed}.")
+                            ->success()
+                            ->send();
+                    })
+                    ->visible(fn (): bool => auth()->user()?->hasRole('admin') ?? false),
                 ...static::baseTableActions(),
             ]);
     }

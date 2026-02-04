@@ -32,7 +32,7 @@
 ## Upload de imagens (migracao gradual)
 - [ ] Definir colecoes Media Library por dominio: Events (`event_cover`, `event_banner`, `event_gallery`), Tourism (`tourism_cover`, `tourism_gallery`), Organizer (`organizer_avatar`), Topic (`topic_image`).
 - [ ] Substituir campos `*_url` por `SpatieMediaLibraryFileUpload` via `HasMediaLibraryTrait`.
-- [ ] Criar Action "Importar da URL" usando `addMediaFromUrl` para dados legados.
+- [x] Criar Action "Importar da URL" usando `addMediaFromUrl` para dados legados.
 - [ ] Remover campos `*_url` depois da migracao e atualizar frontend/Resources.
 
 ## Verificacao e Qualidade

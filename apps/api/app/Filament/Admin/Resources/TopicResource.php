@@ -16,6 +16,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Notifications\Notification;
 use Filament\Tables;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\DeleteAction;
@@ -196,6 +197,35 @@ class TopicResource extends BaseResource
             ->actions([
                 ViewAction::make(),
                 EditAction::make(),
+                Action::make('importLegacyPhoto')
+                    ->label('Importar foto (URL)')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->requiresConfirmation()
+                    ->action(function (Topic $record): void {
+                        $imported = 0;
+                        $skipped = 0;
+                        $failed = 0;
+
+                        if (!$record->foto_url) {
+                            $skipped++;
+                        } elseif ($record->getMedia('foto')->isNotEmpty()) {
+                            $skipped++;
+                        } else {
+                            try {
+                                $record->addMediaFromUrl($record->foto_url)->toMediaCollection('foto');
+                                $imported++;
+                            } catch (\Throwable $exception) {
+                                $failed++;
+                            }
+                        }
+
+                        Notification::make()
+                            ->title('Importacao concluida')
+                            ->body("Importados: {$imported}. Ignorados: {$skipped}. Falhas: {$failed}.")
+                            ->success()
+                            ->send();
+                    })
+                    ->visible(fn (): bool => auth()->user()?->hasRole('admin') ?? false),
                 Action::make('hide')
                     ->label('Ocultar')
                     ->icon('heroicon-o-eye-slash')

@@ -132,7 +132,8 @@ Route::prefix('v1')->group(function () {
         Route::get('/', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'index']);
         Route::get('/stats', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'stats']);
         Route::get('/map', [\App\Domains\Reports\Http\Controllers\ReportMapController::class, 'index']);
-        Route::get('/{id}', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'show']);
+        Route::get('/{id}', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'show'])
+            ->whereUuid('id');
     });
 
     // =====================================================
@@ -245,14 +246,18 @@ Route::prefix('v1')->group(function () {
             Route::get('/me', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'myReports']);
 
             // Report details
-            Route::get('/{id}', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'show']);
+            Route::get('/{id}', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'show'])
+                ->whereUuid('id');
 
             // Add/remove media
-            Route::post('/{id}/media', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'addMedia']);
-            Route::delete('/{id}/media/{mediaId}', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'removeMedia']);
+            Route::post('/{id}/media', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'addMedia'])
+                ->whereUuid('id');
+            Route::delete('/{id}/media/{mediaId}', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'removeMedia'])
+                ->whereUuid(['id', 'mediaId']);
 
             // Update status (admin only)
             Route::patch('/{id}/status', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'updateStatus'])
+                ->whereUuid('id')
                 ->middleware('role:admin|moderator');
         });
 

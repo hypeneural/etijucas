@@ -14,6 +14,7 @@ import {
     MapPin,
     Filter,
     Loader2,
+    SlidersHorizontal,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -24,6 +25,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { LoginRequired } from '@/components/auth/LoginRequired';
 import { BottomTabBar } from '@/components/layout/BottomTabBar';
 import { CategoryIcon } from '@/components/report/CategoryIcon';
+import { ReportsFilterSheet, type ReportFilters } from '@/components/report/ReportsFilterSheet';
 import type { CitizenReport } from '@/types/report';
 
 const statusConfig: Record<string, { icon: React.ComponentType<{ className?: string }>, color: string, label: string }> = {
@@ -134,16 +136,35 @@ export default function MyReportsPage() {
     }
 
     const { reports, isLoading, error, refetch } = useMyReports();
-    const [filter, setFilter] = useState<string | null>(null);
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const [advancedFilters, setAdvancedFilters] = useState<ReportFilters>({ status: 'all' });
 
-    const filteredReports = filter
-        ? reports.filter(r => r.status === filter)
-        : reports;
+    // Apply advanced filters
+    const filteredReports = reports.filter(r => {
+        // Status filter
+        if (advancedFilters.status && advancedFilters.status !== 'all') {
+            if (r.status !== advancedFilters.status) return false;
+        }
+        // Category filter
+        if (advancedFilters.categoryId && r.category?.id !== advancedFilters.categoryId) return false;
+        // Protocol search
+        if (advancedFilters.protocol && !r.protocol?.toLowerCase().includes(advancedFilters.protocol.toLowerCase())) return false;
+        // Title search
+        if (advancedFilters.title && !r.title?.toLowerCase().includes(advancedFilters.title.toLowerCase())) return false;
+        // Address search
+        if (advancedFilters.address && !r.addressText?.toLowerCase().includes(advancedFilters.address.toLowerCase())) return false;
+        // Date filter
+        if (advancedFilters.startDate) {
+            const reportDate = new Date(r.createdAt);
+            const startDate = new Date(advancedFilters.startDate);
+            if (reportDate < startDate) return false;
+        }
+        return true;
+    });
 
-    const statusCounts = reports.reduce((acc, r) => {
-        acc[r.status] = (acc[r.status] || 0) + 1;
-        return acc;
-    }, {} as Record<string, number>);
+    const activeFiltersCount = Object.entries(advancedFilters).filter(
+        ([key, value]) => value && value !== 'all'
+    ).length;
 
     const isError = !!error;
 
@@ -161,45 +182,75 @@ export default function MyReportsPage() {
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
                     <h1 className="font-semibold text-lg">Minhas Denúncias</h1>
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => refetch()}
-                        className="rounded-full"
-                    >
-                        <RefreshCw className={cn("h-5 w-5", isLoading && "animate-spin")} />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setIsFilterOpen(true)}
+                            className="rounded-full relative"
+                        >
+                            <SlidersHorizontal className="h-5 w-5" />
+                            {activeFiltersCount > 0 && (
+                                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                                    {activeFiltersCount}
+                                </span>
+                            )}
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => refetch()}
+                            className="rounded-full"
+                        >
+                            <RefreshCw className={cn("h-5 w-5", isLoading && "animate-spin")} />
+                        </Button>
+                    </div>
                 </div>
             </header>
 
             {/* Content */}
             <main className="p-4 pb-32">
-                {/* Stats */}
-                {reports.length > 0 && (
-                    <div className="flex gap-2 overflow-x-auto pb-3 mb-4">
+                {/* Active Filters Display */}
+                {activeFiltersCount > 0 && (
+                    <div className="flex gap-2 flex-wrap mb-4">
+                        {advancedFilters.status && advancedFilters.status !== 'all' && (
+                            <Badge variant="secondary" className="gap-1">
+                                Status: {advancedFilters.status}
+                            </Badge>
+                        )}
+                        {advancedFilters.categoryId && (
+                            <Badge variant="secondary" className="gap-1">
+                                Categoria filtrada
+                            </Badge>
+                        )}
+                        {advancedFilters.protocol && (
+                            <Badge variant="secondary" className="gap-1">
+                                Protocolo: {advancedFilters.protocol}
+                            </Badge>
+                        )}
+                        {advancedFilters.title && (
+                            <Badge variant="secondary" className="gap-1">
+                                Título: {advancedFilters.title}
+                            </Badge>
+                        )}
+                        {advancedFilters.address && (
+                            <Badge variant="secondary" className="gap-1">
+                                Endereço: {advancedFilters.address}
+                            </Badge>
+                        )}
+                        {advancedFilters.startDate && (
+                            <Badge variant="secondary" className="gap-1">
+                                Período filtrado
+                            </Badge>
+                        )}
                         <Button
-                            variant={filter === null ? "default" : "outline"}
+                            variant="ghost"
                             size="sm"
-                            onClick={() => setFilter(null)}
-                            className="shrink-0"
+                            onClick={() => setAdvancedFilters({ status: 'all' })}
+                            className="h-6 px-2 text-xs"
                         >
-                            Todas ({reports.length})
+                            Limpar
                         </Button>
-                        {Object.entries(statusCounts).map(([status, count]) => {
-                            const config = statusConfig[status];
-                            if (!config) return null;
-                            return (
-                                <Button
-                                    key={status}
-                                    variant={filter === status ? "default" : "outline"}
-                                    size="sm"
-                                    onClick={() => setFilter(filter === status ? null : status)}
-                                    className="shrink-0"
-                                >
-                                    {config.label} ({count})
-                                </Button>
-                            );
-                        })}
                     </div>
                 )}
 
@@ -288,6 +339,14 @@ export default function MyReportsPage() {
                     />
                 </div>
             </main>
+            {/* Filter Sheet */}
+            <ReportsFilterSheet
+                isOpen={isFilterOpen}
+                onClose={() => setIsFilterOpen(false)}
+                filters={advancedFilters}
+                onApplyFilters={setAdvancedFilters}
+                showMyReportsOnly
+            />
         </div>
     );
 }
