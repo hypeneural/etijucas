@@ -18,7 +18,7 @@ set_time_limit(300);
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-$baseDir = __DIR__ . '/apps/api';
+$baseDir = dirname(__DIR__); // Goes up from public to api root
 $fixed = 0;
 $scanned = 0;
 $errors = [];
@@ -79,6 +79,10 @@ function scanDirectory($dir, &$fixed, &$scanned, &$errors)
             if (strpos($file->getPathname(), '/vendor/') !== false) {
                 continue;
             }
+            // Skip this file
+            if (strpos($file->getPathname(), 'fix-bom.php') !== false) {
+                continue;
+            }
 
             $scanned++;
             $result = removeBOM($file->getPathname());
@@ -124,6 +128,8 @@ if ($fixed > 0) {
     echo "<li>Execute: <code>php artisan optimize:clear</code></li>";
     echo "<li><strong>DELETE este arquivo fix-bom.php!</strong></li>";
     echo "</ol>";
+} else {
+    echo "<p>✨ Nenhum arquivo precisou de correção!</p>";
 }
 
 echo "<hr>";
