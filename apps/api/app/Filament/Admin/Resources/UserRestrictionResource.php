@@ -25,13 +25,13 @@ class UserRestrictionResource extends BaseResource
 {
     protected static ?string $model = UserRestriction::class;
 
-    protected static ?string $navigationGroup = 'Modera??o';
+    protected static ?string $navigationGroup = 'Moderacao';
 
     protected static ?string $navigationIcon = 'heroicon-o-no-symbol';
 
     protected static ?int $navigationSort = 10;
 
-    protected static ?string $navigationLabel = 'Restri??es';
+    protected static ?string $navigationLabel = 'Restricoes';
 
     protected static array $defaultEagerLoad = ['user'];
 
@@ -47,21 +47,21 @@ class UserRestrictionResource extends BaseResource
                 Select::make('type')
                     ->label('Tipo')
                     ->options(collect(RestrictionType::cases())
-                        ->mapWithKeys(fn (RestrictionType $type) => [$type->value => $type->label()])
+                        ->mapWithKeys(fn(RestrictionType $type) => [$type->value => $type->label()])
                         ->toArray())
                     ->required(),
                 Select::make('scope')
                     ->label('Escopo')
                     ->options(collect(RestrictionScope::cases())
-                        ->mapWithKeys(fn (RestrictionScope $scope) => [$scope->value => $scope->label()])
+                        ->mapWithKeys(fn(RestrictionScope $scope) => [$scope->value => $scope->label()])
                         ->toArray())
-                    ->default(RestrictionScope::Global->value)
+                    ->default(RestrictionScope::Global ->value)
                     ->required(),
                 Textarea::make('reason')
                     ->label('Motivo')
                     ->required(),
                 DateTimePicker::make('starts_at')
-                    ->label('In?cio')
+                    ->label('Início')
                     ->default(now()),
                 DateTimePicker::make('ends_at')
                     ->label('Fim')
@@ -77,23 +77,23 @@ class UserRestrictionResource extends BaseResource
         return $table
             ->columns([
                 TextColumn::make('user.nome')
-                    ->label('Usu?rio')
+                    ->label('Usuário')
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('type')
                     ->label('Tipo')
                     ->badge()
-                    ->formatStateUsing(fn ($state) => $state?->label() ?? $state),
+                    ->formatStateUsing(fn($state) => $state?->label() ?? $state),
                 TextColumn::make('scope')
                     ->label('Escopo')
-                    ->formatStateUsing(fn ($state) => $state?->label() ?? $state)
+                    ->formatStateUsing(fn($state) => $state?->label() ?? $state)
                     ->toggleable(),
                 TextColumn::make('reason')
                     ->label('Motivo')
                     ->limit(40)
-                    ->tooltip(fn ($record) => $record->reason),
+                    ->tooltip(fn($record) => $record->reason),
                 TextColumn::make('starts_at')
-                    ->label('In?cio')
+                    ->label('Início')
                     ->dateTime('d/m/Y H:i')
                     ->sortable(),
                 TextColumn::make('ends_at')
@@ -128,16 +128,16 @@ class UserRestrictionResource extends BaseResource
                 SelectFilter::make('type')
                     ->label('Tipo')
                     ->options(collect(RestrictionType::cases())
-                        ->mapWithKeys(fn (RestrictionType $type) => [$type->value => $type->label()])
+                        ->mapWithKeys(fn(RestrictionType $type) => [$type->value => $type->label()])
                         ->toArray()),
                 SelectFilter::make('scope')
                     ->label('Escopo')
                     ->options(collect(RestrictionScope::cases())
-                        ->mapWithKeys(fn (RestrictionScope $scope) => [$scope->value => $scope->label()])
+                        ->mapWithKeys(fn(RestrictionScope $scope) => [$scope->value => $scope->label()])
                         ->toArray()),
                 Filter::make('active')
                     ->label('Ativas')
-                    ->query(fn (Builder $query): Builder => $query->active()),
+                    ->query(fn(Builder $query): Builder => $query->active()),
                 ...static::baseTableFilters(),
             ])
             ->actions([
@@ -150,7 +150,7 @@ class UserRestrictionResource extends BaseResource
                     ->action(function (UserRestriction $record): void {
                         $record->revoke(auth()->user());
                     })
-                    ->visible(fn (UserRestriction $record) => $record->isActive()),
+                    ->visible(fn(UserRestriction $record) => $record->isActive()),
             ]);
     }
 

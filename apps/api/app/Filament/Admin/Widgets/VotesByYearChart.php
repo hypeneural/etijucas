@@ -9,7 +9,7 @@ use Filament\Widgets\ChartWidget;
 
 class VotesByYearChart extends ChartWidget
 {
-    protected static ?string $heading = 'Vota??es por ano';
+    protected static ?string $heading = 'Votações por ano';
 
     public static function canView(): bool
     {
@@ -24,13 +24,13 @@ class VotesByYearChart extends ChartWidget
             ->orderBy('ano')
             ->get();
 
-        $labels = $rows->pluck('ano')->map(fn ($ano) => (string) $ano)->all();
-        $totals = $rows->pluck('total')->map(fn ($total) => (int) $total)->all();
+        $labels = $rows->pluck('ano')->map(fn($ano) => (string) $ano)->all();
+        $totals = $rows->pluck('total')->map(fn($total) => (int) $total)->all();
 
         return [
             'datasets' => [
                 [
-                    'label' => 'Vota??es',
+                    'label' => 'Votações',
                     'data' => $totals,
                     'backgroundColor' => '#F59E0B',
                     'borderColor' => '#D97706',

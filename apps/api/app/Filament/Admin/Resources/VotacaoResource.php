@@ -31,15 +31,15 @@ class VotacaoResource extends BaseResource
 {
     protected static ?string $model = Votacao::class;
 
-    protected static ?string $navigationGroup = 'Vota??es';
+    protected static ?string $navigationGroup = 'Votacoes';
 
     protected static ?string $navigationIcon = 'heroicon-o-scale';
 
-    protected static ?string $navigationLabel = 'Vota??es';
+    protected static ?string $navigationLabel = 'Votacoes';
 
-    protected static ?string $modelLabel = 'Vota??o';
+    protected static ?string $modelLabel = 'Votacao';
 
-    protected static ?string $pluralModelLabel = 'Vota??es';
+    protected static ?string $pluralModelLabel = 'Votacoes';
 
     protected static ?int $navigationSort = 21;
 
@@ -51,12 +51,12 @@ class VotacaoResource extends BaseResource
                     ->columns(2)
                     ->schema([
                         TextInput::make('titulo')
-                            ->label('T?tulo')
+                            ->label('Título')
                             ->required()
-                            ->helperText('T?tulo oficial da votacao.')
+                            ->helperText('Título oficial da votacao.')
                             ->maxLength(200),
                         TextInput::make('subtitulo')
-                            ->label('Subt?tulo')
+                            ->label('Subtítulo')
                             ->maxLength(200),
                         TextInput::make('protocolo')
                             ->label('Protocolo')
@@ -70,20 +70,20 @@ class VotacaoResource extends BaseResource
                             ->label('Data')
                             ->required(),
                         TextInput::make('sessao')
-                            ->label('Sess?o')
+                            ->label('Sessão')
                             ->maxLength(150),
                         Select::make('status')
                             ->label('Status')
                             ->options(collect(StatusVotacao::cases())
-                                ->mapWithKeys(fn (StatusVotacao $status) => [$status->value => $status->label()])
+                                ->mapWithKeys(fn(StatusVotacao $status) => [$status->value => $status->label()])
                                 ->toArray())
                             ->required()
                             ->default(StatusVotacao::EM_ANDAMENTO->value),
                     ]),
-                Section::make('Descri??o')
+                Section::make('Descrição')
                     ->schema([
                         Textarea::make('descricao')
-                            ->label('Descri??o')
+                            ->label('Descrição')
                             ->rows(5)
                             ->maxLength(5000),
                         Textarea::make('ementa')
@@ -98,7 +98,7 @@ class VotacaoResource extends BaseResource
                             ->label('URL da fonte')
                             ->url()
                             ->maxLength(500)
-                            ->helperText('Link oficial da vota??o ou sess?o.'),
+                            ->helperText('Link oficial da votação ou sessão.'),
                         TextInput::make('url_documento')
                             ->label('URL do documento')
                             ->url()
@@ -110,8 +110,8 @@ class VotacaoResource extends BaseResource
                         TagsInput::make('tags')
                             ->label('Tags')
                             ->placeholder('transparencia, orcamento, saude')
-                            ->separator(','
-                            ->helperText('Separe por v?rgula. Ex: transparencia, orcamento.')),
+                            ->separator(',')
+                            ->helperText('Separe por vírgula. Ex: transparencia, orcamento.'),
                     ]),
                 Section::make('Resultado (auto)')
                     ->columns(4)
@@ -122,12 +122,12 @@ class VotacaoResource extends BaseResource
                             ->disabled()
                             ->dehydrated(false),
                         TextInput::make('votos_nao')
-                            ->label('N?o')
+                            ->label('Não')
                             ->numeric()
                             ->disabled()
                             ->dehydrated(false),
                         TextInput::make('votos_abstencao')
-                            ->label('Absten??o')
+                            ->label('Abstenção')
                             ->numeric()
                             ->disabled()
                             ->dehydrated(false),
@@ -145,7 +145,7 @@ class VotacaoResource extends BaseResource
         return $table
             ->columns([
                 TextColumn::make('titulo')
-                    ->label('T?tulo')
+                    ->label('Título')
                     ->searchable()
                     ->sortable()
                     ->limit(50),
@@ -158,8 +158,8 @@ class VotacaoResource extends BaseResource
                     ->toggleable(),
                 BadgeColumn::make('status')
                     ->label('Status')
-                    ->formatStateUsing(fn (StatusVotacao $state): string => $state->label())
-                    ->color(fn (StatusVotacao $state): string => match ($state) {
+                    ->formatStateUsing(fn(StatusVotacao $state): string => $state->label())
+                    ->color(fn(StatusVotacao $state): string => match ($state) {
                         StatusVotacao::APROVADO => 'success',
                         StatusVotacao::REJEITADO => 'danger',
                         StatusVotacao::EM_ANDAMENTO => 'info',
@@ -170,7 +170,7 @@ class VotacaoResource extends BaseResource
                     ->date('d/m/Y')
                     ->sortable(),
                 TextColumn::make('sessao')
-                    ->label('Sess?o')
+                    ->label('Sessão')
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->limit(40),
                 TextColumn::make('votos_sim')
@@ -178,11 +178,11 @@ class VotacaoResource extends BaseResource
                     ->alignCenter()
                     ->sortable(),
                 TextColumn::make('votos_nao')
-                    ->label('N?o')
+                    ->label('Não')
                     ->alignCenter()
                     ->sortable(),
                 TextColumn::make('votos_abstencao')
-                    ->label('Absten??o')
+                    ->label('Abstenção')
                     ->alignCenter()
                     ->sortable(),
                 TextColumn::make('votos_ausente')
@@ -198,7 +198,7 @@ class VotacaoResource extends BaseResource
                     ->alignCenter()
                     ->sortable(),
                 TextColumn::make('comments_count')
-                    ->label('Coment?rios')
+                    ->label('Comentários')
                     ->alignCenter()
                     ->sortable(),
                 ...static::baseTableColumns(),
@@ -206,7 +206,7 @@ class VotacaoResource extends BaseResource
             ->filters([
                 SelectFilter::make('ano')
                     ->label('Ano')
-                    ->options(fn () => Votacao::query()
+                    ->options(fn() => Votacao::query()
                         ->selectRaw('YEAR(data) as ano')
                         ->whereNotNull('data')
                         ->distinct()
@@ -214,7 +214,7 @@ class VotacaoResource extends BaseResource
                         ->pluck('ano', 'ano')
                         ->toArray())
                     ->query(function (Builder $query, array $data): Builder {
-                        if (! array_key_exists('value', $data) || ! $data['value']) {
+                        if (!array_key_exists('value', $data) || !$data['value']) {
                             return $query;
                         }
 
@@ -223,14 +223,14 @@ class VotacaoResource extends BaseResource
                 SelectFilter::make('status')
                     ->label('Status')
                     ->options(collect(StatusVotacao::cases())
-                        ->mapWithKeys(fn (StatusVotacao $status) => [$status->value => $status->label()])
+                        ->mapWithKeys(fn(StatusVotacao $status) => [$status->value => $status->label()])
                         ->toArray()),
                 SelectFilter::make('tipo')
                     ->label('Tipo')
-                    ->options(fn () => Votacao::query()->select('tipo')->distinct()->pluck('tipo', 'tipo')->toArray()),
+                    ->options(fn() => Votacao::query()->select('tipo')->distinct()->pluck('tipo', 'tipo')->toArray()),
                 Tables\Filters\Filter::make('com_url_fonte')
                     ->label('Com URL fonte')
-                    ->query(fn (Builder $query): Builder => $query->whereNotNull('url_fonte')),
+                    ->query(fn(Builder $query): Builder => $query->whereNotNull('url_fonte')),
                 ...static::baseTableFilters(),
             ])
             ->actions([
@@ -238,56 +238,56 @@ class VotacaoResource extends BaseResource
                     ->label('Recalcular votos')
                     ->icon('heroicon-o-arrow-path')
                     ->requiresConfirmation()
-                    ->action(fn (Votacao $record) => $record->recalcularVotos())
-                    ->visible(fn (): bool => auth()->user()?->hasRole('admin') ?? false),
+                    ->action(fn(Votacao $record) => $record->recalcularVotos())
+                    ->visible(fn(): bool => auth()->user()?->hasRole('admin') ?? false),
                 ViewAction::make()
                     ->label('Resumo')
-                    ->modalHeading(fn (Votacao $record): string => "Resumo: {$record->titulo}")
+                    ->modalHeading(fn(Votacao $record): string => "Resumo: {$record->titulo}")
                     ->form([
-                        Section::make('Vota??o')
+                        Section::make('Votação')
                             ->columns(2)
                             ->schema([
                                 Placeholder::make('status')
                                     ->label('Status')
-                                    ->content(fn (Votacao $record): string => $record->status?->label() ?? '-'),
+                                    ->content(fn(Votacao $record): string => $record->status?->label() ?? '-'),
                                 Placeholder::make('resultado')
                                     ->label('Resultado')
-                                    ->content(fn (Votacao $record): string => $record->resultado),
+                                    ->content(fn(Votacao $record): string => $record->resultado),
                                 Placeholder::make('total_votos')
                                     ->label('Total de votos')
-                                    ->content(fn (Votacao $record): int => $record->total_votos),
+                                    ->content(fn(Votacao $record): int => $record->total_votos),
                                 Placeholder::make('sessao')
-                                    ->label('Sess?o')
-                                    ->content(fn (Votacao $record): string => $record->sessao ?? '-'),
+                                    ->label('Sessão')
+                                    ->content(fn(Votacao $record): string => $record->sessao ?? '-'),
                             ]),
                         Section::make('Contagem')
                             ->columns(4)
                             ->schema([
                                 Placeholder::make('votos_sim')
                                     ->label('Sim')
-                                    ->content(fn (Votacao $record): int => $record->votos_sim),
+                                    ->content(fn(Votacao $record): int => $record->votos_sim),
                                 Placeholder::make('votos_nao')
-                                    ->label('N?o')
-                                    ->content(fn (Votacao $record): int => $record->votos_nao),
+                                    ->label('Não')
+                                    ->content(fn(Votacao $record): int => $record->votos_nao),
                                 Placeholder::make('votos_abstencao')
-                                    ->label('Absten??o')
-                                    ->content(fn (Votacao $record): int => $record->votos_abstencao),
+                                    ->label('Abstenção')
+                                    ->content(fn(Votacao $record): int => $record->votos_abstencao),
                                 Placeholder::make('votos_ausente')
                                     ->label('Ausente')
-                                    ->content(fn (Votacao $record): int => $record->votos_ausente),
+                                    ->content(fn(Votacao $record): int => $record->votos_ausente),
                             ]),
                         Section::make('Engajamento')
                             ->columns(3)
                             ->schema([
                                 Placeholder::make('likes_count')
                                     ->label('Likes')
-                                    ->content(fn (Votacao $record): int => $record->likes_count ?? 0),
+                                    ->content(fn(Votacao $record): int => $record->likes_count ?? 0),
                                 Placeholder::make('dislikes_count')
                                     ->label('Dislikes')
-                                    ->content(fn (Votacao $record): int => $record->dislikes_count ?? 0),
+                                    ->content(fn(Votacao $record): int => $record->dislikes_count ?? 0),
                                 Placeholder::make('comments_count')
-                                    ->label('Coment?rios')
-                                    ->content(fn (Votacao $record): int => $record->comments_count ?? 0),
+                                    ->label('Comentários')
+                                    ->content(fn(Votacao $record): int => $record->comments_count ?? 0),
                             ]),
                     ]),
                 EditAction::make()->requiresConfirmation(),
@@ -306,7 +306,7 @@ class VotacaoResource extends BaseResource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListVota??es::route('/'),
+            'index' => Pages\ListVotacoes::route('/'),
             'create' => Pages\CreateVotacao::route('/create'),
             'edit' => Pages\EditVotacao::route('/{record}/edit'),
         ];

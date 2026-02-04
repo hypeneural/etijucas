@@ -31,15 +31,15 @@ class VotacaoCommentResource extends BaseResource
 {
     protected static ?string $model = Comment::class;
 
-    protected static ?string $navigationGroup = 'Vota??es';
+    protected static ?string $navigationGroup = 'Votacoes';
 
     protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-left-right';
 
-    protected static ?string $navigationLabel = 'Coment?rios (Vota??es)';
+    protected static ?string $navigationLabel = 'Comentários (Votacoes)';
 
-    protected static ?string $modelLabel = 'Coment?rio (Votacao)';
+    protected static ?string $modelLabel = 'Comentário (Votacao)';
 
-    protected static ?string $pluralModelLabel = 'Coment?rios (Vota??es)';
+    protected static ?string $pluralModelLabel = 'Comentários (Votacoes)';
 
     protected static ?int $navigationSort = 22;
 
@@ -56,7 +56,7 @@ class VotacaoCommentResource extends BaseResource
     {
         return $form
             ->schema([
-                Section::make('Coment?rio')
+                Section::make('Comentário')
                     ->columns(2)
                     ->schema([
                         Textarea::make('texto')
@@ -69,7 +69,7 @@ class VotacaoCommentResource extends BaseResource
                             ->url()
                             ->maxLength(500),
                         Toggle::make('is_anon')
-                            ->label('An?nimo'),
+                            ->label('Anônimo'),
                         TextInput::make('depth')
                             ->label('Nivel')
                             ->numeric()
@@ -86,7 +86,7 @@ class VotacaoCommentResource extends BaseResource
                     ->schema([
                         Select::make('commentable_id')
                             ->label('Votacao')
-                            ->options(fn () => Votacao::query()->orderByDesc('data')->limit(200)->pluck('titulo', 'id'))
+                            ->options(fn() => Votacao::query()->orderByDesc('data')->limit(200)->pluck('titulo', 'id'))
                             ->searchable()
                             ->preload()
                             ->disabled()
@@ -116,7 +116,7 @@ class VotacaoCommentResource extends BaseResource
                     ->limit(40)
                     ->sortable(),
                 TextColumn::make('texto')
-                    ->label('Coment?rio')
+                    ->label('Comentário')
                     ->searchable()
                     ->limit(50),
                 TextColumn::make('user.nome')
@@ -144,7 +144,7 @@ class VotacaoCommentResource extends BaseResource
             ->filters([
                 SelectFilter::make('commentable_id')
                     ->label('Votacao')
-                    ->options(fn () => Votacao::query()->orderByDesc('data')->limit(200)->pluck('titulo', 'id')),
+                    ->options(fn() => Votacao::query()->orderByDesc('data')->limit(200)->pluck('titulo', 'id')),
                 SelectFilter::make('user_id')
                     ->label('Autor')
                     ->relationship('user', 'nome')
@@ -153,7 +153,7 @@ class VotacaoCommentResource extends BaseResource
                     ->label('Com imagem')
                     ->query(fn(Builder $query): Builder => $query->whereNotNull('image_url')),
                 Tables\Filters\Filter::make('is_anon')
-                    ->label('An?nimos')
+                    ->label('Anônimos')
                     ->query(fn(Builder $query): Builder => $query->where('is_anon', true)),
                 ...static::baseTableFilters(),
             ])
@@ -166,14 +166,14 @@ class VotacaoCommentResource extends BaseResource
                         $record->likes()->detach();
                         $record->forceFill(['likes_count' => 0])->saveQuietly();
                     })
-                    ->visible(fn (): bool => auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false),
+                    ->visible(fn(): bool => auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false),
                 ViewAction::make(),
                 EditAction::make()->requiresConfirmation(),
                 DeleteAction::make()
                     ->requiresConfirmation()
                     ->using(function (Comment $record): bool {
                         $commentable = $record->commentable;
-                        if (! $record->trashed() && $commentable instanceof Votacao) {
+                        if (!$record->trashed() && $commentable instanceof Votacao) {
                             $commentable->decrement('comments_count');
                         }
 

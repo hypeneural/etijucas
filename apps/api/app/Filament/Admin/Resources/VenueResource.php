@@ -22,7 +22,7 @@ class VenueResource extends BaseResource
 {
     protected static ?string $model = Venue::class;
 
-    protected static ?string $navigationGroup = 'Conte?do';
+    protected static ?string $navigationGroup = 'Conteudo';
 
     protected static ?string $navigationIcon = 'heroicon-o-map-pin';
 
@@ -64,7 +64,7 @@ class VenueResource extends BaseResource
                             ->label('CEP')
                             ->maxLength(20),
                         TextInput::make('address')
-                            ->label('Endere?o')
+                            ->label('Endereço')
                             ->maxLength(255),
                         TextInput::make('address_number')
                             ->label('Numero')
@@ -89,7 +89,7 @@ class VenueResource extends BaseResource
                             ->url()
                             ->maxLength(200),
                         Textarea::make('description')
-                            ->label('Descri??o')
+                            ->label('Descrição')
                             ->rows(3)
                             ->columnSpanFull(),
                         Toggle::make('is_active')

@@ -33,7 +33,7 @@ class VereadorResource extends BaseResource
 
     protected static ?string $model = Vereador::class;
 
-    protected static ?string $navigationGroup = 'Vota??es';
+    protected static ?string $navigationGroup = 'Votacoes';
 
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
 
@@ -104,7 +104,7 @@ class VereadorResource extends BaseResource
                             ->label('Foto URL (legado)')
                             ->url()
                             ->maxLength(500)
-                            ->helperText('Opcional. Use o upload acima sempre que poss?vel.'),
+                            ->helperText('Opcional. Use o upload acima sempre que possível.'),
                     ]),
                 Section::make('Bio')
                     ->schema([
@@ -132,7 +132,7 @@ class VereadorResource extends BaseResource
                     ->label('Foto')
                     ->circular()
                     ->size(36)
-                    ->getStateUsing(fn (Vereador $record): ?string => $record->getFirstMediaUrl('vereador_avatar') ?: $record->foto_url),
+                    ->getStateUsing(fn(Vereador $record): ?string => $record->getFirstMediaUrl('vereador_avatar') ?: $record->foto_url),
                 TextColumn::make('nome')
                     ->label('Nome')
                     ->searchable()
@@ -164,7 +164,7 @@ class VereadorResource extends BaseResource
                         0 => 'Nao',
                     ])
                     ->query(function (Builder $query, array $data): Builder {
-                        if (! array_key_exists('value', $data) || $data['value'] === null || $data['value'] === '') {
+                        if (!array_key_exists('value', $data) || $data['value'] === null || $data['value'] === '') {
                             return $query;
                         }
 
@@ -174,29 +174,29 @@ class VereadorResource extends BaseResource
                     }),
                 SelectFilter::make('partido_id')
                     ->label('Partido')
-                    ->options(fn () => Partido::query()->orderBy('sigla')->pluck('sigla', 'id')->toArray())
+                    ->options(fn() => Partido::query()->orderBy('sigla')->pluck('sigla', 'id')->toArray())
                     ->searchable()
                     ->query(function (Builder $query, array $data): Builder {
-                        if (! array_key_exists('value', $data) || ! $data['value']) {
+                        if (!array_key_exists('value', $data) || !$data['value']) {
                             return $query;
                         }
 
-                        return $query->whereHas('mandatoAtual', fn (Builder $sub) => $sub->where('partido_id', $data['value']));
+                        return $query->whereHas('mandatoAtual', fn(Builder $sub) => $sub->where('partido_id', $data['value']));
                     }),
                 SelectFilter::make('legislatura_id')
                     ->label('Legislatura')
-                    ->options(fn () => Legislatura::query()
+                    ->options(fn() => Legislatura::query()
                         ->orderByDesc('ano_inicio')
                         ->get()
-                        ->mapWithKeys(fn (Legislatura $legislatura) => [$legislatura->id => $legislatura->nome_completo])
+                        ->mapWithKeys(fn(Legislatura $legislatura) => [$legislatura->id => $legislatura->nome_completo])
                         ->toArray())
                     ->searchable()
                     ->query(function (Builder $query, array $data): Builder {
-                        if (! array_key_exists('value', $data) || ! $data['value']) {
+                        if (!array_key_exists('value', $data) || !$data['value']) {
                             return $query;
                         }
 
-                        return $query->whereHas('mandatoAtual', fn (Builder $sub) => $sub->where('legislatura_id', $data['value']));
+                        return $query->whereHas('mandatoAtual', fn(Builder $sub) => $sub->where('legislatura_id', $data['value']));
                     }),
                 SelectFilter::make('ativo')
                     ->label('Ativo')
@@ -208,11 +208,11 @@ class VereadorResource extends BaseResource
             ])
             ->actions([
                 Action::make('importFoto')
-                    ->label('Importar m?dia (URL)')
+                    ->label('Importar mídia (URL)')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->requiresConfirmation()
                     ->action(function (Vereador $record): void {
-                        if (! $record->foto_url) {
+                        if (!$record->foto_url) {
                             Notification::make()
                                 ->title('Sem URL de foto')
                                 ->warning()
@@ -248,12 +248,12 @@ class VereadorResource extends BaseResource
                                 ->send();
                         }
                     })
-                    ->visible(fn (): bool => auth()->user()?->hasRole('admin') ?? false),
+                    ->visible(fn(): bool => auth()->user()?->hasRole('admin') ?? false),
                 ...static::baseTableActions(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkAction::make('importFotos')
-                    ->label('Importar m?dias (URL)')
+                    ->label('Importar mídias (URL)')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->requiresConfirmation()
                     ->action(function ($records): void {
@@ -262,7 +262,7 @@ class VereadorResource extends BaseResource
                         $failed = 0;
 
                         foreach ($records as $record) {
-                            if (! $record->foto_url) {
+                            if (!$record->foto_url) {
                                 $skipped++;
                                 continue;
                             }
@@ -288,13 +288,13 @@ class VereadorResource extends BaseResource
                         }
 
                         Notification::make()
-                            ->title('Importacao concluida')
+                            ->title('Importacao concluída')
                             ->body("Importados: {$imported}. Ignorados: {$skipped}. Falhas: {$failed}.")
                             ->success()
                             ->send();
                     })
                     ->deselectRecordsAfterCompletion()
-                    ->visible(fn (): bool => auth()->user()?->hasRole('admin') ?? false),
+                    ->visible(fn(): bool => auth()->user()?->hasRole('admin') ?? false),
             ]);
     }
 
