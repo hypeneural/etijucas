@@ -2,12 +2,9 @@ import React, { useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence, useSpring, useTransform } from 'framer-motion';
 import { RefreshCw } from 'lucide-react';
 
-// Layout components
-import TodayBentoGrid from '@/components/home/TodayBentoGrid';
+// Layout components (legacy - kept for now)
 import EventsCarousel from '@/components/home/EventsCarousel';
 import TourismHighlights from '@/components/home/TourismHighlights';
-import { InstallCard } from '@/components/home/InstallCard';
-import { WeatherHomeCard } from '@/components/weather/WeatherHomeCard';
 
 // New "Hoje em Tijucas" VIVO components
 import HeaderSlim from '@/components/home/HeaderSlim';
@@ -215,40 +212,31 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
       )}
 
       <div className="pb-24 space-y-4">
-        {/* Install App Card */}
-        <div className="px-4">
-          <InstallCard />
-        </div>
-
         {/* ========================================
-            BOLETIM DO DIA - Daily Summary
+            BOLETIM DO DIA - Daily Summary (O Gancho!)
             ======================================== */}
         {blocks.boletim?.payload && (
-          <div className="px-4">
+          <div className="px-4 pt-2">
             <BoletimDoDia data={blocks.boletim.payload} />
           </div>
         )}
 
-        {/* Weather Card - Detailed */}
-        <div className="px-4">
-          <WeatherHomeCard />
-        </div>
-
-        {/* Today's Quick Info Grid */}
-        <TodayBentoGrid onNavigate={onNavigate} />
-
-        {/* Events Carousel */}
-        <EventsCarousel onNavigate={onNavigate} />
-
-        {/* Tourism Highlights */}
-        <TourismHighlights onNavigate={onNavigate} />
+        {/* ========================================
+            QUICK ACCESS VIVO - Mobile First! (Moved up)
+            ======================================== */}
+        <QuickAccessGridVivo data={blocks.quickAccess?.payload} />
 
         {/* ========================================
-            FISCALIZA VIVO - Live Reports Card
+            FISCALIZA VIVO - Live Reports Card (CTA Cívico)
             ======================================== */}
         <div className="px-4">
           <FiscalizaVivo data={blocks.fiscaliza?.payload} />
         </div>
+
+        {/* ========================================
+            EVENTS CAROUSEL - What's happening today
+            ======================================== */}
+        <EventsCarousel onNavigate={onNavigate} />
 
         {/* ========================================
             BOCA NO TROMBONE VIVO - Live Forum Card
@@ -258,12 +246,12 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
         </div>
 
         {/* ========================================
-            QUICK ACCESS VIVO - with badges
+            TOURISM HIGHLIGHTS - Explore the city
             ======================================== */}
-        <QuickAccessGridVivo data={blocks.quickAccess?.payload} />
+        <TourismHighlights onNavigate={onNavigate} />
 
         {/* ========================================
-            TIJUCANOS COUNTER - Gamification
+            TIJUCANOS COUNTER - Gamification Footer
             ======================================== */}
         {blocks.stats?.payload && (
           <div className="px-4">

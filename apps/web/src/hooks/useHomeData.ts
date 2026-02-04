@@ -12,7 +12,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useCallback } from 'react';
 import { homeService } from '@/services/home.service';
 import { useNetworkStatus } from './useNetworkStatus';
-import { useAppStore } from '@/store/appStore';
+import { useAppStore } from '@/store/useAppStore';
 import {
     HomeDataResponse,
     BoletimDoDiaPayload,
@@ -46,10 +46,10 @@ export function useHomeData(options?: { enabled?: boolean }) {
     const { selectedBairro } = useAppStore();
 
     const query = useQuery<HomeDataResponse>({
-        queryKey: [...HOME_KEY, selectedBairro],
+        queryKey: [...HOME_KEY, selectedBairro?.id],
         queryFn: async () => {
             const data = await homeService.getHomeData({
-                bairro_id: selectedBairro || undefined,
+                bairro_id: selectedBairro?.id || undefined,
             });
             return data;
         },
@@ -115,8 +115,8 @@ export function useBoletimDoDia() {
     const { selectedBairro } = useAppStore();
 
     return useQuery<BoletimDoDiaPayload>({
-        queryKey: [...BOLETIM_KEY, selectedBairro],
-        queryFn: () => homeService.getBoletimDoDia(selectedBairro || undefined),
+        queryKey: [...BOLETIM_KEY, selectedBairro?.id],
+        queryFn: () => homeService.getBoletimDoDia(selectedBairro?.id || undefined),
         staleTime: STALE_TIME,
         gcTime: GC_TIME,
         enabled: isOnline,

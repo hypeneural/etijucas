@@ -4,7 +4,7 @@
  * Uses the /api/v1/home endpoint to fetch all home data in a single request.
  */
 
-import api from '@/lib/api';
+import { apiClient } from '@/api/client';
 import { HomeDataResponse, BoletimDoDiaPayload, TijucanosCounterPayload } from '@/types/home.types';
 
 const HOME_ENDPOINT = '/v1/home';
@@ -38,7 +38,7 @@ export async function getHomeData(params?: HomeQueryParams): Promise<HomeDataRes
     const queryString = queryParams.toString();
     const url = queryString ? `${HOME_ENDPOINT}?${queryString}` : HOME_ENDPOINT;
 
-    const response = await api.get<HomeDataResponse>(url);
+    const response = await apiClient.get<{ data: HomeDataResponse }>(url);
     return response.data;
 }
 
@@ -47,20 +47,20 @@ export async function getHomeData(params?: HomeQueryParams): Promise<HomeDataRes
  */
 export async function getBoletimDoDia(bairroId?: string): Promise<BoletimDoDiaPayload> {
     const queryParams = bairroId ? `?bairro_id=${bairroId}` : '';
-    const response = await api.get<{ success: boolean; data: BoletimDoDiaPayload }>(
+    const response = await apiClient.get<{ data: BoletimDoDiaPayload }>(
         `${BOLETIM_ENDPOINT}${queryParams}`
     );
-    return response.data.data;
+    return response.data;
 }
 
 /**
  * Fetch user stats for Tijucanos counter
  */
 export async function getUserStats(): Promise<TijucanosCounterPayload> {
-    const response = await api.get<{ success: boolean; data: TijucanosCounterPayload }>(
+    const response = await apiClient.get<{ data: TijucanosCounterPayload }>(
         STATS_ENDPOINT
     );
-    return response.data.data;
+    return response.data;
 }
 
 export const homeService = {
