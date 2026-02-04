@@ -20,6 +20,7 @@ use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Illuminate\Database\Eloquent\Builder;
 
 class VotacaoResource extends BaseResource
 {
@@ -47,6 +48,7 @@ class VotacaoResource extends BaseResource
                         TextInput::make('titulo')
                             ->label('Titulo')
                             ->required()
+                            ->helperText('Titulo oficial da votacao.')
                             ->maxLength(200),
                         TextInput::make('subtitulo')
                             ->label('Subtitulo')
@@ -57,6 +59,7 @@ class VotacaoResource extends BaseResource
                         TextInput::make('tipo')
                             ->label('Tipo')
                             ->required()
+                            ->helperText('Ex: PROJETO_LEI, REQUERIMENTO.')
                             ->maxLength(80),
                         DatePicker::make('data')
                             ->label('Data')
@@ -76,10 +79,12 @@ class VotacaoResource extends BaseResource
                     ->schema([
                         Textarea::make('descricao')
                             ->label('Descricao')
-                            ->rows(5),
+                            ->rows(5)
+                            ->maxLength(5000),
                         Textarea::make('ementa')
                             ->label('Ementa')
-                            ->rows(4),
+                            ->rows(4)
+                            ->maxLength(2000),
                     ]),
                 Section::make('Links')
                     ->columns(2)
@@ -97,6 +102,7 @@ class VotacaoResource extends BaseResource
                     ->schema([
                         TagsInput::make('tags')
                             ->label('Tags')
+                            ->placeholder('transparencia, orcamento, saude')
                             ->separator(','),
                     ]),
                 Section::make('Resultado (auto)')
@@ -151,6 +157,10 @@ class VotacaoResource extends BaseResource
                     ->label('Data')
                     ->date('d/m/Y')
                     ->sortable(),
+                TextColumn::make('sessao')
+                    ->label('Sessao')
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->limit(40),
                 TextColumn::make('votos_sim')
                     ->label('Sim')
                     ->alignCenter()
@@ -190,6 +200,9 @@ class VotacaoResource extends BaseResource
                 SelectFilter::make('tipo')
                     ->label('Tipo')
                     ->options(fn () => Votacao::query()->select('tipo')->distinct()->pluck('tipo', 'tipo')->toArray()),
+                Tables\Filters\Filter::make('com_url_fonte')
+                    ->label('Com URL fonte')
+                    ->query(fn (Builder $query): Builder => $query->whereNotNull('url_fonte')),
                 ...static::baseTableFilters(),
             ])
             ->actions([

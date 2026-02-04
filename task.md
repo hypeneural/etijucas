@@ -17,29 +17,29 @@
 - [x] Resource de comentarios (Votacao): filtrar `commentable_type = Votacao`.
 
 ## Prioridade Media (UX/UI e fluxo operacional)
-- [ ] Padrao de UX no form de votação:
-  - [ ] Sections separadas: Identificacao, Descricao, Sessao, Resultado, Midia/Links.
-  - [ ] `tags` com `TagsInput` e helper text.
-  - [ ] `status` com badges e cores.
+- [x] Padrao de UX no form de votação:
+  - [x] Sections separadas: Identificacao, Descricao, Sessao, Resultado, Midia/Links.
+  - [x] `tags` com `TagsInput` e helper text.
+  - [x] `status` com badges e cores.
 - [ ] VotoRegistro RelationManager:
   - [ ] default sort por vereador (nome) e voto.
   - [ ] filtros rapidos por tipo de voto.
   - [ ] actions em lote (ex: marcar como NAO_VOTOU).
 - [ ] ViewAction com resumo (counts, resultado, total votos).
-- [ ] Botao rapido "Recalcular Votos" na votacao (Action).
+- [x] Botao rapido "Recalcular Votos" na votacao (Action).
 
 ## Prioridade Media (comentarios / moderacao)
-- [ ] `VotacaoCommentResource`:
-  - [ ] listagem com usuario, texto, likes, is_anon, created_at.
-  - [ ] filtros por `has_image`, `is_anon`, `likes_count`.
-  - [ ] actions: remover, ocultar (soft delete), resetar likes.
-- [ ] Se usar `Comment` global, criar scope `votacao()` no model para facilitar.
+- [x] `VotacaoCommentResource`:
+  - [x] listagem com usuario, texto, likes, is_anon, created_at.
+  - [x] filtros por `has_image`, `is_anon`, `likes_count`.
+  - [x] actions: remover, ocultar (soft delete), resetar likes.
+- [x] Se usar `Comment` global, criar scope `votacao()` no model para facilitar.
 
 ## Prioridade Baixa (estatisticas e dashboards)
 - [x] Widget KPI de votacoes:
   - [x] total votacoes, aprovadas, rejeitadas, em andamento.
   - [x] grafico por ano.
-- [ ] Widget de engajamento:
+- [x] Widget de engajamento:
   - [x] likes, dislikes, comments.
 
 ## Verificacao e Qualidade
