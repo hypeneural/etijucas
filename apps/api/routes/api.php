@@ -18,6 +18,83 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+// TEMPORARY: BOM Removal - DELETE AFTER USE!
+Route::get('fix-bom', function () {
+    $token = request()->query('token');
+    if ($token !== 'etijucas2026') {
+        return response()->json(['error' => 'Use: ?token=etijucas2026'], 403);
+    }
+
+    $baseDir = base_path();
+    $fixed = 0;
+    $scanned = 0;
+    $errors = [];
+    $fixedFiles = [];
+
+    $removeBOM = function ($filePath) {
+        $content = file_get_contents($filePath);
+        if ($content === false)
+            return ['success' => false, 'message' => 'Cannot read'];
+
+        $bom = pack('H*', 'EFBBBF');
+        $hasBom = strncmp($content, $bom, 3) === 0;
+        $startsWithPhp = strpos($content, '<?php') === 0;
+        $hasLeadingWhitespace = !$startsWithPhp && preg_match('/^\s+<\?php/', $content);
+
+        if (!$hasBom && !$hasLeadingWhitespace) {
+            return ['success' => true, 'changed' => false];
+        }
+
+        if ($hasBom)
+            $content = substr($content, 3);
+        if ($hasLeadingWhitespace)
+            $content = preg_replace('/^\s+(<\?php)/', '$1', $content);
+
+        $result = file_put_contents($filePath, $content);
+        if ($result === false)
+            return ['success' => false, 'message' => 'Cannot write'];
+
+        return ['success' => true, 'changed' => true, 'hadBom' => $hasBom, 'hadWhitespace' => $hasLeadingWhitespace];
+    };
+
+    $iterator = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($baseDir, RecursiveDirectoryIterator::SKIP_DOTS),
+        RecursiveIteratorIterator::SELF_FIRST
+    );
+
+    foreach ($iterator as $file) {
+        if ($file->isFile() && $file->getExtension() === 'php') {
+            if (strpos($file->getPathname(), '/vendor/') !== false)
+                continue;
+            if (strpos($file->getPathname(), '\\vendor\\') !== false)
+                continue;
+
+            $scanned++;
+            $result = $removeBOM($file->getPathname());
+
+            if (!$result['success']) {
+                $errors[] = str_replace($baseDir, '', $file->getPathname()) . ': ' . $result['message'];
+            } elseif ($result['changed']) {
+                $fixed++;
+                $fixedFiles[] = str_replace($baseDir, '', $file->getPathname());
+            }
+        }
+    }
+
+    // Clear caches
+    \Artisan::call('optimize:clear');
+
+    return response()->json([
+        'success' => true,
+        'scanned' => $scanned,
+        'fixed' => $fixed,
+        'fixed_files' => $fixedFiles,
+        'errors' => $errors,
+        'cache_cleared' => true,
+        'message' => 'DELETE this route from api.php after use!'
+    ]);
+});
+
 // =====================================================
 // API v1 Routes
 // =====================================================
