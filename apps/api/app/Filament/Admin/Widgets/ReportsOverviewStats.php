@@ -8,6 +8,7 @@ use App\Domains\Reports\Enums\ReportStatus;
 use App\Domains\Reports\Models\CitizenReport;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
+use Illuminate\Support\Facades\Cache;
 
 class ReportsOverviewStats extends BaseWidget
 {
@@ -18,25 +19,26 @@ class ReportsOverviewStats extends BaseWidget
 
     protected function getStats(): array
     {
-        $total = CitizenReport::query()->count();
-
-        $pending = CitizenReport::query()
-            ->whereIn('status', [ReportStatus::Recebido->value, ReportStatus::EmAnalise->value])
-            ->count();
-
-        $resolved = CitizenReport::query()
-            ->where('status', ReportStatus::Resolvido->value)
-            ->count();
-
-        $rejected = CitizenReport::query()
-            ->where('status', ReportStatus::Rejeitado->value)
-            ->count();
+        $metrics = Cache::remember('reports_overview_stats', now()->addSeconds(60), function (): array {
+            return [
+                'total' => CitizenReport::query()->count(),
+                'pending' => CitizenReport::query()
+                    ->whereIn('status', [ReportStatus::Recebido->value, ReportStatus::EmAnalise->value])
+                    ->count(),
+                'resolved' => CitizenReport::query()
+                    ->where('status', ReportStatus::Resolvido->value)
+                    ->count(),
+                'rejected' => CitizenReport::query()
+                    ->where('status', ReportStatus::Rejeitado->value)
+                    ->count(),
+            ];
+        });
 
         return [
-            Stat::make('Total', $total)->color('gray'),
-            Stat::make('Pendentes', $pending)->color('warning'),
-            Stat::make('Resolvidos', $resolved)->color('success'),
-            Stat::make('Rejeitados', $rejected)->color('danger'),
+            Stat::make('Total', $metrics['total'])->color('gray'),
+            Stat::make('Pendentes', $metrics['pending'])->color('warning'),
+            Stat::make('Resolvidos', $metrics['resolved'])->color('success'),
+            Stat::make('Rejeitados', $metrics['rejected'])->color('danger'),
         ];
     }
 }

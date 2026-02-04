@@ -76,6 +76,7 @@ class CommentReportResource extends BaseResource
     public static function table(Tables\Table $table): Tables\Table
     {
         return $table
+            ->deferLoading()
             ->columns([
                 TextColumn::make('comment.texto')
                     ->label('Comentário')

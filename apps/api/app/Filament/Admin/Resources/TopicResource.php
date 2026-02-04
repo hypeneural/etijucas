@@ -117,6 +117,7 @@ class TopicResource extends BaseResource
     public static function table(Tables\Table $table): Tables\Table
     {
         return $table
+            ->deferLoading()
             ->columns([
                 TextColumn::make('titulo')
                     ->label('Título')

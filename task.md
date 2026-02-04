@@ -15,12 +15,12 @@
 ## Prioridade media
 - [x] Consolidar fila de moderacao com filtros por prioridade/tipo e links diretos.
 - [x] Melhorar filtros de denuncias (categoria, bairro, status, data) com indices garantidos.
-- [ ] Adicionar preview de mapa no formulario de denuncia e acao rapida de ajuste.
+- [x] Adicionar preview de mapa no formulario de denuncia e acao rapida de ajuste.
 - [x] Adicionar acao rapida de ocultar/restaurar comentario no forum.
 - [x] Exibir contexto do conteudo denunciado (trecho + link) em reports.
-- [ ] Exibir KPIs de moderacao com cache curto (30-120s).
-- [ ] Implementar `deferLoading()` em tabelas volumosas do admin.
-- [ ] Melhorar busca nas listagens (titulo, protocolo, usuario, bairro).
+- [x] Exibir KPIs de moderacao com cache curto (30-120s).
+- [x] Implementar `deferLoading()` em tabelas volumosas do admin.
+- [x] Melhorar busca nas listagens (titulo, protocolo, usuario, bairro).
 
 ## Prioridade baixa
 - [ ] Padronizar badges e cores de status em todos os recursos.

@@ -22,6 +22,8 @@ import { SimpleWeatherView } from '@/components/weather/SimpleWeatherView';
 import { PresetChips } from '@/components/weather/PresetChips';
 import { TempRainChart, WindChart, WeatherExplainers } from '@/components/weather/WeatherCharts';
 import { SeaConditionHero, ExplainableMetric, CoastalPrecisionBanner } from '@/components/weather/MarineExplainer';
+import { OfflineBanner, CacheStatusBadge, StaleDataWarning } from '@/components/weather/OfflineIndicator';
+import { useNetworkStatus } from '@/hooks/useOfflineWeather';
 import { haptic } from '@/hooks/useHaptic';
 
 type ViewMode = 'simple' | 'detailed';
@@ -69,8 +71,13 @@ export default function WeatherPage() {
         setActiveTab(tab);
     }, []);
 
+    // Network status for offline indicator
+    const { isOffline } = useNetworkStatus();
+
     return (
         <div className="min-h-screen bg-gradient-to-b from-sky-100 via-blue-50 to-white dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+            {/* Offline Banner */}
+            <OfflineBanner />
             {/* Header */}
             <header className="sticky top-0 z-50 backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 border-b border-gray-200/50 dark:border-gray-700/50">
                 <div className="flex items-center justify-between px-4 py-3">

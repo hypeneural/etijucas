@@ -15,7 +15,10 @@ use App\Filament\Admin\Resources\CitizenReportResource\RelationManagers\StatusHi
 use App\Filament\Admin\Resources\Concerns\HasMediaLibraryTrait;
 use App\Models\User;
 use Filament\Forms;
+use Filament\Forms\Components\Actions;
+use Filament\Forms\Components\Actions\Action as FormAction;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -25,6 +28,7 @@ use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\HtmlString;
 
 class CitizenReportResource extends BaseResource
 {
@@ -132,6 +136,69 @@ class CitizenReportResource extends BaseResource
                             ->numeric(),
                         DateTimePicker::make('resolved_at')
                             ->label('Resolvido em'),
+                        Placeholder::make('map_preview')
+                            ->label('Mapa')
+                            ->content(function (?CitizenReport $record): HtmlString {
+                                if (! $record) {
+                                    return new HtmlString('<span class="text-sm text-gray-500">Sem dados de localizacao.</span>');
+                                }
+
+                                $mapUrl = null;
+                                $embedUrl = null;
+
+                                if (filled($record->latitude) && filled($record->longitude)) {
+                                    $query = $record->latitude . ',' . $record->longitude;
+                                    $mapUrl = 'https://www.google.com/maps/search/?api=1&query=' . $query;
+                                    $embedUrl = 'https://maps.google.com/maps?q=' . $query . '&z=15&output=embed';
+                                } elseif (filled($record->address_text)) {
+                                    $query = rawurlencode($record->address_text);
+                                    $mapUrl = 'https://www.google.com/maps/search/?api=1&query=' . $query;
+                                    $embedUrl = 'https://maps.google.com/maps?q=' . $query . '&z=15&output=embed';
+                                }
+
+                                if (! $mapUrl || ! $embedUrl) {
+                                    return new HtmlString('<span class="text-sm text-gray-500">Sem localizacao informada.</span>');
+                                }
+
+                                $iframe = sprintf(
+                                    '<div class="aspect-video overflow-hidden rounded-lg border border-gray-200 bg-gray-50"><iframe src="%s" class="h-full w-full" loading="lazy"></iframe></div>',
+                                    e($embedUrl)
+                                );
+
+                                $link = sprintf(
+                                    '<a href="%s" target="_blank" rel="noopener" class="mt-2 inline-flex text-sm font-medium text-primary-600 hover:text-primary-700">Abrir no mapa</a>',
+                                    e($mapUrl)
+                                );
+
+                                return new HtmlString($iframe . $link);
+                            })
+                            ->columnSpanFull(),
+                        Actions::make([
+                            FormAction::make('openMap')
+                                ->label('Abrir mapa')
+                                ->icon('heroicon-o-map')
+                                ->url(function (?CitizenReport $record): ?string {
+                                    if (! $record) {
+                                        return null;
+                                    }
+
+                                    if (filled($record->latitude) && filled($record->longitude)) {
+                                        return 'https://www.google.com/maps/search/?api=1&query='
+                                            . $record->latitude . ',' . $record->longitude;
+                                    }
+
+                                    if (filled($record->address_text)) {
+                                        return 'https://www.google.com/maps/search/?api=1&query='
+                                            . rawurlencode($record->address_text);
+                                    }
+
+                                    return null;
+                                })
+                                ->openUrlInNewTab()
+                                ->visible(fn (?CitizenReport $record): bool => (bool) $record
+                                    && (filled($record->latitude) || filled($record->address_text))),
+                        ])
+                            ->columnSpanFull(),
                     ]),
                 Section::make('Midia')
                     ->schema([
@@ -145,6 +212,7 @@ class CitizenReportResource extends BaseResource
     public static function table(Tables\Table $table): Tables\Table
     {
         return $table
+            ->deferLoading()
             ->columns([
                 TextColumn::make('protocol')
                     ->label('Protocolo')
@@ -156,15 +224,19 @@ class CitizenReportResource extends BaseResource
                     ->limit(40),
                 TextColumn::make('category.name')
                     ->label('Categoria')
+                    ->searchable()
                     ->toggleable(),
                 TextColumn::make('bairro.nome')
                     ->label('Bairro')
+                    ->searchable()
                     ->toggleable(),
                 TextColumn::make('user.nome')
                     ->label('Usuario')
+                    ->searchable()
                     ->toggleable(),
                 TextColumn::make('assignedTo.nome')
                     ->label('Responsavel')
+                    ->searchable()
                     ->toggleable(),
                 TextColumn::make('status')
                     ->label('Status')

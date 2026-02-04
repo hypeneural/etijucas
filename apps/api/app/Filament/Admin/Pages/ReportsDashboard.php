@@ -13,6 +13,7 @@ use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
 class ReportsDashboard extends Page implements HasTable
@@ -52,6 +53,11 @@ class ReportsDashboard extends Page implements HasTable
             ->latest();
     }
 
+    protected function table(Table $table): Table
+    {
+        return $table->deferLoading();
+    }
+
     protected function getTableColumns(): array
     {
         return [
@@ -65,9 +71,15 @@ class ReportsDashboard extends Page implements HasTable
                 ->searchable(),
             TextColumn::make('category.name')
                 ->label('Categoria')
+                ->searchable()
                 ->toggleable(),
             TextColumn::make('bairro.nome')
                 ->label('Bairro')
+                ->searchable()
+                ->toggleable(),
+            TextColumn::make('user.nome')
+                ->label('Usuario')
+                ->searchable()
                 ->toggleable(),
             TextColumn::make('status')
                 ->label('Status')

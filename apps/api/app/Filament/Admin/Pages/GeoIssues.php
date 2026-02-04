@@ -15,6 +15,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
 class GeoIssues extends Page implements HasTable
@@ -52,6 +53,11 @@ class GeoIssues extends Page implements HasTable
             ->latest();
     }
 
+    protected function table(Table $table): Table
+    {
+        return $table->deferLoading();
+    }
+
     protected function getTableColumns(): array
     {
         return [
@@ -68,6 +74,7 @@ class GeoIssues extends Page implements HasTable
                 ->toggleable(),
             TextColumn::make('bairro.nome')
                 ->label('Bairro')
+                ->searchable()
                 ->toggleable(),
             TextColumn::make('location_quality')
                 ->label('Qualidade')
@@ -81,6 +88,7 @@ class GeoIssues extends Page implements HasTable
             TextColumn::make('address_text')
                 ->label('Endereco')
                 ->limit(40)
+                ->searchable()
                 ->toggleable(),
             TextColumn::make('created_at')
                 ->label('Criado em')

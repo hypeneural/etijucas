@@ -18,6 +18,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
@@ -103,6 +104,11 @@ class ModerationQueue extends Page implements HasTable
         return ModerationQueueItem::query()
             ->fromSub($union, 'moderation_queue')
             ->orderBy('created_at', 'desc');
+    }
+
+    protected function table(Table $table): Table
+    {
+        return $table->deferLoading();
     }
 
     protected function getTableColumns(): array
