@@ -26,7 +26,8 @@
 - [ ] Criar widgets operacionais por dominio (KPIs de moderacao, eventos, turismo).
 
 ## Alinhamento API x Admin (acoes compartilhadas)
-- [ ] Definir Actions por dominio (Events, Moderation, Reports) e usar em Controllers + Filament.
+- [x] Definir Actions por dominio (Reports, Forum) e usar em Controllers + Filament.
+- [ ] Definir Actions por dominio (Events) e usar em Controllers + Filament.
 - [ ] Documentar o fluxo de cada Action no admin (entrada/saida/efeitos colaterais).
 
 ## Upload de imagens (migracao gradual)

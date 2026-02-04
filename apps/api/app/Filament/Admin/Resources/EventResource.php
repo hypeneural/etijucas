@@ -52,13 +52,8 @@ class EventResource extends BaseResource
 
     protected static array $defaultWithCount = [
         'rsvps',
-        'legacyMedia as legacy_media_count',
-        'media as media_library_count' => fn (Builder $query) => $query->whereIn('collection_name', [
-            'event_cover',
-            'event_banner',
-            'event_banner_mobile',
-            'event_gallery',
-        ]),
+        'legacyMedia',
+        'media',
     ];
 
     public static function form(Forms\Form $form): Forms\Form
@@ -103,19 +98,19 @@ class EventResource extends BaseResource
                         Select::make('status')
                             ->label('Status')
                             ->options(collect(EventStatus::cases())
-                                ->mapWithKeys(fn (EventStatus $status) => [$status->value => $status->label()])
+                                ->mapWithKeys(fn(EventStatus $status) => [$status->value => $status->label()])
                                 ->toArray())
                             ->required(),
                         Select::make('event_type')
                             ->label('Tipo')
                             ->options(collect(EventType::cases())
-                                ->mapWithKeys(fn (EventType $type) => [$type->value => $type->label()])
+                                ->mapWithKeys(fn(EventType $type) => [$type->value => $type->label()])
                                 ->toArray())
                             ->required(),
                         Select::make('age_rating')
                             ->label('Classificacao')
                             ->options(collect(AgeRating::cases())
-                                ->mapWithKeys(fn (AgeRating $rating) => [$rating->value => $rating->label()])
+                                ->mapWithKeys(fn(AgeRating $rating) => [$rating->value => $rating->label()])
                                 ->toArray())
                             ->required(),
                         Select::make('tags')
@@ -245,8 +240,8 @@ class EventResource extends BaseResource
                 TextColumn::make('status')
                     ->label('Status')
                     ->badge()
-                    ->formatStateUsing(fn (EventStatus $state): string => $state->label())
-                    ->color(fn (EventStatus $state): string => match ($state) {
+                    ->formatStateUsing(fn(EventStatus $state): string => $state->label())
+                    ->color(fn(EventStatus $state): string => match ($state) {
                         EventStatus::Draft => 'gray',
                         EventStatus::Published => 'success',
                         EventStatus::Cancelled => 'danger',
@@ -263,9 +258,9 @@ class EventResource extends BaseResource
                 TextColumn::make('media_count')
                     ->label('Midias')
                     ->alignCenter()
-                    ->getStateUsing(fn (Event $record): int => (int) ($record->media_library_count ?? 0) + (int) ($record->legacy_media_count ?? 0))
-                    ->sortable(query: fn (Builder $query, string $direction): Builder => $query->orderByRaw(
-                        '(COALESCE(media_library_count, 0) + COALESCE(legacy_media_count, 0)) ' . $direction
+                    ->getStateUsing(fn(Event $record): int => (int) ($record->media_count ?? 0) + (int) ($record->legacy_media_count ?? 0))
+                    ->sortable(query: fn(Builder $query, string $direction): Builder => $query->orderByRaw(
+                        '(COALESCE(media_count, 0) + COALESCE(legacy_media_count, 0)) ' . $direction
                     )),
                 ...static::baseTableColumns(),
             ])
@@ -273,7 +268,7 @@ class EventResource extends BaseResource
                 SelectFilter::make('status')
                     ->label('Status')
                     ->options(collect(EventStatus::cases())
-                        ->mapWithKeys(fn (EventStatus $status) => [$status->value => $status->label()])
+                        ->mapWithKeys(fn(EventStatus $status) => [$status->value => $status->label()])
                         ->toArray()),
                 SelectFilter::make('category_id')
                     ->label('Categoria')
@@ -290,7 +285,7 @@ class EventResource extends BaseResource
                 SelectFilter::make('event_type')
                     ->label('Tipo')
                     ->options(collect(EventType::cases())
-                        ->mapWithKeys(fn (EventType $type) => [$type->value => $type->label()])
+                        ->mapWithKeys(fn(EventType $type) => [$type->value => $type->label()])
                         ->toArray()),
                 SelectFilter::make('is_featured')
                     ->label('Destaque')
@@ -335,7 +330,7 @@ class EventResource extends BaseResource
                         $importSingle('banner_image_mobile_url', 'event_banner_mobile');
 
                         $existingGalleryUrls = $record->getMedia('event_gallery')
-                            ->map(fn ($media) => $media->getCustomProperty('source_url'))
+                            ->map(fn($media) => $media->getCustomProperty('source_url'))
                             ->filter()
                             ->values()
                             ->all();
@@ -376,7 +371,7 @@ class EventResource extends BaseResource
                             ->success()
                             ->send();
                     })
-                    ->visible(fn (): bool => auth()->user()?->hasRole('admin') ?? false),
+                    ->visible(fn(): bool => auth()->user()?->hasRole('admin') ?? false),
                 ...static::baseTableActions(),
             ]);
     }
