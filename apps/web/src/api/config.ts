@@ -200,6 +200,24 @@ export const ENDPOINTS = {
         image: '/uploads/image',
         images: '/uploads/images',
     },
+
+    // ==================== VOTES (Votação da Câmara) ====================
+    votes: {
+        // Vereadores
+        vereadores: '/vereadores',
+        vereador: (slug: string) => `/vereadores/${slug}`,
+        vereadorVotacoes: (slug: string) => `/vereadores/${slug}/votacoes`,
+
+        // Votações
+        votacoes: '/votacoes',
+        votacao: (id: string) => `/votacoes/${id}`,
+        votacoesStats: '/votacoes/stats',
+        votacoesAnos: '/votacoes/anos',
+
+        // Reference data
+        partidos: '/partidos',
+        legislaturas: '/legislaturas',
+    },
 } as const;
 
 // ======================================================
@@ -280,6 +298,20 @@ export const QUERY_KEYS = {
         detail: (id: string) => ['tourism', 'detail', id] as const,
         reviews: (spotId: string) => ['tourism', spotId, 'reviews'] as const,
         categories: ['tourism', 'categories'] as const,
+    },
+
+    // Votes (Votação da Câmara)
+    votes: {
+        all: ['votes'] as const,
+        vereadores: (filters?: Record<string, unknown>) => ['votes', 'vereadores', filters] as const,
+        vereador: (slug: string) => ['votes', 'vereador', slug] as const,
+        vereadorVotacoes: (slug: string) => ['votes', 'vereador', slug, 'votacoes'] as const,
+        votacoes: (filters?: Record<string, unknown>) => ['votes', 'votacoes', filters] as const,
+        votacao: (id: string) => ['votes', 'votacao', id] as const,
+        stats: ['votes', 'stats'] as const,
+        anos: ['votes', 'anos'] as const,
+        partidos: ['votes', 'partidos'] as const,
+        legislaturas: ['votes', 'legislaturas'] as const,
     },
 } as const;
 

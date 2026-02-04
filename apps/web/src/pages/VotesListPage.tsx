@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Search } from 'lucide-react';
@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { BottomTabBar, TabId } from '@/components/layout/BottomTabBar';
 import { useAppStore } from '@/store/useAppStore';
+import { useQuery } from '@tanstack/react-query';
+import { QUERY_KEYS } from '@/api/config';
 
 // Votes components
 import {
@@ -17,12 +19,11 @@ import {
     type YearFilter,
 } from '@/components/votes';
 
-// Types and data
-import { VotesHistoryData } from '@/types/votes';
-import votesHistoryData from '@/data/votesHistory.mock.json';
+// Service
+import { votacoesService } from '@/services/votes.service';
 
-// Cast JSON to typed data
-const mockData = votesHistoryData as VotesHistoryData;
+// Types
+import type { VotacaoList, VoteStatus } from '@/types/votes';
 
 export default function VotesListPage() {
     const navigate = useNavigate();
@@ -33,45 +34,50 @@ export default function VotesListPage() {
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
     const [yearFilter, setYearFilter] = useState<YearFilter>('all');
     const [isSearchOpen, setIsSearchOpen] = useState(false);
-    const [isLoading] = useState(false);
 
-    // Extract available years from data
-    const availableYears = useMemo(() => {
-        const years = new Set(mockData.votes.map((v) => new Date(v.date).getFullYear()));
-        return Array.from(years).sort((a, b) => b - a);
-    }, []);
+    // Fetch votações from API
+    const {
+        data: votacoesResponse,
+        isLoading,
+        error,
+    } = useQuery({
+        queryKey: QUERY_KEYS.votes.votacoes({
+            status: statusFilter !== 'all' ? statusFilter : undefined,
+            ano: yearFilter !== 'all' ? yearFilter : undefined,
+            search: searchQuery || undefined,
+        }),
+        queryFn: () =>
+            votacoesService.getAll({
+                status: statusFilter !== 'all' ? (statusFilter as VoteStatus) : undefined,
+                ano: yearFilter !== 'all' ? yearFilter : undefined,
+                search: searchQuery || undefined,
+                perPage: 50,
+            }),
+        staleTime: 5 * 60 * 1000, // 5 minutes
+    });
 
-    // Filter votes
+    // Fetch available years
+    const { data: availableYearsData } = useQuery({
+        queryKey: QUERY_KEYS.votes.anos,
+        queryFn: () => votacoesService.getAnos(),
+        staleTime: 60 * 60 * 1000, // 1 hour
+    });
+
+    const votacoes = votacoesResponse?.data || [];
+    const availableYears = availableYearsData || [];
+
+    // Transform API data to match component expectations
     const filteredVotes = useMemo(() => {
-        let result = [...mockData.votes];
-
-        // Filter by search
-        if (searchQuery.trim()) {
-            const query = searchQuery.toLowerCase();
-            result = result.filter(
-                (v) =>
-                    v.title.toLowerCase().includes(query) ||
-                    v.summary.toLowerCase().includes(query) ||
-                    v.tags.some((tag) => tag.toLowerCase().includes(query)) ||
-                    v.id.toLowerCase().includes(query)
-            );
-        }
-
-        // Filter by status
-        if (statusFilter !== 'all') {
-            result = result.filter((v) => v.status === statusFilter);
-        }
-
-        // Filter by year
-        if (yearFilter !== 'all') {
-            result = result.filter((v) => new Date(v.date).getFullYear() === yearFilter);
-        }
-
-        // Sort by date (newest first)
-        result.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-        return result;
-    }, [searchQuery, statusFilter, yearFilter]);
+        return votacoes.map((v) => ({
+            id: v.id,
+            status: v.status,
+            date: v.data,
+            title: v.titulo,
+            summary: v.subtitulo || '',
+            counts: v.counts,
+            tags: v.tags,
+        }));
+    }, [votacoes]);
 
     const handleClearFilters = () => {
         setSearchQuery('');
@@ -150,8 +156,23 @@ export default function VotesListPage() {
                         {/* Loading State */}
                         {isLoading && <VoteListSkeleton />}
 
+                        {/* Error State */}
+                        {error && (
+                            <div className="text-center py-12">
+                                <p className="text-muted-foreground">Erro ao carregar votações</p>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="mt-4"
+                                    onClick={() => window.location.reload()}
+                                >
+                                    Tentar novamente
+                                </Button>
+                            </div>
+                        )}
+
                         {/* Empty State */}
-                        {!isLoading && filteredVotes.length === 0 && (
+                        {!isLoading && !error && filteredVotes.length === 0 && (
                             <EmptyListState
                                 type="no-results"
                                 onClearFilters={hasActiveFilters ? handleClearFilters : undefined}
@@ -159,7 +180,7 @@ export default function VotesListPage() {
                         )}
 
                         {/* Votes List */}
-                        {!isLoading && filteredVotes.length > 0 && (
+                        {!isLoading && !error && filteredVotes.length > 0 && (
                             <AnimatePresence mode="popLayout">
                                 <motion.div layout className="space-y-4 pb-8">
                                     {filteredVotes.map((vote, index) => (

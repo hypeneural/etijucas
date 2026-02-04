@@ -26,6 +26,8 @@ const EventDetailsPage = lazy(() => import("./pages/EventDetailsPage"));
 const TopicDetailPage = lazy(() => import("./pages/TopicDetailPage"));
 const VoteDetailPage = lazy(() => import("./pages/VoteDetailPage"));
 const VotesListPage = lazy(() => import("./pages/VotesListPage"));
+const VereadoresListPage = lazy(() => import("./pages/VereadoresListPage"));
+const VereadorDetailPage = lazy(() => import("./pages/VereadorDetailPage"));
 const ReportWizardPage = lazy(() => import("./pages/ReportWizardPage"));
 const MyReportsPage = lazy(() => import("./pages/MyReportsPage"));
 const ReportDetailPage = lazy(() => import("./pages/ReportDetailPage"));
@@ -137,7 +139,11 @@ const App = () => {
 
             {/* Votações da Câmara */}
             <Route path="/votacoes" element={<VotesListPage />} />
-            <Route path="/votacao/:id" element={<VoteDetailPage />} />
+            <Route path="/votacoes/:id" element={<VoteDetailPage />} />
+
+            {/* Vereadores */}
+            <Route path="/vereadores" element={<VereadoresListPage />} />
+            <Route path="/vereadores/:slug" element={<VereadorDetailPage />} />
 
             {/* Missas */}
             <Route path="/missas" element={<MassesPage />} />

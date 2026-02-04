@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Share2, CheckCircle, Calendar, XCircle } from 'lucide-react';
+import { ArrowLeft, Share2, CheckCircle, Calendar, XCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -9,6 +9,8 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { BottomTabBar, TabId } from '@/components/layout/BottomTabBar';
 import { useAppStore } from '@/store/useAppStore';
+import { useQuery } from '@tanstack/react-query';
+import { QUERY_KEYS } from '@/api/config';
 
 // Votes components
 import {
@@ -23,12 +25,25 @@ import {
     type VoteFilter,
 } from '@/components/votes';
 
-// Types and data
-import { Councilor, VoteData, VOTE_ORDER } from '@/types/votes';
-import votesData from '@/data/votes.mock.json';
+// Service
+import { votacoesService } from '@/services/votes.service';
 
-// Cast JSON to typed data
-const mockData = votesData as VoteData;
+// Types
+import type { VoteType, VotoRegistro, VotacaoFull } from '@/types/votes';
+import { VOTE_ORDER } from '@/types/votes';
+
+// Adapter to convert API data to component format
+function adaptVotoToCouncilor(voto: VotoRegistro) {
+    return {
+        id: voto.vereador.id,
+        name: voto.vereador.nome,
+        party: voto.vereador.partido?.sigla || '???',
+        vote: voto.voto,
+        photoUrl: voto.vereador.fotoUrl || '',
+        justification: voto.justificativa,
+        videoUrl: voto.urlVideo,
+    };
+}
 
 export default function VoteDetailPage() {
     const { id } = useParams<{ id: string }>();
@@ -43,21 +58,36 @@ export default function VoteDetailPage() {
     const [sortBy, setSortBy] = useState<SortOption>('relevance');
 
     // Sheet state
-    const [selectedCouncilor, setSelectedCouncilor] = useState<Councilor | null>(null);
+    const [selectedCouncilorData, setSelectedCouncilorData] = useState<ReturnType<typeof adaptVotoToCouncilor> | null>(null);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
 
-    // In a real app, fetch data based on id
-    const voteData = mockData;
-    const { vote, councilors } = voteData;
+    // Fetch votação details
+    const { data: votacao, isLoading, error } = useQuery({
+        queryKey: QUERY_KEYS.votes.votacao(id || ''),
+        queryFn: () => votacoesService.getById(id!),
+        enabled: !!id,
+        staleTime: 5 * 60 * 1000,
+    });
 
     // Derive available parties
     const availableParties = useMemo(() => {
-        const parties = new Set(councilors.map((c) => c.party).filter((p) => p && p !== '???'));
+        if (!votacao?.votos) return [];
+        const parties = new Set(
+            votacao.votos
+                .map((v) => v.vereador.partido?.sigla)
+                .filter((p): p is string => !!p && p !== '???')
+        );
         return Array.from(parties).sort();
-    }, [councilors]);
+    }, [votacao]);
+
+    // Adapt councilors from API data
+    const councilors = useMemo(() => {
+        if (!votacao?.votos) return [];
+        return votacao.votos.map(adaptVotoToCouncilor);
+    }, [votacao]);
 
     // Determine vote status
-    const voteStatus = vote.counts.sim > vote.counts.nao ? 'approved' : 'rejected';
+    const voteStatus = votacao ? (votacao.counts.sim > votacao.counts.nao ? 'approved' : 'rejected') : 'approved';
 
     // Filter and sort councilors
     const filteredCouncilors = useMemo(() => {
@@ -84,16 +114,18 @@ export default function VoteDetailPage() {
             result.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
         } else {
             // Relevance: SIM/NAO first, then ABSTENCAO, then NAO_VOTOU
-            result.sort((a, b) => VOTE_ORDER[a.vote] - VOTE_ORDER[b.vote]);
+            result.sort((a, b) => VOTE_ORDER[a.vote as VoteType] - VOTE_ORDER[b.vote as VoteType]);
         }
 
         return result;
     }, [councilors, searchQuery, selectedParty, selectedVote, sortBy]);
 
     const handleShare = async () => {
+        if (!votacao) return;
+
         const shareData = {
-            title: vote.title,
-            text: `${vote.title} • ${vote.subtitle}`,
+            title: votacao.titulo,
+            text: `${votacao.titulo} • ${votacao.subtitulo || ''}`,
             url: window.location.href,
         };
 
@@ -107,8 +139,8 @@ export default function VoteDetailPage() {
         }
     };
 
-    const handleCouncilorClick = (councilor: Councilor) => {
-        setSelectedCouncilor(councilor);
+    const handleCouncilorClick = (councilor: ReturnType<typeof adaptVotoToCouncilor>) => {
+        setSelectedCouncilorData(councilor);
         setIsSheetOpen(true);
     };
 
@@ -125,6 +157,33 @@ export default function VoteDetailPage() {
             year: 'numeric',
         });
     };
+
+    // Loading state
+    if (isLoading) {
+        return (
+            <div className="fixed inset-0 flex items-center justify-center bg-muted/50">
+                <div className="relative w-full max-w-[420px] h-full bg-background flex items-center justify-center">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+            </div>
+        );
+    }
+
+    // Error state
+    if (error || !votacao) {
+        return (
+            <div className="fixed inset-0 flex items-center justify-center bg-muted/50">
+                <div className="relative w-full max-w-[420px] h-full bg-background flex flex-col items-center justify-center gap-4 p-6">
+                    <p className="text-muted-foreground text-center">
+                        Não foi possível carregar os detalhes da votação
+                    </p>
+                    <Button variant="outline" onClick={() => navigate(-1)}>
+                        Voltar
+                    </Button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-muted/50">
@@ -174,7 +233,7 @@ export default function VoteDetailPage() {
                                     </Badge>
                                     <span className="text-xs text-muted-foreground flex items-center gap-1">
                                         <Calendar className="w-3.5 h-3.5" />
-                                        {formatDate(vote.date)}
+                                        {formatDate(votacao.data)}
                                     </span>
                                 </div>
 
@@ -185,7 +244,7 @@ export default function VoteDetailPage() {
                                     transition={{ delay: 0.1 }}
                                     className="text-2xl font-bold text-foreground leading-tight mb-2"
                                 >
-                                    {vote.title}
+                                    {votacao.titulo}
                                 </motion.h2>
                                 <motion.p
                                     initial={{ opacity: 0 }}
@@ -193,14 +252,14 @@ export default function VoteDetailPage() {
                                     transition={{ delay: 0.2 }}
                                     className="text-sm text-muted-foreground leading-relaxed mb-5"
                                 >
-                                    {vote.description}
+                                    {votacao.descricao}
                                 </motion.p>
 
                                 {/* Divider */}
                                 <div className="h-px w-full bg-border mb-5" />
 
                                 {/* Scoreboard */}
-                                <VoteScoreboard counts={vote.counts} status={voteStatus} />
+                                <VoteScoreboard counts={votacao.counts} status={voteStatus} />
                             </Card>
                         </motion.section>
 
@@ -210,7 +269,7 @@ export default function VoteDetailPage() {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.1 }}
                         >
-                            <VoteSummaryCards counts={vote.counts} />
+                            <VoteSummaryCards counts={votacao.counts} />
                         </motion.section>
 
                         {/* Filters Section */}
@@ -284,7 +343,14 @@ export default function VoteDetailPage() {
                         </section>
 
                         {/* Source Footer */}
-                        <SourceFooter source={vote.source} />
+                        {votacao.urlFonte && (
+                            <SourceFooter
+                                source={{
+                                    label: 'Fonte oficial',
+                                    url: votacao.urlFonte,
+                                }}
+                            />
+                        )}
                     </main>
                 </div>
 
@@ -293,10 +359,10 @@ export default function VoteDetailPage() {
 
                 {/* Councilor Detail Sheet */}
                 <CouncilorDetailSheet
-                    councilor={selectedCouncilor}
+                    councilor={selectedCouncilorData}
                     isOpen={isSheetOpen}
                     onClose={() => setIsSheetOpen(false)}
-                    voteTitle={vote.title}
+                    voteTitle={votacao.titulo}
                 />
             </div>
         </div>
