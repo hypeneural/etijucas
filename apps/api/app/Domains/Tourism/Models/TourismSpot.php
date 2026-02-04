@@ -11,10 +11,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class TourismSpot extends Model
+class TourismSpot extends Model implements HasMedia
 {
-    use HasUuids, SoftDeletes;
+    use HasUuids, SoftDeletes, InteractsWithMedia;
 
     protected $fillable = [
         'titulo',
@@ -163,5 +165,32 @@ class TourismSpot extends Model
     {
         $this->likes_count = $this->likes()->count();
         $this->save();
+    }
+
+    // ===== Media Collections =====
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('tourism_cover')
+            ->singleFile()
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
+
+        $this->addMediaCollection('tourism_gallery')
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
+    }
+
+    public function registerMediaConversions(\Spatie\MediaLibrary\MediaCollections\Models\Media $media = null): void
+    {
+        $this->addMediaConversion('thumb')
+            ->width(300)
+            ->height(300)
+            ->performOnCollections('tourism_cover', 'tourism_gallery')
+            ->nonQueued();
+
+        $this->addMediaConversion('web')
+            ->width(1200)
+            ->height(1200)
+            ->performOnCollections('tourism_cover', 'tourism_gallery')
+            ->nonQueued();
     }
 }

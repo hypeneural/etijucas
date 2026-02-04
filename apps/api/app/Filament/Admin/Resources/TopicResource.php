@@ -6,6 +6,7 @@ namespace App\Filament\Admin\Resources;
 
 use App\Domain\Forum\Enums\TopicCategory;
 use App\Domain\Forum\Enums\TopicStatus;
+use App\Filament\Admin\Resources\Concerns\HasMediaLibraryTrait;
 use App\Filament\Admin\Resources\TopicResource\Pages;
 use App\Filament\Admin\Resources\TopicResource\RelationManagers\CommentsRelationManager;
 use App\Models\Topic;
@@ -27,6 +28,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class TopicResource extends BaseResource
 {
+    use HasMediaLibraryTrait;
+
     protected static ?string $model = Topic::class;
 
     protected static ?string $navigationGroup = 'Forum';
@@ -85,10 +88,14 @@ class TopicResource extends BaseResource
                             ->required()
                             ->rows(6)
                             ->maxLength(5000),
+                        static::mediaUploadField('foto', 'foto', 1)
+                            ->label('Foto')
+                            ->helperText('Upload preferencial. Gera thumbnails automaticamente.'),
                         TextInput::make('foto_url')
-                            ->label('URL da Foto')
+                            ->label('URL da Foto (legado)')
                             ->url()
-                            ->maxLength(500),
+                            ->maxLength(500)
+                            ->helperText('Opcional. Use o upload acima sempre que possivel.'),
                     ]),
                 Section::make('Autor')
                     ->columns(2)

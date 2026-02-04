@@ -10,4 +10,22 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateTopic extends CreateRecord
 {
     protected static string $resource = TopicResource::class;
+
+    protected function afterCreate(): void
+    {
+        $this->syncFotoUrlFromMedia();
+    }
+
+    private function syncFotoUrlFromMedia(): void
+    {
+        $record = $this->record;
+        if (! $record) {
+            return;
+        }
+
+        $mediaUrl = $record->getFirstMediaUrl('foto');
+        if ($mediaUrl && $record->foto_url !== $mediaUrl) {
+            $record->forceFill(['foto_url' => $mediaUrl])->saveQuietly();
+        }
+    }
 }

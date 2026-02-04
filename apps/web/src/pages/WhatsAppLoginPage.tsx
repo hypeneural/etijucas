@@ -86,6 +86,7 @@ export default function WhatsAppLoginPage() {
     useEffect(() => {
         if (detectedCode && step === 'otp') {
             setCode(detectedCode);
+            setIsLoading(true); // Show loading immediately
             // Auto-submit after a brief delay
             setTimeout(() => {
                 handleVerifyOtp(detectedCode);
@@ -236,6 +237,7 @@ export default function WhatsAppLoginPage() {
 
         // Auto-submit on complete
         if (joined.length === 6) {
+            setIsLoading(true); // Show loading immediately
             handleVerifyOtp(joined);
         }
     };
@@ -248,6 +250,7 @@ export default function WhatsAppLoginPage() {
         const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
         if (pasted.length === 6) {
             setCode(pasted);
+            setIsLoading(true); // Show loading immediately
             handleVerifyOtp(pasted);
         }
     };

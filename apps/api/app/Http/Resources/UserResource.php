@@ -29,6 +29,8 @@ class UserResource extends JsonResource
             'notificationSettings' => $this->notification_settings,
             'phoneVerified' => $this->phone_verified,
             'phoneVerifiedAt' => $this->phone_verified_at?->toIso8601String(),
+            'profileCompleted' => (bool) $this->profile_completed,
+            'termsAccepted' => (bool) $this->terms_accepted,
             'roles' => $this->whenLoaded('roles', fn() => $this->roles->pluck('name')),
             'createdAt' => $this->created_at?->toIso8601String(),
             'updatedAt' => $this->updated_at?->toIso8601String(),

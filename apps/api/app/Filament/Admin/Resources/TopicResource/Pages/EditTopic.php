@@ -18,4 +18,22 @@ class EditTopic extends EditRecord
             DeleteAction::make(),
         ];
     }
+
+    protected function afterSave(): void
+    {
+        $this->syncFotoUrlFromMedia();
+    }
+
+    private function syncFotoUrlFromMedia(): void
+    {
+        $record = $this->record;
+        if (! $record) {
+            return;
+        }
+
+        $mediaUrl = $record->getFirstMediaUrl('foto');
+        if ($mediaUrl && $record->foto_url !== $mediaUrl) {
+            $record->forceFill(['foto_url' => $mediaUrl])->saveQuietly();
+        }
+    }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Admin\Resources;
 
 use App\Filament\Admin\Resources\OrganizerResource\Pages;
+use App\Filament\Admin\Resources\Concerns\HasMediaLibraryTrait;
 use App\Models\Organizer;
 use Filament\Forms;
 use Filament\Forms\Components\Section;
@@ -23,6 +24,8 @@ use Illuminate\Support\Str;
 
 class OrganizerResource extends BaseResource
 {
+    use HasMediaLibraryTrait;
+
     protected static ?string $model = Organizer::class;
 
     protected static ?string $navigationGroup = 'Conteudo';
@@ -90,10 +93,14 @@ class OrganizerResource extends BaseResource
                             ->label('Site')
                             ->url()
                             ->maxLength(300),
+                        static::mediaUploadField('avatar', 'avatar', 1)
+                            ->label('Avatar')
+                            ->helperText('Upload preferencial. Gera thumbnails automaticamente.'),
                         TextInput::make('avatar_url')
-                            ->label('Avatar URL')
+                            ->label('Avatar URL (legado)')
                             ->url()
-                            ->maxLength(500),
+                            ->maxLength(500)
+                            ->helperText('Opcional. Use o upload acima sempre que possivel.'),
                     ]),
                 Section::make('Descricao')
                     ->schema([

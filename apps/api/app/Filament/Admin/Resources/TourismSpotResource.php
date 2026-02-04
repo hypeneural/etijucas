@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Admin\Resources;
 
 use App\Domains\Tourism\Models\TourismSpot;
+use App\Filament\Admin\Resources\Concerns\HasMediaLibraryTrait;
 use App\Filament\Admin\Resources\TourismSpotResource\Pages;
 use App\Filament\Admin\Resources\TourismSpotResource\RelationManagers\ReviewsRelationManager;
 use Filament\Forms;
@@ -22,6 +23,8 @@ use Illuminate\Support\Str;
 
 class TourismSpotResource extends BaseResource
 {
+    use HasMediaLibraryTrait;
+
     protected static ?string $model = TourismSpot::class;
 
     protected static ?string $navigationGroup = 'Conteudo';
@@ -92,8 +95,14 @@ class TourismSpotResource extends BaseResource
                 Section::make('Midia')
                     ->columns(2)
                     ->schema([
-                        TextInput::make('image_url')
+                        static::mediaUploadField('cover', 'tourism_cover', 1)
                             ->label('Imagem principal')
+                            ->helperText('Upload preferencial. Gera thumbnails automaticamente.'),
+                        static::mediaUploadField('gallery_media', 'tourism_gallery', 6)
+                            ->label('Galeria')
+                            ->helperText('Imagens adicionais do ponto turistico.'),
+                        TextInput::make('image_url')
+                            ->label('Imagem principal (legado)')
                             ->url()
                             ->maxLength(500),
                         TextInput::make('video_url')
@@ -101,7 +110,7 @@ class TourismSpotResource extends BaseResource
                             ->url()
                             ->maxLength(500),
                         Textarea::make('gallery')
-                            ->label('Galeria (JSON)')
+                            ->label('Galeria (JSON - legado)')
                             ->rows(3)
                             ->columnSpanFull(),
                     ]),
