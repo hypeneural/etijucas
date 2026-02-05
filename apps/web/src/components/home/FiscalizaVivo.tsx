@@ -21,6 +21,7 @@ import { FiscalizaVivoPayload } from '@/types/home.types';
 import { useHaptic } from '@/hooks/useHaptic';
 import { useAuthStore } from '@/store/useAuthStore';
 import { Skeleton } from '@/components/ui/skeleton';
+import { FiscalizaMiniMap } from './FiscalizaMiniMap';
 
 interface FiscalizaVivoProps {
     data?: FiscalizaVivoPayload;
@@ -93,6 +94,7 @@ export function FiscalizaVivo({ data, isLoading, hasError, className }: Fiscaliz
     const navigate = useNavigate();
     const haptic = useHaptic();
     const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
+    const [showMap, setShowMap] = useState(false);
 
     const phrases = data?.frases?.length ? data.frases : defaultPhrases;
 
@@ -103,6 +105,12 @@ export function FiscalizaVivo({ data, isLoading, hasError, className }: Fiscaliz
         }, 4000);
         return () => clearInterval(interval);
     }, [phrases.length]);
+
+    // Show mini-map after a delay for better UX
+    useEffect(() => {
+        const timer = setTimeout(() => setShowMap(true), 500);
+        return () => clearTimeout(timer);
+    }, []);
 
     const { isAuthenticated } = useAuthStore();
 
@@ -132,6 +140,13 @@ export function FiscalizaVivo({ data, isLoading, hasError, className }: Fiscaliz
     const resolvidos = data?.resolvidos || 0;
     const hoje = data?.hoje || 0;
     const taxaResolucao = total > 0 ? Math.round((resolvidos / total) * 100) : 0;
+
+    // Mock pins for mini-map (in production, would come from data.recent_reports)
+    const mockPins = data?.recent_reports || [
+        { id: '1', lat: -27.2419, lng: -48.6306, tipo: 'buraco', status: 'recebido' as const },
+        { id: '2', lat: -27.2450, lng: -48.6280, tipo: 'iluminacao', status: 'em_analise' as const },
+        { id: '3', lat: -27.2400, lng: -48.6350, tipo: 'lixo', status: 'resolvido' as const },
+    ];
 
     return (
         <motion.div
@@ -204,6 +219,13 @@ export function FiscalizaVivo({ data, isLoading, hasError, className }: Fiscaliz
                     />
                 </div>
             </div>
+
+            {/* Mini Map Preview */}
+            {showMap && (
+                <div className="mb-3" onClick={(e) => e.stopPropagation()}>
+                    <FiscalizaMiniMap pins={mockPins} />
+                </div>
+            )}
 
             {/* Rotating phrase */}
             <div className="relative h-6 overflow-hidden">

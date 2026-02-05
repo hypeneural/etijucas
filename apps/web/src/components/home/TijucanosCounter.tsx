@@ -17,6 +17,7 @@ import { useEffect, useState, useRef } from 'react';
 import { Users, Share2, Sparkles, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TijucanosCounterPayload } from '@/types/home.types';
+import { hapticFeedback } from '@/hooks/useHaptics';
 import confetti from 'canvas-confetti';
 
 interface TijucanosCounterProps {
@@ -104,8 +105,10 @@ export function TijucanosCounter({ data, isLoading, className }: TijucanosCounte
         }
     }, [total, goal.progress_pct, hasAnimated, springValue, progressSpring]);
 
-    // Handle share
+    // Handle share with haptic feedback
     const handleShare = async () => {
+        hapticFeedback('medium');
+
         const shareData = {
             title: 'eTijucas - A cidade na palma da mão',
             text: `Já somos ${total.toLocaleString('pt-BR')} tijucanos no eTijucas! Junte-se a nós.`,
@@ -118,7 +121,7 @@ export function TijucanosCounter({ data, isLoading, className }: TijucanosCounte
             } else {
                 // Fallback: copy to clipboard
                 await navigator.clipboard.writeText(`${shareData.text} ${shareData.url}`);
-                // You could show a toast here
+                hapticFeedback('success');
             }
         } catch (err) {
             console.log('Share cancelled or failed');

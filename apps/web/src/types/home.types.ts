@@ -108,6 +108,13 @@ export interface FiscalizaVivoPayload {
     resolvidas_semana: number;
     pendentes_bairro: number;
     frases: string[];
+    recent_reports?: Array<{
+        id: string;
+        lat: number;
+        lng: number;
+        tipo: string;
+        status: 'recebido' | 'em_analise' | 'resolvido';
+    }>;
 }
 
 // ========================================

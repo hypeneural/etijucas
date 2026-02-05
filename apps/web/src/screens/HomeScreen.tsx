@@ -14,6 +14,8 @@ import { FiscalizaVivo } from '@/components/home/FiscalizaVivo';
 import { BocaNoTromboneVivo } from '@/components/home/BocaNoTromboneVivo';
 import { TijucanosCounter } from '@/components/home/TijucanosCounter';
 import QuickAccessGridVivo from '@/components/home/QuickAccessGridVivo';
+import { NearYouBento } from '@/components/home/NearYouBento';
+import { HojeShareCard } from '@/components/home/HojeShareCard';
 
 // Hooks & Store
 import { useHomeData } from '@/hooks/useHomeData';
@@ -83,7 +85,7 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const startYRef = useRef(0);
   const navigate = useNavigate();
-  const { isRefreshing, setIsRefreshing } = useAppStore();
+  const { isRefreshing, setIsRefreshing, selectedBairro } = useAppStore();
   const { toast } = useToast();
   const [isPulling, setIsPulling] = useState(false);
   const [hasTriggered, setHasTriggered] = useState(false);
@@ -116,10 +118,16 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
   } = useCheckIn();
 
   // Get streak from aggregator meta (for logged-in users) or from check-in hook
+  // Maps to BoletimDoDia's StreakData interface (current, longest, checked_in_today)
   const userStreak = useMemo(() => {
     // Prefer aggregator data (already fetched), fallback to check-in hook
     if (meta?.user?.streak) {
-      return meta.user.streak;
+      const s = meta.user.streak;
+      return {
+        current: s.current_streak,
+        longest: s.longest_streak,
+        checked_in_today: s.today_completed,
+      };
     }
     return checkInStreak ? {
       current: checkInStreak.current,
@@ -167,6 +175,55 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
   const hasBlockError = useCallback((blockName: string) => {
     return meta?.errors?.includes(blockName) ?? false;
   }, [meta?.errors]);
+
+  // Compute "Near You" items from aggregator blocks
+  const nearYouItems = useMemo(() => {
+    const items: Array<{
+      type: 'fiscaliza' | 'evento' | 'alerta';
+      id: string;
+      title: string;
+      subtitle?: string;
+      count?: number;
+      route: string;
+    }> = [];
+
+    // Fiscaliza nearby
+    const fiscalizaData = blocks.fiscaliza?.payload;
+    if (fiscalizaData?.pendentes_bairro && fiscalizaData.pendentes_bairro > 0) {
+      items.push({
+        type: 'fiscaliza',
+        id: 'fiscaliza-near',
+        title: 'denúncias pendentes',
+        count: fiscalizaData.pendentes_bairro,
+        route: '/denuncias',
+      });
+    }
+
+    // Events today
+    const eventsData = blocks.events?.payload?.events;
+    if (eventsData && eventsData.length > 0) {
+      items.push({
+        type: 'evento',
+        id: 'events-today',
+        title: 'eventos hoje',
+        count: eventsData.length,
+        route: '/agenda',
+      });
+    }
+
+    // Active alerts
+    if (alertItems.length > 0) {
+      items.push({
+        type: 'alerta',
+        id: 'alerts-active',
+        title: 'alertas ativos',
+        count: alertItems.length,
+        route: '/alertas',
+      });
+    }
+
+    return items;
+  }, [blocks.fiscaliza, blocks.events, alertItems.length]);
 
   // Spring-based pull distance
   const springPull = useSpring(0, {
@@ -357,6 +414,18 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
         </div>
 
         {/* ========================================
+            NEAR YOU BENTO - Location-aware content
+            Shows what's happening in user's bairro
+            ======================================== */}
+        {nearYouItems.length > 0 && (
+          <NearYouBento
+            bairroName={selectedBairro?.nome || 'Tijucas'}
+            items={nearYouItems}
+            isLoading={isLoading}
+          />
+        )}
+
+        {/* ========================================
             EVENTS CAROUSEL - What's happening today
             Uses aggregator data when available
             ======================================== */}
@@ -378,6 +447,17 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
             Uses aggregator data when available
             ======================================== */}
         <TourismHighlights onNavigate={handleNavigate} data={aggregatorTourism} />
+
+        {/* ========================================
+            HOJE SHARE CARD - Shareable daily summary
+            ======================================== */}
+        <HojeShareCard
+          clima={blocks.weather?.payload}
+          eventos={blocks.events?.payload?.events?.length || 0}
+          denuncias={blocks.fiscaliza?.payload?.hoje || 0}
+          forumPosts={blocks.forum?.payload?.comentarios_hoje || 0}
+          usuarios={blocks.stats?.payload?.total || 0}
+        />
 
         {/* ========================================
             TIJUCANOS COUNTER - Gamification Footer
