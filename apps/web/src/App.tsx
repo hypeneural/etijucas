@@ -44,7 +44,7 @@ const AgendaScreen = lazy(() => import("./screens/AgendaScreen"));
 const TourismScreen = lazy(() => import("./screens/TourismScreen"));
 const MoreScreen = lazy(() => import("./screens/MoreScreen"));
 const HomeScreen = lazy(() => import("./screens/HomeScreen"));
-const VehicleConsultationPage = lazy(() => import("./pages/VehicleConsultationPage")); // Added
+// const VehicleConsultationPage = lazy(() => import("./pages/VehicleConsultationPage")); // Added
 
 
 // Layout
@@ -162,8 +162,8 @@ const App = () => {
               <Route path="/previsao" element={<WeatherPage />} />
               <Route path="/tempo" element={<Navigate to="/previsao" replace />} />
 
-              <Route path="/veiculos" element={<VehicleConsultationPage />} />
-              <Route path="/consulta-veiculo" element={<Navigate to="/veiculos" replace />} />
+              {/* <Route path="/veiculos" element={<VehicleConsultationPage />} /> */}
+              {/* <Route path="/consulta-veiculo" element={<Navigate to="/veiculos" replace />} /> */}
             </Route>
 
             {/* Catch-all - redirect to home */}
