@@ -1,5 +1,5 @@
 import React, { useRef, useState, useCallback, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence, useSpring, useTransform } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { RefreshCw, AlertTriangle } from 'lucide-react';
 
 // Carousels (use their own API hooks)
@@ -236,20 +236,8 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
     return items;
   }, [blocks.fiscaliza, blocks.events, alertItems.length]);
 
-  // Spring-based pull distance
-  const springPull = useSpring(0, {
-    stiffness: 400,
-    damping: 40,
-    mass: 0.5,
-  });
-
-  const pullHeight = useTransform(springPull, (value) => {
-    if (value <= 0) return 0;
-    return MAX_PULL_DISTANCE * (1 - Math.exp(-value / MAX_PULL_DISTANCE * RUBBER_BAND_FACTOR * 5));
-  });
-
-  const iconRotation = useTransform(springPull, [0, PULL_THRESHOLD], [0, 180]);
-  const iconScale = useTransform(springPull, (value) => value >= PULL_THRESHOLD ? 1.2 : 1);
+  // Simple pull distance state for CSS-based animation
+  const [pullDistance, setPullDistance] = useState(0);
 
   // ========================================
   // Pull to Refresh - Connected to aggregator
@@ -263,6 +251,7 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
 
     setIsRefreshing(false);
     setHasTriggered(false);
+    setPullDistance(0);
     toast({
       title: "Atualizado agora",
       description: "Conteúdo atualizado com sucesso!",
@@ -281,7 +270,7 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
     if (!isPulling || isRefreshing) return;
     if (containerRef.current && containerRef.current.scrollTop > 0) {
       setIsPulling(false);
-      springPull.set(0);
+      setPullDistance(0);
       return;
     }
 
@@ -289,35 +278,37 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
     const deltaY = currentY - startYRef.current;
 
     if (deltaY > 0) {
-      const rubberBandedDistance = deltaY * Math.pow(RUBBER_BAND_FACTOR, deltaY / MAX_PULL_DISTANCE);
-      springPull.set(Math.min(rubberBandedDistance, MAX_PULL_DISTANCE * 1.5));
+      // Simple rubber banding calculation
+      const rubberBanded = deltaY * 0.5; // Linear resistance for simplicity
+      const limitedPull = Math.min(rubberBanded, MAX_PULL_DISTANCE * 1.5);
+      setPullDistance(limitedPull);
 
-      if (rubberBandedDistance >= PULL_THRESHOLD && !hasTriggered) {
+      if (limitedPull >= PULL_THRESHOLD && !hasTriggered) {
         hapticFeedback('medium');
         setHasTriggered(true);
       }
     }
-  }, [isPulling, isRefreshing, springPull, hasTriggered]);
+  }, [isPulling, isRefreshing, hasTriggered]);
 
   const handleTouchEnd = useCallback(() => {
     if (!isPulling) return;
-    const currentPull = springPull.get();
 
-    if (currentPull >= PULL_THRESHOLD && !isRefreshing) {
-      springPull.set(60);
+    if (pullDistance >= PULL_THRESHOLD && !isRefreshing) {
+      setPullDistance(60); // Keep open while refreshing
       handleRefresh();
     } else {
-      springPull.set(0);
+      setPullDistance(0);
     }
 
     setIsPulling(false);
-  }, [isPulling, springPull, isRefreshing, handleRefresh]);
+  }, [isPulling, pullDistance, isRefreshing, handleRefresh]);
 
-  React.useEffect(() => {
+  // Reset pull distance when refreshing stops
+  useEffect(() => {
     if (!isRefreshing) {
-      springPull.set(0);
+      setPullDistance(0);
     }
-  }, [isRefreshing, springPull]);
+  }, [isRefreshing]);
 
   return (
     <div
@@ -340,48 +331,32 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
         hasActiveAlert={alertItems.length > 0}
       />
 
-      {/* Pull to refresh indicator */}
-      <AnimatePresence>
-        {(isPulling || isRefreshing) && (
-          <motion.div
-            style={{ height: isRefreshing ? 60 : pullHeight }}
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: isRefreshing ? 60 : undefined }}
-            exit={{ opacity: 0, height: 0 }}
-            className="flex items-center justify-center bg-gradient-to-b from-primary/10 to-transparent overflow-hidden"
+      {/* Pull to refresh indicator - CSS Version */}
+      {(pullDistance > 0 || isRefreshing) && (
+        <div
+          style={{ height: isRefreshing ? 60 : pullDistance }}
+          className="flex items-center justify-center bg-gradient-to-b from-primary/10 to-transparent overflow-hidden transition-all duration-200 ease-out"
+        >
+          <div
+            className={`flex items-center justify-center transition-transform duration-300 ${isRefreshing ? "animate-spin" : ""}`}
+            style={{
+              transform: isRefreshing ? "none" : `rotate(${Math.min(pullDistance * 2, 180)}deg) scale(${pullDistance >= PULL_THRESHOLD ? 1.2 : 1})`
+            }}
           >
-            <motion.div
-              style={{
-                rotate: isRefreshing ? undefined : iconRotation,
-                scale: iconScale,
-              }}
-              animate={isRefreshing ? { rotate: 360 } : undefined}
-              transition={isRefreshing ? {
-                repeat: Infinity,
-                duration: 1,
-                ease: 'linear'
-              } : undefined}
-              className="flex items-center justify-center"
-            >
-              <RefreshCw
-                className={`w-6 h-6 transition-colors ${hasTriggered || isRefreshing
-                  ? 'text-primary'
-                  : 'text-muted-foreground'
-                  }`}
-              />
-            </motion.div>
-            {hasTriggered && !isRefreshing && (
-              <motion.span
-                initial={{ opacity: 0, y: 5 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="absolute mt-10 text-xs text-primary font-medium"
-              >
-                Solte para atualizar
-              </motion.span>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+            <RefreshCw
+              className={`w-6 h-6 transition-colors ${hasTriggered || isRefreshing
+                ? 'text-primary'
+                : 'text-muted-foreground'
+                }`}
+            />
+          </div>
+          {hasTriggered && !isRefreshing && (
+            <span className="absolute mt-10 text-xs text-primary font-medium animate-in fade-in slide-in-from-bottom-2">
+              Solte para atualizar
+            </span>
+          )}
+        </div>
+      )}
 
       {/* ========================================
           ALERT TOTEM - Animated ticker for alerts
