@@ -342,9 +342,12 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
 
       {/* Pull to refresh indicator */}
       <AnimatePresence>
-        {(springPull.get() > 0 || isRefreshing) && (
+        {(isPulling || isRefreshing) && (
           <motion.div
             style={{ height: isRefreshing ? 60 : pullHeight }}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: isRefreshing ? 60 : undefined }}
+            exit={{ opacity: 0, height: 0 }}
             className="flex items-center justify-center bg-gradient-to-b from-primary/10 to-transparent overflow-hidden"
           >
             <motion.div
