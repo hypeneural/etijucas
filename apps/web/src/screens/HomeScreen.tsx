@@ -105,7 +105,17 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
     refresh: refreshHomeData,
     isLoading,
     isStale,
+    isError,
+    error,
+    failureReason,
   } = useHomeData();
+
+  // Debug: Log error in console for developers
+  useEffect(() => {
+    if (isError) {
+      console.error('[HomeScreen] Home data error:', error, failureReason);
+    }
+  }, [isError, error, failureReason]);
 
   // ========================================
   // Check-in Hook (daily streak)
@@ -381,6 +391,31 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
             // TODO: Navigate to alert detail
           }}
         />
+      )}
+
+      {/* Error Banner - shows when API fails */}
+      {isError && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mx-4 mb-2 p-3 rounded-xl bg-destructive/10 border border-destructive/20"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <span className="text-sm font-medium">Erro ao carregar dados</span>
+            </div>
+            <button
+              onClick={() => refreshHomeData()}
+              className="text-xs px-2 py-1 rounded-lg bg-destructive/20 text-destructive font-medium min-h-[32px]"
+            >
+              Tentar novamente
+            </button>
+          </div>
+          {error?.message && (
+            <p className="text-xs text-muted-foreground mt-1">{error.message}</p>
+          )}
+        </motion.div>
       )}
 
       <div className="pb-24 space-y-4">

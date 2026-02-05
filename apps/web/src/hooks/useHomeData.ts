@@ -48,16 +48,24 @@ export function useHomeData(options?: { enabled?: boolean }) {
     const query = useQuery<HomeDataResponse>({
         queryKey: [...HOME_KEY, selectedBairro?.id],
         queryFn: async () => {
-            const data = await homeService.getHomeData({
-                bairro_id: selectedBairro?.id || undefined,
-            });
-            return data;
+            console.log('[useHomeData] Fetching home data...', { bairro_id: selectedBairro?.id });
+            try {
+                const data = await homeService.getHomeData({
+                    bairro_id: selectedBairro?.id || undefined,
+                });
+                console.log('[useHomeData] Success:', data);
+                return data;
+            } catch (error) {
+                console.error('[useHomeData] Error fetching home data:', error);
+                throw error;
+            }
         },
         staleTime: STALE_TIME,
         gcTime: GC_TIME,
         refetchOnWindowFocus: true,
         refetchOnReconnect: true,
         enabled: options?.enabled !== false,
+        retry: 2,
     });
 
     // Refetch when coming back online
