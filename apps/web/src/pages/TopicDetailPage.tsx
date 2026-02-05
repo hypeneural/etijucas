@@ -3,7 +3,7 @@
 // Fetches from API when topic not in local store
 // ======================================================
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Share2, MapPin, Heart, MoreHorizontal, Loader2, LogIn, MessageCircle } from 'lucide-react';
@@ -89,37 +89,6 @@ function TopicNotFound() {
     );
 }
 
-// Login prompt banner
-function LoginPrompt({ action }: { action: string }) {
-    const navigate = useNavigate();
-    const currentPath = window.location.pathname;
-
-    return (
-        <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-primary to-primary/80 p-4 safe-bottom z-40"
-        >
-            <div className="flex items-center justify-between gap-3 max-w-lg mx-auto">
-                <div className="flex items-center gap-3 text-primary-foreground">
-                    <LogIn className="w-5 h-5 flex-shrink-0" />
-                    <p className="text-sm font-medium">
-                        Faça login para {action}
-                    </p>
-                </div>
-                <Button
-                    onClick={() => navigate(`/login?redirect=${encodeURIComponent(currentPath)}`)}
-                    variant="secondary"
-                    size="sm"
-                    className="flex-shrink-0"
-                >
-                    Entrar
-                </Button>
-            </div>
-        </motion.div>
-    );
-}
-
 export default function TopicDetailPage() {
     const { id } = useParams<{ id: string }>();
     const [searchParams] = useSearchParams();
@@ -146,9 +115,28 @@ export default function TopicDetailPage() {
     const likeCommentMutation = useLikeComment(id || '');
 
     const [replyTo, setReplyTo] = useState<string | undefined>();
-    const [showLoginPrompt, setShowLoginPrompt] = useState(false);
-    const [loginPromptAction, setLoginPromptAction] = useState('interagir');
     const shouldAutoFocusComment = searchParams.get('comment') === 'true';
+
+    // Helper to prompt login for auth-required actions
+    const requireAuth = useCallback((action: string): boolean => {
+        if (!isAuthenticated) {
+            toast({
+                title: 'Login necessário',
+                description: `Para ${action}, você precisa estar logado.`,
+                action: (
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`)}
+                    >
+                        Entrar
+                    </Button>
+                ),
+            });
+            return false;
+        }
+        return true;
+    }, [isAuthenticated, toast, navigate]);
 
     // Show loading state
     if (isLoading) {
@@ -188,11 +176,7 @@ export default function TopicDetailPage() {
 
     const handleLike = () => {
         // Check auth before allowing like
-        if (!isAuthenticated) {
-            setLoginPromptAction('curtir');
-            setShowLoginPrompt(true);
-            return;
-        }
+        if (!requireAuth('curtir')) return;
 
         if (navigator.vibrate) {
             navigator.vibrate(10);
@@ -202,11 +186,7 @@ export default function TopicDetailPage() {
 
     const handleAddComment = async (text: string, isAnon: boolean, imageUrl?: string) => {
         // Check auth before allowing comment
-        if (!isAuthenticated) {
-            setLoginPromptAction('comentar');
-            setShowLoginPrompt(true);
-            return;
-        }
+        if (!requireAuth('comentar')) return;
 
         try {
             await addCommentMutation.mutateAsync({
@@ -230,11 +210,7 @@ export default function TopicDetailPage() {
 
     const handleThreadReply = async (parentId: string, text: string, isAnon: boolean, imageUrl?: string) => {
         // Check auth before allowing reply
-        if (!isAuthenticated) {
-            setLoginPromptAction('responder');
-            setShowLoginPrompt(true);
-            return;
-        }
+        if (!requireAuth('responder')) return;
 
         try {
             await addCommentMutation.mutateAsync({
@@ -257,11 +233,7 @@ export default function TopicDetailPage() {
 
     const handleCommentLike = (commentId: string) => {
         // Check auth before allowing like
-        if (!isAuthenticated) {
-            setLoginPromptAction('curtir');
-            setShowLoginPrompt(true);
-            return;
-        }
+        if (!requireAuth('curtir')) return;
 
         // Find current like state from comments
         const findComment = (comments: Comment[], id: string): Comment | undefined => {
@@ -288,8 +260,7 @@ export default function TopicDetailPage() {
     const handleComposerFocus = () => {
         // If not authenticated, show login prompt instead of focusing
         if (!isAuthenticated) {
-            setLoginPromptAction('comentar');
-            setShowLoginPrompt(true);
+            requireAuth('comentar');
         }
     };
 
@@ -438,9 +409,7 @@ export default function TopicDetailPage() {
 
             {/* Comment composer or Login prompt */}
             <AnimatePresence mode="wait">
-                {showLoginPrompt ? (
-                    <LoginPrompt action={loginPromptAction} />
-                ) : isAuthenticated ? (
+                {isAuthenticated ? (
                     <CommentComposer
                         onSubmit={handleAddComment}
                         autoFocus={shouldAutoFocusComment}
