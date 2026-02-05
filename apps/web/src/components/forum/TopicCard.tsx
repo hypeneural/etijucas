@@ -12,10 +12,13 @@ import { bairros } from '@/constants/bairros';
 
 const categoryConfig: Record<TopicCategory, { label: string; color: string }> = {
     reclamacao: { label: 'Reclamação', color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
+    reclamacoes: { label: 'Reclamação', color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
     sugestao: { label: 'Sugestão', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
     duvida: { label: 'Dúvida', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' },
     alerta: { label: 'Alerta', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' },
     elogio: { label: 'Elogio', color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
+    comercio: { label: 'Comércio', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
+    eventos: { label: 'Eventos', color: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400' },
     outros: { label: 'Outros', color: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400' },
 };
 
@@ -36,7 +39,7 @@ export const TopicCard = memo(function TopicCard({
     onShare,
     onMore,
 }: TopicCardProps) {
-    const category = categoryConfig[topic.categoria];
+    const category = categoryConfig[topic.categoria] || categoryConfig.outros;
     const bairroName = bairros.find(b => b.id === topic.bairroId)?.nome || 'Tijucas';
     const timeAgo = formatTimeAgo(topic.createdAt);
     const accessibleDate = formatDateAccessible(topic.createdAt);

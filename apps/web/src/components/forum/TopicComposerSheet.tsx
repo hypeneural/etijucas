@@ -45,6 +45,8 @@ const categoryOptions: { value: TopicCategory; label: string; icon: React.ReactN
     { value: 'duvida', label: 'Dúvida', icon: <HelpCircle className="w-4 h-4" />, color: 'bg-purple-100 text-purple-700 border-purple-200' },
     { value: 'alerta', label: 'Alerta', icon: <Bell className="w-4 h-4" />, color: 'bg-orange-100 text-orange-700 border-orange-200' },
     { value: 'elogio', label: 'Elogio', icon: <ThumbsUp className="w-4 h-4" />, color: 'bg-green-100 text-green-700 border-green-200' },
+    { value: 'comercio', label: 'Comércio', icon: <MessageSquare className="w-4 h-4" />, color: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
+    { value: 'eventos', label: 'Eventos', icon: <Calendar className="w-4 h-4" />, color: 'bg-pink-100 text-pink-700 border-pink-200' },
     { value: 'outros', label: 'Outros', icon: <MessageSquare className="w-4 h-4" />, color: 'bg-gray-100 text-gray-700 border-gray-200' },
 ];
 

@@ -57,10 +57,13 @@ export interface Report {
 
 export type TopicCategory =
   | 'reclamacao'
+  | 'reclamacoes' // Compatibility alias
   | 'sugestao'
   | 'duvida'
   | 'alerta'
   | 'elogio'
+  | 'comercio'
+  | 'eventos'
   | 'outros';
 
 export type TopicStatus = 'active' | 'hidden' | 'deleted';

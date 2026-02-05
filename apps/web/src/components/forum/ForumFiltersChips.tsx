@@ -21,6 +21,8 @@ const categoryOptions: { value: TopicCategory; label: string; color: string }[] 
     { value: 'duvida', label: 'Dúvida', color: 'bg-purple-100 text-purple-700 border-purple-200' },
     { value: 'alerta', label: 'Alerta', color: 'bg-orange-100 text-orange-700 border-orange-200' },
     { value: 'elogio', label: 'Elogio', color: 'bg-green-100 text-green-700 border-green-200' },
+    { value: 'comercio', label: 'Comércio', color: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
+    { value: 'eventos', label: 'Eventos', color: 'bg-pink-100 text-pink-700 border-pink-200' },
     { value: 'outros', label: 'Outros', color: 'bg-gray-100 text-gray-700 border-gray-200' },
 ];
 
