@@ -26,6 +26,9 @@ interface ApiResponse<T> {
 /**
  * Fetch all home data in a single request
  */
+/**
+ * Fetch all home data in a single request
+ */
 export async function getHomeData(params?: HomeQueryParams): Promise<HomeDataResponse> {
     const queryParams = new URLSearchParams();
 
@@ -44,8 +47,17 @@ export async function getHomeData(params?: HomeQueryParams): Promise<HomeDataRes
     const queryString = queryParams.toString();
     const url = queryString ? `${HOME_ENDPOINT}?${queryString}` : HOME_ENDPOINT;
 
-    const response = await apiClient.get<ApiResponse<HomeDataResponse>>(url);
-    return response.data.data;
+    // Use any to inspect the structure safely
+    const response = await apiClient.get<any>(url);
+    console.log('[HomeService] Raw home data:', response);
+
+    // Initial check: if response has 'data' property that holds the payload (Laravel Resource)
+    if (response.data && !response.boletim) {
+        return response.data;
+    }
+
+    // Fallback: maybe it's not wrapped or custom structure
+    return response;
 }
 
 /**
@@ -53,20 +65,20 @@ export async function getHomeData(params?: HomeQueryParams): Promise<HomeDataRes
  */
 export async function getBoletimDoDia(bairroId?: string): Promise<BoletimDoDiaPayload> {
     const queryParams = bairroId ? `?bairro_id=${bairroId}` : '';
-    const response = await apiClient.get<ApiResponse<BoletimDoDiaPayload>>(
+    const response = await apiClient.get<any>(
         `${BOLETIM_ENDPOINT}${queryParams}`
     );
-    return response.data.data;
+    return response.data || response;
 }
 
 /**
  * Fetch user stats for Tijucanos counter
  */
 export async function getUserStats(): Promise<TijucanosCounterPayload> {
-    const response = await apiClient.get<ApiResponse<TijucanosCounterPayload>>(
+    const response = await apiClient.get<any>(
         STATS_ENDPOINT
     );
-    return response.data.data;
+    return response.data || response;
 }
 
 export const homeService = {
