@@ -8,8 +8,8 @@ interface SwipeableItemProps {
     onSwipeLeft?: () => void;
     rightActionColor?: string;
     leftActionColor?: string;
-    rightIcon?: string;
-    leftIcon?: string;
+    rightIcon?: React.ReactNode;
+    leftIcon?: React.ReactNode;
     className?: string;
 }
 
@@ -19,8 +19,8 @@ export const SwipeableItem: React.FC<SwipeableItemProps> = ({
     onSwipeLeft,
     rightActionColor = "bg-red-500",
     leftActionColor = "bg-blue-500",
-    rightIcon = "delete",
-    leftIcon = "search",
+    rightIcon,
+    leftIcon,
     className,
 }) => {
     const controls = useAnimation();
@@ -47,12 +47,12 @@ export const SwipeableItem: React.FC<SwipeableItemProps> = ({
             <div className="absolute inset-0 flex items-center justify-between pointer-events-none">
                 {/* Left Action Background */}
                 <div className={cn("h-full w-full flex items-center pl-4 justify-start", leftActionColor)}>
-                    <span className="material-symbols-outlined text-white">{leftIcon}</span>
+                    {leftIcon}
                 </div>
-                {/* Right Action Background - Overlaying? No, we need separate layers or just one backing */}
+                {/* Right Action Background */}
             </div>
             <div className={cn("absolute inset-0 flex items-center justify-end pr-4 pointer-events-none", rightActionColor)}>
-                <span className="material-symbols-outlined text-white">{rightIcon}</span>
+                {rightIcon}
             </div>
 
             {/* Foreground Content */}

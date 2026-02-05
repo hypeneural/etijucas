@@ -162,9 +162,11 @@ const App = () => {
               <Route path="/previsao" element={<WeatherPage />} />
               <Route path="/tempo" element={<Navigate to="/previsao" replace />} />
 
-              <Route path="/veiculos" element={<VehicleConsultationPage />} />
-              <Route path="/consulta-veiculo" element={<Navigate to="/veiculos" replace />} />
             </Route>
+
+            {/* Standalone Feature Routes (No Footer) */}
+            <Route path="/veiculos" element={<VehicleConsultationPage />} />
+            <Route path="/consulta-veiculo" element={<Navigate to="/veiculos" replace />} />
 
             {/* Catch-all - redirect to home */}
             <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,5 +1,6 @@
 import React from "react";
 import { cn } from "@/lib/utils";
+import { CarFront, BadgeCheck } from "lucide-react";
 
 interface VehicleData {
     brand: string;
@@ -55,11 +56,11 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({ data, isLoading, class
             {/* Header looking like a document header */}
             <div className="bg-slate-800/50 px-5 py-3 border-b border-slate-700/50 flex justify-between items-center">
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                    <span className="material-symbols-outlined text-slate-400 text-lg">directions_car</span>
+                    <CarFront className="w-5 h-5 text-slate-400" />
                     Dados do Veículo
                 </h3>
                 <div className="bg-green-500/10 text-green-400 border border-green-500/20 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
-                    <span className="material-symbols-outlined text-xs">check_circle</span>
+                    <BadgeCheck className="w-3 h-3" />
                     Sem restrição
                 </div>
             </div>

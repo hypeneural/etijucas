@@ -6,9 +6,25 @@ import { VehicleCard } from "../features/vehicle-consult/components/VehicleCard"
 import { isValidPlate, getPlateFinal, formatPlateVisual } from "../domain/vehicle/plate";
 import { getIpvaDates, IpvaScheduleDates } from "../domain/vehicle/scheduleSC";
 import { getConsultationLink, getNotFoundLink, getShareLink } from "../domain/vehicle/whatsapp";
+import { ViralCardModal } from "../features/vehicle-consult/components/ViralCardModal";
 import { SwipeableItem } from "../components/ui/SwipeableList";
 import { toast } from "sonner";
 import { cn } from "../lib/utils";
+import { Icon } from "@iconify/react";
+import {
+    Warehouse,
+    Star,
+    Trash2,
+    ScanSearch,
+    ChevronRight,
+    ArrowLeft,
+    ArrowRight,
+    Share2,
+    CalendarDays,
+    Check,
+    ArrowUpRight,
+    Dices
+} from "lucide-react";
 
 // Mock Data Service
 const fetchVehicleData = async (plate: string) => {
@@ -29,7 +45,7 @@ const fetchVehicleData = async (plate: string) => {
                     state: "SC"
                 });
             }
-        }, 1500);
+        }, 2000); // 2s delay to show off animations
     });
 };
 
@@ -44,9 +60,12 @@ const VehicleConsultationPage: React.FC = () => {
     const [status, setStatus] = useState<MascotState>("empty");
     const [schedule, setSchedule] = useState<IpvaScheduleDates | undefined>(undefined);
     const [vehicleData, setVehicleData] = useState<any>(null);
-    const [showResults, setShowResults] = useState(false);
     const [savedVehicles, setSavedVehicles] = useState<SavedVehicle[]>([]);
     const [showGarage, setShowGarage] = useState(false);
+
+    // Animation Steps: 0=Idle, 1=Dates, 2=VehicleSkeleton, 3=Complete/CTA
+    const [step, setStep] = useState(0);
+    const [showViralModal, setShowViralModal] = useState(false);
 
     // Load Saved Vehicles
     useEffect(() => {
@@ -88,7 +107,7 @@ const VehicleConsultationPage: React.FC = () => {
         toast.info("Veículo removido.");
     };
 
-    // Instant Partial Result Logic
+    // Instant Partial Result Logic (Pre-calculation)
     useEffect(() => {
         if (isValidPlate(plate)) {
             const finalDigit = getPlateFinal(plate);
@@ -96,31 +115,51 @@ const VehicleConsultationPage: React.FC = () => {
             setSchedule(dates);
             setStatus("valid");
 
-            if (!showResults || vehicleData?.plate !== plate) {
+            // If we are already viewing results and plate changes, we might want to reset or live update?
+            // tailored for "Scan Mode": Only auto-search if it matches a pattern or user clicks?
+            // For now, let's keep auto-trigger if not already showing results
+            if (step === 0) {
                 handleSearch(plate);
             }
         } else {
             if (plate.length === 0) setStatus("empty");
             if (plate.length < 7) {
                 setSchedule(undefined);
-                setShowResults(false);
+                setStep(0);
                 setVehicleData(null);
             }
         }
     }, [plate]);
 
     const handleSearch = async (currentPlate: string) => {
-        setShowResults(true);
+        // Reset sequence
+        setStep(0);
         setStatus("loading");
         setVehicleData(null);
         setShowGarage(false);
+
+        // STAGE 1: Confirm Plate & Show Dates (Immediate/Fast)
+        // "Final da placa: X" + cards de vencimento
+        setTimeout(() => {
+            setStep(1);
+        }, 300);
+
+        // STAGE 2: Start Vehicle Fetch & Show Skeleton
+        // "Dados do veículo surgem com skeleton"
+        setTimeout(() => {
+            setStep(2);
+        }, 800);
 
         try {
             const data = await fetchVehicleData(currentPlate);
             setVehicleData(data);
             setStatus("valid");
+
+            // STAGE 3: Show CTA (Complete)
+            setStep(3);
         } catch (err) {
             setStatus("error");
+            setStep(3); // Show CTA anyway to allow "Talk to Titico"
         }
     };
 
@@ -139,8 +178,30 @@ const VehicleConsultationPage: React.FC = () => {
 
     const setExample = (val: string) => setPlate(val);
 
+    // Scroll detection for Smart CTA
+    const [isCtaMinimized, setIsCtaMinimized] = useState(false);
+    const [lastScrollY, setLastScrollY] = useState(0);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            const currentScrollY = window.scrollY;
+
+            // Minimize on scroll down (if > 50px), Expand on scroll up
+            if (currentScrollY > lastScrollY && currentScrollY > 50) {
+                setIsCtaMinimized(true);
+            } else {
+                setIsCtaMinimized(false);
+            }
+
+            setLastScrollY(currentScrollY);
+        };
+
+        window.addEventListener("scroll", handleScroll, { passive: true });
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, [lastScrollY]);
+
     return (
-        <div className="min-h-screen bg-[#101623] pb-32 font-sans relative overflow-x-hidden selection:bg-blue-500/30">
+        <div className="min-h-screen bg-[#101623] pb-40 font-sans relative overflow-x-hidden selection:bg-blue-500/30">
 
             <div className="fixed inset-0 pointer-events-none opacity-20" style={{
                 backgroundImage: "radial-gradient(#256af4 1px, transparent 1px)",
@@ -156,7 +217,7 @@ const VehicleConsultationPage: React.FC = () => {
                     onClick={() => setShowGarage(!showGarage)}
                     className="w-10 h-10 rounded-full bg-[#1e293b] border border-white/10 flex items-center justify-center shadow-lg cursor-pointer hover:bg-slate-700 transition-colors relative"
                 >
-                    <span className="material-symbols-outlined text-blue-500">garage_home</span>
+                    <Warehouse className="w-5 h-5 text-blue-500" />
                     {savedVehicles.length > 0 && (
                         <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[10px] flex items-center justify-center text-white border-2 border-[#101623]">
                             {savedVehicles.length}
@@ -170,7 +231,7 @@ const VehicleConsultationPage: React.FC = () => {
                 <div className="px-6 mb-6 animate-in slide-in-from-top-4 duration-300 relative z-30">
                     <div className="bg-[#1e293b]/90 backdrop-blur-md rounded-2xl border border-white/10 p-4 shadow-2xl">
                         <h3 className="text-white font-bold mb-3 flex items-center gap-2">
-                            <span className="material-symbols-outlined text-yellow-400">star</span>
+                            <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
                             Minha Garagem
                         </h3>
                         {savedVehicles.length === 0 ? (
@@ -185,9 +246,9 @@ const VehicleConsultationPage: React.FC = () => {
                                             setPlate(v.plate);
                                             setShowGarage(false);
                                         }}
-                                        rightIcon="delete"
+                                        rightIcon={<Trash2 className="w-6 h-6 text-white" />}
                                         rightActionColor="bg-red-500/80"
-                                        leftIcon="search"
+                                        leftIcon={<ScanSearch className="w-6 h-6 text-white" />}
                                         leftActionColor="bg-blue-500/80"
                                     >
                                         <div
@@ -206,16 +267,16 @@ const VehicleConsultationPage: React.FC = () => {
                                                     <p className="text-[10px] text-slate-400">Tocar para consultar</p>
                                                 </div>
                                             </div>
-                                            <span className="material-symbols-outlined text-slate-500">chevron_right</span>
+                                            <ChevronRight className="w-5 h-5 text-slate-500" />
                                         </div>
                                     </SwipeableItem>
                                 ))}
                             </div>
                         )}
                         <div className="mt-2 text-[10px] text-slate-500 text-center flex items-center justify-center gap-2 opacity-50">
-                            <span className="flex items-center gap-1"><span className="material-symbols-outlined text-xs">arrow_back</span> Swipe</span>
+                            <span className="flex items-center gap-1"><ArrowLeft className="w-3 h-3" /> Swipe</span>
                             <span>para ações</span>
-                            <span className="flex items-center gap-1">Swipe <span className="material-symbols-outlined text-xs">arrow_forward</span></span>
+                            <span className="flex items-center gap-1">Swipe <ArrowRight className="w-3 h-3" /></span>
                         </div>
                     </div>
                 </div>
@@ -234,13 +295,20 @@ const VehicleConsultationPage: React.FC = () => {
                         onChange={setPlate}
                         isValid={status === "valid"}
                         isLoading={status === "loading"}
+                        hasError={status === "error"}
+                        errorMessage={status === "error" ? "Veículo não encontrado. Tente novamente ou fale com o Titico." : undefined}
                     />
                 </div>
 
-                {!showResults && (
+                {step === 0 && (
                     <div className="flex gap-2 justify-center mb-8 animate-in fade-in duration-700 delay-150">
-                        <button onClick={() => setExample("ABC1234")} className="px-3 py-1.5 rounded-full bg-slate-800/50 border border-slate-700 text-xs text-slate-400 hover:bg-slate-700 hover:text-white transition-colors">Carro Antigo</button>
-                        <button onClick={() => setExample("ABC1D23")} className="px-3 py-1.5 rounded-full bg-slate-800/50 border border-slate-700 text-xs text-slate-400 hover:bg-slate-700 hover:text-white transition-colors">Mercosul</button>
+                        <button
+                            onClick={() => setExample("MKE9876")} // Example plate
+                            className="bg-slate-800/50 hover:bg-slate-700/80 border border-slate-700/50 backdrop-blur-sm text-slate-300 px-4 py-2 rounded-full text-xs font-medium flex items-center gap-2 transition-all hover:scale-105 active:scale-95 group"
+                        >
+                            <Dices className="w-4 h-4 text-blue-400 group-hover:rotate-180 transition-transform duration-500" />
+                            Preencher exemplo
+                        </button>
                     </div>
                 )}
 
@@ -248,71 +316,115 @@ const VehicleConsultationPage: React.FC = () => {
                     <MascotBubble state={status} />
                 </div>
 
-                {showResults && schedule && (
-                    <div className="flex flex-col gap-5 animate-in slide-in-from-bottom-12 fade-in duration-500 fill-mode-forwards">
+                {/* RESULTS SHEET - STAGED REVEAL */}
+                {schedule && step >= 1 && (
+                    <div className="flex flex-col gap-6">
 
-                        <VehicleCard isLoading={status === "loading"} data={vehicleData} />
-
-                        <div>
+                        {/* STAGE 1: DATES & HEADER */}
+                        <div className="animate-in slide-in-from-bottom-8 fade-in duration-500 fill-mode-forwards">
                             <div className="flex items-center justify-between mb-3 px-1">
                                 <h3 className="text-white font-bold flex items-center gap-2">
-                                    <span className="material-symbols-outlined text-blue-500">calendar_month</span>
+                                    <CalendarDays className="w-5 h-5 text-blue-500" />
                                     Vencimentos <span className="text-slate-500 text-sm font-normal">(Final {getPlateFinal(plate)})</span>
                                 </h3>
-                                <div className="flex gap-2">
-                                    {/* Save Button */}
-                                    <button
-                                        onClick={() => saveVehicle(plate)}
-                                        className="text-xs text-yellow-500 hover:text-yellow-400 flex items-center gap-1 font-medium px-2 py-1 rounded hover:bg-yellow-500/10 transition-colors"
-                                    >
-                                        <span className="material-symbols-outlined text-sm">star</span>
-                                        Salvar
-                                    </button>
-                                    <button
-                                        onClick={handleShare}
-                                        className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 font-medium px-2 py-1 rounded hover:bg-blue-500/10 transition-colors"
-                                    >
-                                        <span className="material-symbols-outlined text-sm">share</span>
-                                        Viral
-                                    </button>
-                                </div>
+
+                                {/* Only show actions when fully loaded */}
+                                {step >= 3 && (
+                                    <div className="flex gap-2 animate-in fade-in zoom-in duration-300">
+                                        <button
+                                            onClick={() => saveVehicle(plate)}
+                                            className="text-xs text-yellow-500 hover:text-yellow-400 flex items-center gap-1 font-medium px-2 py-1 rounded hover:bg-yellow-500/10 transition-colors"
+                                        >
+                                            <Star className="w-4 h-4" />
+                                            Salvar
+                                        </button>
+                                        <button
+                                            onClick={() => setShowViralModal(true)}
+                                            className="text-xs text-pink-400 hover:text-pink-300 flex items-center gap-1 font-medium px-2 py-1 rounded hover:bg-pink-500/10 transition-colors"
+                                        >
+                                            <Share2 className="w-4 h-4" />
+                                            Card Viral
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                             <DebtCards dates={schedule} />
                         </div>
 
-                        <div className="text-[10px] text-slate-500 text-center pb-24 px-4 leading-relaxed opacity-60">
-                            Datas conforme tabela oficial SC. Consulte débitos completos para valores exatos.
-                            Dados podem variar conforme situação do veículo.
-                        </div>
+                        {/* STAGE 2: VEHICLE DATA */}
+                        {step >= 2 && (
+                            <div className="animate-in slide-in-from-bottom-8 fade-in duration-500 fill-mode-forwards delay-100">
+                                <VehicleCard isLoading={step < 3} data={vehicleData} />
+                            </div>
+                        )}
+
+                        {step >= 3 && (
+                            <div className="text-[10px] text-slate-500 text-center pb-24 px-4 leading-relaxed opacity-60 animate-in fade-in duration-500">
+                                Datas conforme tabela oficial SC. Consulte débitos completos para valores exatos.
+                            </div>
+                        )}
                     </div>
                 )}
 
             </main>
 
-            <div className="fixed bottom-0 left-0 w-full z-50 p-4 bg-gradient-to-t from-[#101623] via-[#101623]/95 to-transparent backdrop-blur-[2px]">
-                <div className="max-w-md mx-auto flex flex-col gap-2">
-                    <button
-                        onClick={handleWhatsappClick}
-                        className="w-full flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold h-14 rounded-xl shadow-[0_0_20px_rgba(37,211,102,0.3)] transition-all transform active:scale-95 group"
-                    >
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" className="w-6 h-6 invert brightness-0" alt="Whatsapp" />
-                        <span>
-                            {status === "error" ? "Não achou? Falar com Titico" : "Consultar débitos no WhatsApp"}
-                        </span>
-                        <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
-                    </button>
-
-                    {status !== "error" && (
-                        <div className="flex items-center justify-center gap-2 text-[10px] text-slate-400 font-medium opacity-80">
-                            <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[10px] text-green-500">check</span> Resposta rápida</span>
-                            <span className="w-1 h-1 rounded-full bg-slate-600"></span>
-                            <span>Evita multa</span>
-                            <span className="w-1 h-1 rounded-full bg-slate-600"></span>
-                            <span>Sem enrolação</span>
-                        </div>
+            {/* STAGE 3: CTA - FIXED BOTTOM */}
+            {step >= 3 && (
+                <div
+                    className={cn(
+                        "fixed bottom-0 left-0 w-full z-50 p-4 transition-all duration-500 ease-in-out",
+                        isCtaMinimized
+                            ? "translate-y-0 opacity-100 py-2 bg-[#101623]/95 backdrop-blur-md border-t border-white/5"
+                            : "bg-gradient-to-t from-[#101623] via-[#101623]/95 to-transparent backdrop-blur-[2px]"
                     )}
+                >
+                    <div className="max-w-md mx-auto flex flex-col gap-2">
+                        <button
+                            onClick={handleWhatsappClick}
+                            className={cn(
+                                "w-full flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold rounded-xl shadow-[0_0_20px_rgba(37,211,102,0.3)] transition-all duration-500 transform active:scale-95 group relative overflow-hidden",
+                                isCtaMinimized ? "h-12 text-sm" : "h-14"
+                            )}
+                        >
+                            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+
+                            {/* Icon acts as main trigger on minimized */}
+                            <Icon icon="mdi:whatsapp" width={isCtaMinimized ? "20" : "24"} height={isCtaMinimized ? "20" : "24"} className="text-white relative z-10 transition-all" />
+
+                            <span className="relative z-10 whitespace-nowrap">
+                                {status === "error" ? "Não achou? Falar com Titico" : "Consultar débitos"}
+                            </span>
+
+                            {!isCtaMinimized && (
+                                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform relative z-10" />
+                            )}
+                        </button>
+
+                        {status !== "error" && (
+                            <div className={cn(
+                                "flex items-center justify-center gap-2 text-[10px] text-slate-400 font-medium opacity-80 transition-all duration-300 overflow-hidden",
+                                isCtaMinimized ? "h-0 opacity-0" : "h-auto opacity-100"
+                            )}>
+                                <span className="flex items-center gap-1"><Check className="w-3 h-3 text-green-500" /> Resposta rápida</span>
+                                <span className="w-1 h-1 rounded-full bg-slate-600"></span>
+                                <span>Evita multa</span>
+                                <span className="w-1 h-1 rounded-full bg-slate-600"></span>
+                                <span>Sem enrolação</span>
+                            </div>
+                        )}
+                    </div>
                 </div>
-            </div>
+            )}
+
+            {/* Viral Card Modal */}
+            {schedule && (
+                <ViralCardModal
+                    isOpen={showViralModal}
+                    onClose={() => setShowViralModal(false)}
+                    plate={plate}
+                    schedule={schedule}
+                />
+            )}
 
         </div>
     );

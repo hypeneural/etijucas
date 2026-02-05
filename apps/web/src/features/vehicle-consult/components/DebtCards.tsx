@@ -1,6 +1,7 @@
 import React from "react";
 import { IpvaScheduleDates, getDaysRemaining } from "@/domain/vehicle/scheduleSC";
 import { cn } from "@/lib/utils";
+import { PiggyBank, CalendarDays, CalendarClock, ReceiptText, FileCheck } from "lucide-react";
 
 interface DebtCardsProps {
     dates: IpvaScheduleDates;
@@ -33,7 +34,7 @@ export const DebtCards: React.FC<DebtCardsProps> = ({ dates }) => {
     }: {
         label: string;
         dateStr: string;
-        icon: string;
+        icon: React.ReactNode;
         highlight?: boolean;
         badgeText?: string;
     }) => {
@@ -44,11 +45,14 @@ export const DebtCards: React.FC<DebtCardsProps> = ({ dates }) => {
                 "relative flex flex-col p-4 rounded-xl border transition-all hover:scale-[1.02]",
                 highlight
                     ? "bg-gradient-to-br from-[#1e3a8a]/40 to-slate-900 border-blue-500/30 shadow-lg shadow-blue-900/20"
-                    : "bg-[#1e293b]/50 border-slate-700/50"
+                    : "bg-[#1e293b]/50 border-slate-700/50",
+                getDaysRemaining(dateStr) <= 3 && getDaysRemaining(dateStr) >= 0 ? "animate-pulse ring-1 ring-amber-500/50" : ""
             )}>
                 <div className="flex justify-between items-start mb-2">
                     <div className="flex items-center gap-2">
-                        <span className={cn("material-symbols-outlined text-lg opacity-80", highlight ? "text-blue-400" : "text-slate-400")}>{icon}</span>
+                        <div className={cn("opacity-80", highlight ? "text-blue-400" : "text-slate-400")}>
+                            {icon}
+                        </div>
                         <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">{label}</span>
                     </div>
                     {badgeText && (
@@ -79,21 +83,21 @@ export const DebtCards: React.FC<DebtCardsProps> = ({ dates }) => {
                 <CardItem
                     label="Cota Única"
                     dateStr={dates.cotaUnica}
-                    icon="savings"
+                    icon={<PiggyBank className="w-5 h-5" />}
                     highlight={true}
                     badgeText="Economize juros"
                 />
             </div>
 
-            <CardItem label="1ª Cota" dateStr={dates.parcela1} icon="calendar_today" />
-            <CardItem label="2ª Cota" dateStr={dates.parcela2} icon="event_upcoming" />
-            <CardItem label="3ª Cota" dateStr={dates.parcela3} icon="event_available" />
+            <CardItem label="1ª Cota" dateStr={dates.parcela1} icon={<CalendarDays className="w-5 h-5" />} />
+            <CardItem label="2ª Cota" dateStr={dates.parcela2} icon={<CalendarClock className="w-5 h-5" />} />
+            <CardItem label="3ª Cota" dateStr={dates.parcela3} icon={<ReceiptText className="w-5 h-5" />} />
 
             {/* Licenciamento - Destaque menor */}
             <div className="relative flex flex-col p-4 rounded-xl border border-amber-500/20 bg-amber-900/10">
                 <div className="flex justify-between items-start mb-2">
                     <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-lg text-amber-400">verified</span>
+                        <FileCheck className="w-5 h-5 text-amber-400" />
                         <span className="text-xs font-semibold uppercase tracking-wider text-amber-400/80">Licenciamento</span>
                     </div>
                 </div>
