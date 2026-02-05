@@ -16,6 +16,7 @@ import { TijucanosCounter } from '@/components/home/TijucanosCounter';
 import QuickAccessGridVivo from '@/components/home/QuickAccessGridVivo';
 import { NearYouBento } from '@/components/home/NearYouBento';
 import { HojeShareCard } from '@/components/home/HojeShareCard';
+import { MetaShareCard } from '@/components/home/MetaShareCard';
 
 // Hooks & Store
 import { useHomeData } from '@/hooks/useHomeData';
@@ -458,6 +459,19 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
           forumPosts={blocks.forum?.payload?.comentarios_hoje || 0}
           usuarios={blocks.stats?.payload?.total || 0}
         />
+
+        {/* ========================================
+            META SHARE CARD - Community goal progress
+            ======================================== */}
+        {blocks.stats?.payload && (
+          <MetaShareCard
+            total={blocks.stats.payload.total}
+            goal={blocks.stats.payload.goal.target}
+            goalName={blocks.stats.payload.goal.message}
+            verified={blocks.stats.payload.verified}
+            newToday={blocks.stats.payload.new_today}
+          />
+        )}
 
         {/* ========================================
             TIJUCANOS COUNTER - Gamification Footer
