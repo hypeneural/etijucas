@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence, useSpring, useTransform } from 'framer-motion';
 import { RefreshCw } from 'lucide-react';
 
@@ -23,6 +23,8 @@ import { useToast } from '@/hooks/use-toast';
 import { hapticFeedback } from '@/hooks/useHaptics';
 
 import { useNavigate } from 'react-router-dom';
+import { EventListItem } from '@/types/events.api';
+import { AggregatorEventItem } from '@/types/home.types';
 
 interface HomeScreenProps {
   scrollRef?: (el: HTMLDivElement | null) => void;
@@ -33,6 +35,36 @@ interface HomeScreenProps {
 const PULL_THRESHOLD = 80;
 const MAX_PULL_DISTANCE = 120;
 const RUBBER_BAND_FACTOR = 0.4;
+
+/**
+ * Map aggregator events (snake_case) to EventListItem format (camelCase)
+ */
+function mapAggregatorEventsToEventListItems(events: AggregatorEventItem[]): EventListItem[] {
+  return events.map((e) => ({
+    id: e.id,
+    title: e.title,
+    slug: e.slug,
+    startDateTime: e.start_datetime,
+    endDateTime: e.end_datetime || e.start_datetime,
+    venue: e.venue ? {
+      id: e.venue.id,
+      name: e.venue.name,
+      bairro: null,
+    } : null,
+    coverImage: e.cover_image_url,
+    descriptionShort: '',
+    tags: [],
+    rsvpCount: 0,
+    popularityScore: 0,
+    isFeatured: false,
+    flags: {
+      ageRating: 'livre',
+      outdoor: false,
+      accessibility: false,
+      parking: false,
+    },
+  }));
+}
 
 export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -61,6 +93,23 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
 
   // Extract alerts from aggregator
   const alertItems = blocks.alerts?.payload?.alerts || [];
+
+  // Map aggregator events to EventListItem format for carousel
+  const aggregatorEvents = useMemo(() => {
+    const events = blocks.events?.payload?.events;
+    if (!events || events.length === 0) return undefined;
+    return mapAggregatorEventsToEventListItems(events);
+  }, [blocks.events]);
+
+  // Extract tourism data for carousel
+  const aggregatorTourism = useMemo(() => {
+    return blocks.tourism?.payload?.spots;
+  }, [blocks.tourism]);
+
+  // Check if specific blocks had errors
+  const hasBlockError = useCallback((blockName: string) => {
+    return meta?.errors?.includes(blockName) ?? false;
+  }, [meta?.errors]);
 
   // Spring-based pull distance
   const springPull = useSpring(0, {
@@ -237,25 +286,35 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
             FISCALIZA VIVO - Live Reports Card (CTA Cívico)
             ======================================== */}
         <div className="px-4">
-          <FiscalizaVivo data={blocks.fiscaliza?.payload} isLoading={isLoading} />
+          <FiscalizaVivo
+            data={blocks.fiscaliza?.payload}
+            isLoading={isLoading}
+            hasError={hasBlockError('fiscaliza')}
+          />
         </div>
 
         {/* ========================================
             EVENTS CAROUSEL - What's happening today
+            Uses aggregator data when available
             ======================================== */}
-        <EventsCarousel onNavigate={handleNavigate} />
+        <EventsCarousel onNavigate={handleNavigate} data={aggregatorEvents} />
 
         {/* ========================================
             BOCA NO TROMBONE VIVO - Live Forum Card
             ======================================== */}
         <div className="px-4">
-          <BocaNoTromboneVivo data={blocks.forum?.payload} isLoading={isLoading} />
+          <BocaNoTromboneVivo
+            data={blocks.forum?.payload}
+            isLoading={isLoading}
+            hasError={hasBlockError('forum')}
+          />
         </div>
 
         {/* ========================================
             TOURISM HIGHLIGHTS - Explore the city
+            Uses aggregator data when available
             ======================================== */}
-        <TourismHighlights onNavigate={handleNavigate} />
+        <TourismHighlights onNavigate={handleNavigate} data={aggregatorTourism} />
 
         {/* ========================================
             TIJUCANOS COUNTER - Gamification Footer

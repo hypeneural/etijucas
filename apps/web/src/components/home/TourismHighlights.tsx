@@ -3,7 +3,7 @@
  * Mobile-first, offline-first, native-first
  */
 
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
 import { MapPin, Star, ChevronRight, Camera, Heart, Sparkles } from 'lucide-react';
@@ -11,15 +11,47 @@ import { useOfflineTourism } from '@/hooks/useOfflineTourism';
 import { hapticFeedback } from '@/hooks/useHaptics';
 import { cn } from '@/lib/utils';
 import { TOURISM_CATEGORIES } from '@/types/tourism.types';
+import { AggregatorTourismItem } from '@/types/home.types';
 
 interface TourismHighlightsProps {
   onNavigate?: (tab: string) => void;
+  data?: AggregatorTourismItem[]; // External data from aggregator
 }
 
-export default function TourismHighlights({ onNavigate }: TourismHighlightsProps) {
+/**
+ * Map aggregator tourism data to component format
+ */
+function mapAggregatorToSpots(items: AggregatorTourismItem[]) {
+  return items.map((item) => ({
+    id: item.id,
+    titulo: item.titulo,
+    slug: item.slug,
+    descricaoCurta: item.desc_curta,
+    categoria: item.categoria,
+    imageUrl: item.image_url,
+    rating: item.rating_avg,
+    reviewsCount: 0,
+    liked: false,
+    endereco: '',
+    bairroNome: '',
+  }));
+}
+
+export default function TourismHighlights({ onNavigate, data: externalData }: TourismHighlightsProps) {
   const navigate = useNavigate();
-  const { featuredSpots, isLoading, likeSpot } = useOfflineTourism();
-  
+  const { featuredSpots: hookSpots, isLoading: hookLoading, likeSpot } = useOfflineTourism();
+
+  // Use external data if available, otherwise use hook data
+  const featuredSpots = useMemo(() => {
+    if (externalData && externalData.length > 0) {
+      return mapAggregatorToSpots(externalData);
+    }
+    return hookSpots;
+  }, [externalData, hookSpots]);
+
+  // Only show loading if no external data and hook is loading
+  const isLoading = !externalData && hookLoading;
+
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -27,7 +59,7 @@ export default function TourismHighlights({ onNavigate }: TourismHighlightsProps
   // Auto-play carousel
   useEffect(() => {
     if (isPaused || featuredSpots.length <= 1) return;
-    
+
     intervalRef.current = setInterval(() => {
       setActiveIndex(prev => (prev + 1) % featuredSpots.length);
     }, 4000);
@@ -39,7 +71,7 @@ export default function TourismHighlights({ onNavigate }: TourismHighlightsProps
 
   const handleDragEnd = useCallback((_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const threshold = 50;
-    
+
     if (info.offset.x < -threshold) {
       setActiveIndex(prev => (prev + 1) % featuredSpots.length);
       hapticFeedback('light');

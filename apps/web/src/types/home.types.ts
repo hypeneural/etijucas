@@ -144,39 +144,53 @@ export interface QuickAccessPayload {
 }
 
 // ========================================
-// Events Carousel
+// Events Carousel (from aggregator)
 // ========================================
 
-export interface CarouselEventItem {
+/**
+ * Event item from the home aggregator - uses snake_case from Laravel
+ */
+export interface AggregatorEventItem {
     id: string;
-    titulo: string;
-    start_date: string;
-    end_date: string | null;
-    local: string;
-    cover_image: string | null;
+    title: string;
+    slug: string;
+    start_datetime: string;
+    end_datetime: string | null;
+    venue_id: string | null;
+    cover_image_url: string | null;
+    venue?: {
+        id: string;
+        name: string;
+        bairro_id?: string | null;
+    } | null;
 }
 
 export interface EventsCarouselPayload {
-    events: CarouselEventItem[];
+    events: AggregatorEventItem[];
 }
 
 // ========================================
-// Tourism Carousel
+// Tourism Carousel (from aggregator)
 // ========================================
 
-export interface CarouselTourismItem {
+/**
+ * Tourism spot from the home aggregator - uses snake_case from Laravel
+ */
+export interface AggregatorTourismItem {
     id: string;
-    nome: string;
-    descricao_curta: string;
+    titulo: string;
+    slug: string;
+    desc_curta: string;
     categoria: string;
-    imagem_capa: string | null;
-    rating: number;
+    image_url: string | null;
+    rating_avg: number;
 }
 
 export interface TourismCarouselPayload {
     title: string;
-    spots: CarouselTourismItem[];
+    spots: AggregatorTourismItem[];
 }
+
 
 // ========================================
 // Tijucanos Counter (with dynamic goals)

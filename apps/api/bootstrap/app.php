@@ -29,6 +29,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Global middleware para API
         $middleware->api(append: [
             \App\Http\Middleware\RequestId::class,
+            \App\Http\Middleware\Utf8Response::class,
         ]);
 
         // Rate limiting for auth endpoints
