@@ -42,6 +42,11 @@ const ReportScreen = lazy(() => import("./screens/ReportScreen"));
 const ReportsMapScreen = lazy(() => import("./screens/ReportsMapScreen"));
 const AgendaScreen = lazy(() => import("./screens/AgendaScreen"));
 const TourismScreen = lazy(() => import("./screens/TourismScreen"));
+const MoreScreen = lazy(() => import("./screens/MoreScreen"));
+const HomeScreen = lazy(() => import("./screens/HomeScreen")); // Added import
+
+// Layout
+const MainLayout = lazy(() => import("./components/layout/MainLayout"));
 
 // Simple loading fallback
 const PageLoader = () => (
@@ -107,60 +112,54 @@ const App = () => {
       <BrowserRouter>
         <Suspense fallback={<PageLoader />}>
           <Routes>
-            {/* Home - AppShell with tabs */}
-            <Route path="/" element={<AppShell />} />
-
-            {/* Auth routes */}
+            {/* Auth routes (no footer) */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/login/otp" element={<WhatsAppLoginPage />} />
             <Route path="/cadastro" element={<RegisterPage />} />
             <Route path="/esqueci-senha" element={<ForgotPasswordPage />} />
-            <Route path="/perfil" element={<ProfilePage />} />
 
-            {/* Agenda / Events */}
-            <Route path="/agenda" element={<AgendaScreen />} />
-            <Route path="/agenda/:eventId" element={<EventDetailsPage />} />
-            <Route path="/evento/:eventId" element={<Navigate to="/agenda/:eventId" replace />} />
+            {/* Main Layout routes (with footer) */}
+            <Route element={<MainLayout />}>
+              <Route path="/" element={<HomeScreen />} />
+              <Route path="/mais" element={<MoreScreen />} />
+              <Route path="/perfil" element={<ProfilePage />} />
 
-            {/* Forum - Boca no Trombone */}
-            <Route path="/forum" element={<ForumScreen />} />
-            <Route path="/boca-no-trombone" element={<Navigate to="/forum" replace />} />
-            <Route path="/topico/:id" element={<TopicDetailPage />} />
+              {/* Feature routes */}
+              <Route path="/agenda" element={<AgendaScreen />} />
+              <Route path="/agenda/:eventId" element={<EventDetailsPage />} />
+              <Route path="/evento/:eventId" element={<Navigate to="/agenda/:eventId" replace />} />
 
-            {/* Denúncias */}
-            <Route path="/denuncias" element={<ReportScreen />} />
-            <Route path="/denuncias/mapa" element={<ReportsMapScreen />} />
-            <Route path="/denuncia/nova" element={<ReportWizardPage />} />
-            <Route path="/denuncia/:id" element={<ReportDetailPage />} />
-            <Route path="/minhas-denuncias" element={<MyReportsPage />} />
+              <Route path="/forum" element={<ForumScreen />} />
+              <Route path="/boca-no-trombone" element={<Navigate to="/forum" replace />} />
+              <Route path="/topico/:id" element={<TopicDetailPage />} />
 
-            {/* Coleta de Lixo */}
-            <Route path="/coleta-lixo" element={<TrashScheduleScreen />} />
-            <Route path="/coleta" element={<Navigate to="/coleta-lixo" replace />} />
+              <Route path="/denuncias" element={<ReportScreen />} />
+              <Route path="/denuncias/mapa" element={<ReportsMapScreen />} />
+              <Route path="/denuncia/nova" element={<ReportWizardPage />} />
+              <Route path="/denuncia/:id" element={<ReportDetailPage />} />
+              <Route path="/minhas-denuncias" element={<MyReportsPage />} />
 
-            {/* Votações da Câmara */}
-            <Route path="/votacoes" element={<VotesListPage />} />
-            <Route path="/votacoes/:id" element={<VoteDetailPage />} />
+              <Route path="/coleta-lixo" element={<TrashScheduleScreen />} />
+              <Route path="/coleta" element={<Navigate to="/coleta-lixo" replace />} />
 
-            {/* Vereadores */}
-            <Route path="/vereadores" element={<VereadoresListPage />} />
-            <Route path="/vereadores/:slug" element={<VereadorDetailPage />} />
+              <Route path="/votacoes" element={<VotesListPage />} />
+              <Route path="/votacoes/:id" element={<VoteDetailPage />} />
 
-            {/* Missas */}
-            <Route path="/missas" element={<MassesPage />} />
+              <Route path="/vereadores" element={<VereadoresListPage />} />
+              <Route path="/vereadores/:slug" element={<VereadorDetailPage />} />
 
-            {/* Telefones Úteis */}
-            <Route path="/telefones" element={<UsefulPhonesScreen />} />
-            <Route path="/telefones-uteis" element={<Navigate to="/telefones" replace />} />
+              <Route path="/missas" element={<MassesPage />} />
 
-            {/* Pontos Turísticos */}
-            <Route path="/pontos-turisticos" element={<TourismScreen />} />
-            <Route path="/ponto-turistico/:id" element={<TourismDetailPage />} />
-            <Route path="/turismo" element={<Navigate to="/pontos-turisticos" replace />} />
+              <Route path="/telefones" element={<UsefulPhonesScreen />} />
+              <Route path="/telefones-uteis" element={<Navigate to="/telefones" replace />} />
 
-            {/* Previsão do Tempo */}
-            <Route path="/previsao" element={<WeatherPage />} />
-            <Route path="/tempo" element={<Navigate to="/previsao" replace />} />
+              <Route path="/pontos-turisticos" element={<TourismScreen />} />
+              <Route path="/ponto-turistico/:id" element={<TourismDetailPage />} />
+              <Route path="/turismo" element={<Navigate to="/pontos-turisticos" replace />} />
+
+              <Route path="/previsao" element={<WeatherPage />} />
+              <Route path="/tempo" element={<Navigate to="/previsao" replace />} />
+            </Route>
 
             {/* Catch-all - redirect to home */}
             <Route path="*" element={<Navigate to="/" replace />} />

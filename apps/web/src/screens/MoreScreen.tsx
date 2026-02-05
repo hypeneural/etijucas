@@ -48,7 +48,7 @@ const phoneCategoryLabels: Record<PhoneCategory, string> = {
 };
 
 interface MoreScreenProps {
-  scrollRef: (el: HTMLDivElement | null) => void;
+  scrollRef?: (el: HTMLDivElement | null) => void;
 }
 
 export default function MoreScreen({ scrollRef }: MoreScreenProps) {
@@ -64,6 +64,7 @@ export default function MoreScreen({ scrollRef }: MoreScreenProps) {
     { id: 'turismo' as ScreenView, label: 'Pontos Turísticos', icon: MapPin, color: 'bg-secondary/10 text-secondary' },
     { id: 'missas' as ScreenView, label: 'Horários das Missas', icon: Church, color: 'bg-primary/10 text-primary' },
     { id: 'telefones' as ScreenView, label: 'Telefones Úteis', icon: Phone, color: 'bg-accent/10 text-accent' },
+    { id: 'vereadores' as const, label: 'Vereadores', icon: User, color: 'bg-blue-100 text-blue-600', isLink: true },
     { id: 'envios' as ScreenView, label: 'Fiscaliza Tijucas', icon: FileText, color: 'bg-purple-100 text-purple-600' },
   ];
 
@@ -362,6 +363,8 @@ export default function MoreScreen({ scrollRef }: MoreScreenProps) {
                   navigate('/pontos-turisticos');
                 } else if (item.id === 'envios') {
                   navigate('/denuncias');
+                } else if (item.id === 'vereadores') {
+                  navigate('/vereadores');
                 } else {
                   setView(item.id as ScreenView);
                 }

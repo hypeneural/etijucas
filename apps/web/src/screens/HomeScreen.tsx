@@ -22,9 +22,11 @@ import { TabId } from '@/components/layout/BottomTabBar';
 import { useToast } from '@/hooks/use-toast';
 import { hapticFeedback } from '@/hooks/useHaptics';
 
+import { useNavigate } from 'react-router-dom';
+
 interface HomeScreenProps {
-  scrollRef: (el: HTMLDivElement | null) => void;
-  onNavigate: (tab: TabId) => void;
+  scrollRef?: (el: HTMLDivElement | null) => void;
+  onNavigate?: (tab: TabId) => void;
 }
 
 // Constants for pull-to-refresh
@@ -35,10 +37,16 @@ const RUBBER_BAND_FACTOR = 0.4;
 export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const startYRef = useRef(0);
+  const navigate = useNavigate();
   const { isRefreshing, setIsRefreshing } = useAppStore();
   const { toast } = useToast();
   const [isPulling, setIsPulling] = useState(false);
   const [hasTriggered, setHasTriggered] = useState(false);
+
+  // Default navigation handler if prop not provided
+  const handleNavigate = onNavigate || ((tab: TabId) => {
+    navigate(tab === 'home' ? '/' : `/${tab === 'mais' ? 'telefones' : tab}`);
+  });
 
   // ========================================
   // Home Aggregator Hook
@@ -141,7 +149,7 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
     <div
       ref={(el) => {
         if (containerRef) (containerRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
-        scrollRef(el);
+        if (scrollRef) scrollRef(el);
       }}
       className="h-full overflow-y-auto overflow-x-hidden scrollbar-hide"
       onTouchStart={handleTouchStart}
@@ -235,7 +243,7 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
         {/* ========================================
             EVENTS CAROUSEL - What's happening today
             ======================================== */}
-        <EventsCarousel onNavigate={onNavigate} />
+        <EventsCarousel onNavigate={handleNavigate} />
 
         {/* ========================================
             BOCA NO TROMBONE VIVO - Live Forum Card
@@ -247,7 +255,7 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
         {/* ========================================
             TOURISM HIGHLIGHTS - Explore the city
             ======================================== */}
-        <TourismHighlights onNavigate={onNavigate} />
+        <TourismHighlights onNavigate={handleNavigate} />
 
         {/* ========================================
             TIJUCANOS COUNTER - Gamification Footer
