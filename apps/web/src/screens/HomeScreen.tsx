@@ -1,6 +1,6 @@
 import React, { useRef, useState, useCallback, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence, useSpring, useTransform } from 'framer-motion';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, AlertTriangle } from 'lucide-react';
 
 // Carousels (use their own API hooks)
 import EventsCarousel from '@/components/home/EventsCarousel';
