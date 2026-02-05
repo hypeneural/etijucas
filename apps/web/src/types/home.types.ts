@@ -9,6 +9,13 @@
 // Meta
 // ========================================
 
+export interface UserStreak {
+    current_streak: number;
+    longest_streak: number;
+    last_activity_date: string | null;
+    today_completed: boolean;
+}
+
 export interface HomeMeta {
     user_state: 'logged_in' | 'guest';
     bairro: { id: string } | null;
@@ -18,6 +25,12 @@ export interface HomeMeta {
     };
     generated_at: string;
     version: number;
+    errors: string[]; // Blocks that failed to load
+    user?: {
+        id: string;
+        nome: string;
+        streak: UserStreak;
+    };
 }
 
 // ========================================

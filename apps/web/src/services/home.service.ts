@@ -17,6 +17,12 @@ export interface HomeQueryParams {
     version?: number;
 }
 
+// Standard API response wrapper
+interface ApiResponse<T> {
+    success: boolean;
+    data: T;
+}
+
 /**
  * Fetch all home data in a single request
  */
@@ -38,8 +44,8 @@ export async function getHomeData(params?: HomeQueryParams): Promise<HomeDataRes
     const queryString = queryParams.toString();
     const url = queryString ? `${HOME_ENDPOINT}?${queryString}` : HOME_ENDPOINT;
 
-    const response = await apiClient.get<{ data: HomeDataResponse }>(url);
-    return response.data;
+    const response = await apiClient.get<ApiResponse<HomeDataResponse>>(url);
+    return response.data.data;
 }
 
 /**
@@ -47,20 +53,20 @@ export async function getHomeData(params?: HomeQueryParams): Promise<HomeDataRes
  */
 export async function getBoletimDoDia(bairroId?: string): Promise<BoletimDoDiaPayload> {
     const queryParams = bairroId ? `?bairro_id=${bairroId}` : '';
-    const response = await apiClient.get<{ data: BoletimDoDiaPayload }>(
+    const response = await apiClient.get<ApiResponse<BoletimDoDiaPayload>>(
         `${BOLETIM_ENDPOINT}${queryParams}`
     );
-    return response.data;
+    return response.data.data;
 }
 
 /**
  * Fetch user stats for Tijucanos counter
  */
 export async function getUserStats(): Promise<TijucanosCounterPayload> {
-    const response = await apiClient.get<{ data: TijucanosCounterPayload }>(
+    const response = await apiClient.get<ApiResponse<TijucanosCounterPayload>>(
         STATS_ENDPOINT
     );
-    return response.data;
+    return response.data.data;
 }
 
 export const homeService = {
@@ -70,3 +76,4 @@ export const homeService = {
 };
 
 export default homeService;
+

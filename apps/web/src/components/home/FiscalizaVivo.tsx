@@ -20,10 +20,12 @@ import { cn } from '@/lib/utils';
 import { FiscalizaVivoPayload } from '@/types/home.types';
 import { useHaptic } from '@/hooks/useHaptic';
 import { useAuthStore } from '@/store/useAuthStore';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface FiscalizaVivoProps {
     data?: FiscalizaVivoPayload;
     isLoading?: boolean;
+    hasError?: boolean;
     className?: string;
 }
 
@@ -35,7 +37,59 @@ const defaultPhrases = [
     '⚡ Tempo médio de resposta: 48h',
 ];
 
-export function FiscalizaVivo({ data, className }: FiscalizaVivoProps) {
+// Skeleton loading state
+function FiscalizaSkeleton({ className }: { className?: string }) {
+    return (
+        <div
+            className={cn(
+                'relative overflow-hidden rounded-2xl',
+                'bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30',
+                'border border-orange-200/50 dark:border-orange-800/30',
+                'p-4',
+                className
+            )}
+        >
+            {/* Header */}
+            <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                    <Skeleton className="h-8 w-8 rounded-full" />
+                    <div>
+                        <Skeleton className="h-4 w-28 mb-1" />
+                        <Skeleton className="h-3 w-32" />
+                    </div>
+                </div>
+                <Skeleton className="h-5 w-5" />
+            </div>
+
+            {/* KPIs Grid */}
+            <div className="grid grid-cols-3 gap-2 mb-3">
+                {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex flex-col items-center p-2 rounded-xl bg-white/50 dark:bg-white/5">
+                        <Skeleton className="h-5 w-10 mb-1" />
+                        <Skeleton className="h-3 w-12" />
+                    </div>
+                ))}
+            </div>
+
+            {/* Progress bar */}
+            <div className="mb-3">
+                <div className="flex justify-between mb-1">
+                    <Skeleton className="h-3 w-24" />
+                    <Skeleton className="h-3 w-8" />
+                </div>
+                <Skeleton className="h-2 w-full rounded-full" />
+            </div>
+
+            {/* Phrase */}
+            <Skeleton className="h-4 w-3/4 mx-auto mb-3" />
+
+            {/* CTA */}
+            <Skeleton className="h-10 w-full rounded-xl" />
+        </div>
+    );
+}
+
+export function FiscalizaVivo({ data, isLoading, hasError, className }: FiscalizaVivoProps) {
     const navigate = useNavigate();
     const haptic = useHaptic();
     const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
@@ -68,7 +122,12 @@ export function FiscalizaVivo({ data, className }: FiscalizaVivoProps) {
         }
     };
 
-    // KPIs
+    // Show skeleton while loading
+    if (isLoading) {
+        return <FiscalizaSkeleton className={className} />;
+    }
+
+    // KPIs (with fallbacks)
     const total = data?.total || 0;
     const resolvidos = data?.resolvidos || 0;
     const hoje = data?.hoje || 0;
@@ -78,13 +137,14 @@ export function FiscalizaVivo({ data, className }: FiscalizaVivoProps) {
         <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            whileTap={{ scale: 0.98 }}
+            whileTap={{ scale: 0.97 }}
             onClick={handleClick}
             className={cn(
                 'relative overflow-hidden rounded-2xl cursor-pointer',
                 'bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30',
                 'border border-orange-200/50 dark:border-orange-800/30',
                 'p-4',
+                hasError && 'opacity-75',
                 className
             )}
         >
@@ -164,9 +224,9 @@ export function FiscalizaVivo({ data, className }: FiscalizaVivoProps) {
             {/* CTA Button */}
             <motion.button
                 whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                whileTap={{ scale: 0.97 }}
                 onClick={handleNewReport}
-                className="mt-3 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-orange-500 text-white font-medium text-sm shadow-sm"
+                className="mt-3 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-orange-500 text-white font-medium text-sm shadow-sm min-h-[44px]"
             >
                 <MapPin className="h-4 w-4" />
                 Fazer uma denúncia
@@ -187,3 +247,4 @@ export function FiscalizaVivo({ data, className }: FiscalizaVivoProps) {
 }
 
 export default FiscalizaVivo;
+

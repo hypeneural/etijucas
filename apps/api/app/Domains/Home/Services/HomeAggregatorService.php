@@ -221,7 +221,7 @@ class HomeAggregatorService
     {
         return Cache::remember('home:user_stats', self::CACHE_TTL_STATS, function () {
             $total = User::count();
-            $verified = User::whereNotNull('email_verified_at')->count();
+            $verified = User::where('phone_verified', true)->count();
             $newToday = User::whereDate('created_at', Carbon::today())->count();
 
             // Calculate dynamic goal
@@ -374,7 +374,7 @@ class HomeAggregatorService
         $weekAgo = $today->copy()->subDays(7);
 
         $total = CitizenReport::count();
-        $resolvidos = CitizenReport::where('status', 'resolved')->count();
+        $resolvidos = CitizenReport::where('status', 'resolvido')->count();
         $hoje = CitizenReport::whereDate('created_at', $today)->count();
 
         $novasBairro = CitizenReport::when($bairroId, fn($q) => $q->where('bairro_id', $bairroId))
@@ -382,12 +382,12 @@ class HomeAggregatorService
             ->count();
 
         $resolvidasSemana = CitizenReport::when($bairroId, fn($q) => $q->where('bairro_id', $bairroId))
-            ->where('status', 'resolved')
+            ->where('status', 'resolvido')
             ->where('updated_at', '>=', $weekAgo)
             ->count();
 
         $pendentesBairro = CitizenReport::when($bairroId, fn($q) => $q->where('bairro_id', $bairroId))
-            ->whereIn('status', ['pending', 'in_progress'])
+            ->whereIn('status', ['recebido', 'em_analise'])
             ->count();
 
         // Dynamic phrases
