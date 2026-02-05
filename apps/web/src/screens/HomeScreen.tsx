@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback, useMemo } from 'react';
+import React, { useRef, useState, useCallback, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence, useSpring, useTransform } from 'framer-motion';
 import { RefreshCw } from 'lucide-react';
 
@@ -17,6 +17,7 @@ import QuickAccessGridVivo from '@/components/home/QuickAccessGridVivo';
 
 // Hooks & Store
 import { useHomeData } from '@/hooks/useHomeData';
+import { useCheckIn } from '@/hooks/useCheckIn';
 import { useAppStore } from '@/store/useAppStore';
 import { TabId } from '@/components/layout/BottomTabBar';
 import { useToast } from '@/hooks/use-toast';
@@ -25,6 +26,7 @@ import { hapticFeedback } from '@/hooks/useHaptics';
 import { useNavigate } from 'react-router-dom';
 import { EventListItem } from '@/types/events.api';
 import { AggregatorEventItem } from '@/types/home.types';
+import confetti from 'canvas-confetti';
 
 interface HomeScreenProps {
   scrollRef?: (el: HTMLDivElement | null) => void;
@@ -35,6 +37,17 @@ interface HomeScreenProps {
 const PULL_THRESHOLD = 80;
 const MAX_PULL_DISTANCE = 120;
 const RUBBER_BAND_FACTOR = 0.4;
+
+// Milestone confetti celebration
+const MILESTONES = [7, 14, 30, 60, 90];
+function celebrateMilestone(days: number) {
+  confetti({
+    particleCount: 100,
+    spread: 70,
+    origin: { y: 0.6 },
+    colors: ['#ff6b00', '#ffc107', '#4caf50'],
+  });
+}
 
 /**
  * Map aggregator events (snake_case) to EventListItem format (camelCase)
@@ -90,6 +103,50 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
     isLoading,
     isStale,
   } = useHomeData();
+
+  // ========================================
+  // Check-in Hook (daily streak)
+  // ========================================
+  const {
+    streak: checkInStreak,
+    checkIn,
+    justReachedMilestone,
+    clearMilestone,
+    isAuthenticated
+  } = useCheckIn();
+
+  // Get streak from aggregator meta (for logged-in users) or from check-in hook
+  const userStreak = useMemo(() => {
+    // Prefer aggregator data (already fetched), fallback to check-in hook
+    if (meta?.user?.streak) {
+      return meta.user.streak;
+    }
+    return checkInStreak ? {
+      current: checkInStreak.current,
+      longest: checkInStreak.longest,
+      checked_in_today: checkInStreak.checked_in_today,
+    } : null;
+  }, [meta?.user?.streak, checkInStreak]);
+
+  // Celebrate milestone with confetti
+  useEffect(() => {
+    if (justReachedMilestone && MILESTONES.includes(justReachedMilestone)) {
+      celebrateMilestone(justReachedMilestone);
+      toast({
+        title: `🔥 ${justReachedMilestone} dias seguidos!`,
+        description: 'Parabéns! Continue acompanhando Tijucas!',
+      });
+      clearMilestone();
+    }
+  }, [justReachedMilestone, clearMilestone, toast]);
+
+  // Handle "mark as read" on boletim - triggers check-in as micro-action
+  const handleBoletimRead = useCallback(() => {
+    if (isAuthenticated) {
+      checkIn(); // Micro-action: viewing boletim counts as engagement
+      hapticFeedback('success');
+    }
+  }, [isAuthenticated, checkIn]);
 
   // Extract alerts from aggregator
   const alertItems = blocks.alerts?.payload?.alerts || [];
@@ -272,9 +329,15 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
         {/* ========================================
             BOLETIM DO DIA - Daily Summary (O Gancho!)
             Always visible - shows skeleton when loading
+            With streak display for gamification
             ======================================== */}
         <div className="px-4 pt-2">
-          <BoletimDoDia data={blocks.boletim?.payload} isLoading={isLoading} />
+          <BoletimDoDia
+            data={blocks.boletim?.payload}
+            isLoading={isLoading}
+            streak={userStreak}
+            onMarkAsRead={handleBoletimRead}
+          />
         </div>
 
         {/* ========================================
