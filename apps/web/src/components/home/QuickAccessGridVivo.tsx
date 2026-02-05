@@ -58,7 +58,7 @@ const defaultItems: QuickAccessItem[] = [
     { id: 'telefones', label: 'Telefones', icon: 'phone', route: '/telefones', badge: null },
     { id: 'coleta', label: 'Coleta', icon: 'trash', route: '/coleta-lixo', badge: null },
     { id: 'fiscaliza', label: 'Fiscaliza', icon: 'alert-triangle', route: '/denuncias', badge: null },
-    { id: 'tempo', label: 'Tempo', icon: 'cloud-sun', route: '/tempo', badge: null },
+    { id: 'tempo', label: 'Tempo', icon: 'cloud-sun', route: '/previsao', badge: null },
     { id: 'forum', label: 'Fórum', icon: 'message-circle', route: '/forum', badge: null },
 ];
 

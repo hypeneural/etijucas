@@ -514,7 +514,7 @@ class HomeAggregatorService
                 'id' => 'tempo',
                 'label' => 'Tempo',
                 'icon' => 'cloud-sun',
-                'route' => '/tempo',
+                'route' => '/previsao',
                 'badge' => null,
             ],
             [

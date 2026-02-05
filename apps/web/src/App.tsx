@@ -160,6 +160,7 @@ const App = () => {
 
             {/* Previsão do Tempo */}
             <Route path="/previsao" element={<WeatherPage />} />
+            <Route path="/tempo" element={<Navigate to="/previsao" replace />} />
 
             {/* Catch-all - redirect to home */}
             <Route path="*" element={<Navigate to="/" replace />} />
