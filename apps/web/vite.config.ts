@@ -125,10 +125,22 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks: {
-          // Core vendor chunks
-          "vendor-react": ["react", "react-dom"],
-          // UI framework
-          "vendor-radix": [
+          // Core vendor (React + UI + State) - Combined to prevent Split React/Context issues
+          "vendor-core": [
+            "react",
+            "react-dom",
+            "react-router-dom",
+            "framer-motion",
+            "@tanstack/react-query",
+            "zustand",
+            "lucide-react",
+            "clsx",
+            "tailwind-merge",
+            "class-variance-authority",
+            "date-fns",
+          ],
+          // Radix UI (can be safely kept here or merged, merging into core is safer for Context)
+          "vendor-ui": [
             "@radix-ui/react-dialog",
             "@radix-ui/react-dropdown-menu",
             "@radix-ui/react-tabs",
@@ -147,20 +159,9 @@ export default defineConfig(({ mode }) => ({
             "@radix-ui/react-toast",
             "@radix-ui/react-toggle",
           ],
-          // Animation
-          "vendor-motion": ["framer-motion"],
-          // Data fetching
-          "vendor-query": ["@tanstack/react-query"],
-          // Charts (lazy loaded)
+          // Lazy loaded heavy libs
           "vendor-charts": ["recharts"],
-          // Utilities
-          "vendor-utils": [
-            "zustand",
-            "date-fns",
-            "clsx",
-            "tailwind-merge",
-            "class-variance-authority",
-          ],
+          "vendor-maps": ["leaflet", "react-leaflet"],
         },
       },
     },
