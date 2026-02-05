@@ -10,17 +10,17 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('user_streaks', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->foreignUuid('user_id')->unique()->constrained()->cascadeOnDelete();
-            $table->unsignedInteger('current_streak')->default(0);
-            $table->unsignedInteger('longest_streak')->default(0);
-            $table->unsignedInteger('total_check_ins')->default(0);
-            $table->timestamp('last_check_in_at')->nullable();
-            $table->timestamps();
-
-            $table->index(['user_id', 'last_check_in_at']);
-        });
+        if (!Schema::hasTable('user_streaks')) {
+            Schema::create('user_streaks', function (Blueprint $table) {
+                $table->id();
+                $table->foreignUuid('user_id')->unique()->constrained()->cascadeOnDelete();
+                $table->integer('current_streak')->default(0);
+                $table->integer('longest_streak')->default(0);
+                $table->timestamp('last_check_in_at')->nullable();
+                $table->integer('total_check_ins')->default(0);
+                $table->timestamps();
+            });
+        }
     }
 
     /**
