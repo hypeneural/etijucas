@@ -74,7 +74,7 @@ export default function MainLayout() {
                 navigate('/agenda');
                 break;
             case 'mais':
-                navigate('/telefones'); // Or default 'mais' screen if we keep it
+                navigate('/mais');
                 break;
         }
     };

@@ -19,6 +19,7 @@ import {
 import { cn } from '@/lib/utils';
 import { FiscalizaVivoPayload } from '@/types/home.types';
 import { useHaptic } from '@/hooks/useHaptic';
+import { useAuthStore } from '@/store/useAuthStore';
 
 interface FiscalizaVivoProps {
     data?: FiscalizaVivoPayload;
@@ -49,6 +50,8 @@ export function FiscalizaVivo({ data, className }: FiscalizaVivoProps) {
         return () => clearInterval(interval);
     }, [phrases.length]);
 
+    const { isAuthenticated } = useAuthStore();
+
     const handleClick = () => {
         haptic.trigger('light');
         navigate('/denuncias');
@@ -57,7 +60,12 @@ export function FiscalizaVivo({ data, className }: FiscalizaVivoProps) {
     const handleNewReport = (e: React.MouseEvent) => {
         e.stopPropagation();
         haptic.trigger('medium');
-        navigate('/denuncias/nova');
+
+        if (isAuthenticated) {
+            navigate('/denuncias/nova');
+        } else {
+            navigate('/denuncias');
+        }
     };
 
     // KPIs
