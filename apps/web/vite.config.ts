@@ -125,8 +125,10 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks: {
-          // Core vendor (React + UI + State) - Combined to prevent Split React/Context issues
-          "vendor-core": [
+          // MONOLITHIC VENDOR CHUNK
+          // We are merging all framework dependencies into a single chunk to GUARANTEE
+          // a singleton React instance. Previous granular splitting caused "Invalid Hook Call" (#310).
+          "vendor-app": [
             "react",
             "react-dom",
             "react-router-dom",
@@ -138,9 +140,6 @@ export default defineConfig(({ mode }) => ({
             "tailwind-merge",
             "class-variance-authority",
             "date-fns",
-          ],
-          // Radix UI (can be safely kept here or merged, merging into core is safer for Context)
-          "vendor-ui": [
             "@radix-ui/react-dialog",
             "@radix-ui/react-dropdown-menu",
             "@radix-ui/react-tabs",
@@ -159,9 +158,10 @@ export default defineConfig(({ mode }) => ({
             "@radix-ui/react-toast",
             "@radix-ui/react-toggle",
           ],
-          // Lazy loaded heavy libs
-          "vendor-charts": ["recharts"],
+          // Keep heavy, rarely used libs separate
           "vendor-maps": ["leaflet", "react-leaflet"],
+          "vendor-charts": ["recharts"],
+          "vendor-html2img": ["html-to-image", "html2canvas"],
         },
       },
     },
