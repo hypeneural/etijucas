@@ -187,7 +187,11 @@ export default function TourismHighlights({ onNavigate, data: externalData }: To
                   <div className="flex items-center gap-1 mb-2">
                     <div className="flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-amber-500 text-white">
                       <Star className="w-3 h-3 fill-current" />
-                      <span className="text-xs font-bold">{currentSpot.rating.toFixed(1)}</span>
+                      <span className="text-xs font-bold">
+                        {typeof currentSpot.rating === 'number'
+                          ? currentSpot.rating.toFixed(1)
+                          : Number(currentSpot.rating || 0).toFixed(1)}
+                      </span>
                     </div>
                     <span className="text-xs text-white/80">({currentSpot.reviewsCount} avaliações)</span>
                   </div>
