@@ -85,7 +85,7 @@ function StarRating({ rating, size = 'md', showValue = true }: {
       <div className="flex items-center gap-0.5">{stars}</div>
       {showValue && (
         <span className={`font-semibold ${size === 'lg' ? 'text-lg' : ''}`}>
-          {rating.toFixed(1)}
+          {Number(rating || 0).toFixed(1)}
         </span>
       )}
     </div>

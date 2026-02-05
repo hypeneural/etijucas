@@ -24,9 +24,9 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { useOfflineTourism } from '@/hooks/useOfflineTourism';
-import { 
-  TOURISM_CATEGORIES, 
-  TOURISM_SORT_OPTIONS, 
+import {
+  TOURISM_CATEGORIES,
+  TOURISM_SORT_OPTIONS,
   PRECO_LABELS,
   type TourismCategory,
   type TourismFilters,
@@ -41,9 +41,9 @@ function StarRating({ rating, size = 'sm' }: { rating: number; size?: 'sm' | 'md
   const stars = [];
   const fullStars = Math.floor(rating);
   const hasHalf = rating % 1 >= 0.5;
-  
+
   const starSize = size === 'sm' ? 'w-3 h-3' : 'w-4 h-4';
-  
+
   for (let i = 0; i < 5; i++) {
     if (i < fullStars) {
       stars.push(
@@ -53,8 +53,8 @@ function StarRating({ rating, size = 'sm' }: { rating: number; size?: 'sm' | 'md
       stars.push(
         <div key={i} className="relative">
           <Star className={`${starSize} text-gray-200`} />
-          <Star 
-            className={`${starSize} fill-yellow-400 text-yellow-400 absolute top-0 left-0`} 
+          <Star
+            className={`${starSize} fill-yellow-400 text-yellow-400 absolute top-0 left-0`}
             style={{ clipPath: 'inset(0 50% 0 0)' }}
           />
         </div>
@@ -65,24 +65,24 @@ function StarRating({ rating, size = 'sm' }: { rating: number; size?: 'sm' | 'md
       );
     }
   }
-  
+
   return <div className="flex items-center gap-0.5">{stars}</div>;
 }
 
 // Tourism spot card
-function SpotCard({ 
-  spot, 
-  onLike, 
+function SpotCard({
+  spot,
+  onLike,
   onSave,
-  onClick 
-}: { 
+  onClick
+}: {
   spot: import('@/types/tourism.types').TourismSpotEnhanced;
   onLike: () => void;
   onSave: () => void;
   onClick: () => void;
 }) {
   const category = TOURISM_CATEGORIES[spot.categoria];
-  
+
   return (
     <motion.div
       layout
@@ -101,16 +101,16 @@ function SpotCard({
           className="w-full h-full object-cover"
           loading="lazy"
         />
-        
+
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-        
+
         {/* Top badges */}
         <div className="absolute top-3 left-3 right-3 flex items-start justify-between">
           <Badge className={`${category?.color} text-xs`}>
             {category?.icon} {category?.label}
           </Badge>
-          
+
           <div className="flex gap-2">
             {spot.isVerificado && (
               <div className="bg-white/90 backdrop-blur rounded-full p-1.5">
@@ -122,13 +122,13 @@ function SpotCard({
               onClick={(e) => { e.stopPropagation(); onSave(); }}
               className="bg-white/90 backdrop-blur rounded-full p-1.5"
             >
-              <Bookmark 
-                className={`w-4 h-4 ${spot.isSaved ? 'fill-primary text-primary' : 'text-gray-600'}`} 
+              <Bookmark
+                className={`w-4 h-4 ${spot.isSaved ? 'fill-primary text-primary' : 'text-gray-600'}`}
               />
             </motion.button>
           </div>
         </div>
-        
+
         {/* Bottom info overlay */}
         <div className="absolute bottom-3 left-3 right-3">
           <h3 className="text-white font-bold text-lg line-clamp-1 mb-1">
@@ -140,30 +140,30 @@ function SpotCard({
           </div>
         </div>
       </div>
-      
+
       {/* Content */}
       <div className="p-4">
         <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
           {spot.descCurta}
         </p>
-        
+
         {/* Rating and stats row */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <StarRating rating={spot.rating} />
-            <span className="text-sm font-medium">{spot.rating.toFixed(1)}</span>
+            <span className="text-sm font-medium">{Number(spot.rating || 0).toFixed(1)}</span>
             <span className="text-xs text-muted-foreground">
               ({spot.reviewsCount} avaliações)
             </span>
           </div>
         </div>
-        
+
         {/* Tags */}
         {spot.tags.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-3">
             {spot.tags.slice(0, 3).map(tag => (
-              <span 
-                key={tag} 
+              <span
+                key={tag}
                 className="text-xs px-2 py-0.5 bg-muted rounded-full text-muted-foreground"
               >
                 {tag}
@@ -176,7 +176,7 @@ function SpotCard({
             )}
           </div>
         )}
-        
+
         {/* Footer actions */}
         <div className="flex items-center justify-between mt-4 pt-3 border-t border-border">
           <div className="flex items-center gap-4">
@@ -185,20 +185,20 @@ function SpotCard({
               onClick={(e) => { e.stopPropagation(); onLike(); }}
               className="flex items-center gap-1.5 text-sm"
             >
-              <Heart 
-                className={`w-4 h-4 ${spot.liked ? 'fill-accent text-accent' : 'text-muted-foreground'}`} 
+              <Heart
+                className={`w-4 h-4 ${spot.liked ? 'fill-accent text-accent' : 'text-muted-foreground'}`}
               />
               <span className={spot.liked ? 'text-accent' : 'text-muted-foreground'}>
                 {spot.likesCount}
               </span>
             </motion.button>
-            
+
             <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
               <MessageCircle className="w-4 h-4" />
               <span>{spot.reviewsCount}</span>
             </div>
           </div>
-          
+
           {spot.preco && (
             <span className="text-xs font-medium text-secondary">
               {PRECO_LABELS[spot.preco]?.label}
@@ -228,19 +228,19 @@ function SpotCardSkeleton() {
 }
 
 // Category filter chip
-function CategoryChip({ 
-  category, 
-  isActive, 
-  onClick 
-}: { 
+function CategoryChip({
+  category,
+  isActive,
+  onClick
+}: {
   category: TourismCategory | 'todos';
   isActive: boolean;
   onClick: () => void;
 }) {
-  const info = category === 'todos' 
+  const info = category === 'todos'
     ? { icon: '🗺️', label: 'Todos', color: 'bg-primary/10 text-primary' }
     : TOURISM_CATEGORIES[category];
-    
+
   return (
     <motion.button
       whileTap={{ scale: 0.95 }}
@@ -248,8 +248,8 @@ function CategoryChip({
       className={`
         flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium whitespace-nowrap
         transition-colors
-        ${isActive 
-          ? 'bg-primary text-primary-foreground' 
+        ${isActive
+          ? 'bg-primary text-primary-foreground'
           : 'bg-card text-foreground border border-border'
         }
       `}
@@ -261,8 +261,8 @@ function CategoryChip({
 }
 
 // Filters sheet
-function FiltersSheet({ 
-  filters, 
+function FiltersSheet({
+  filters,
   onChange,
   usedCategories,
   allTags,
@@ -298,7 +298,7 @@ function FiltersSheet({
         <SheetHeader>
           <SheetTitle>Filtros</SheetTitle>
         </SheetHeader>
-        
+
         <ScrollArea className="h-[calc(100%-120px)] mt-4">
           <div className="space-y-6 pb-4">
             {/* Sort */}
@@ -317,7 +317,7 @@ function FiltersSheet({
                 ))}
               </div>
             </div>
-            
+
             {/* Rating */}
             <div>
               <h4 className="font-medium mb-3">Avaliação mínima</h4>
@@ -327,9 +327,9 @@ function FiltersSheet({
                     key={r}
                     variant={localFilters.rating === r ? 'default' : 'outline'}
                     size="sm"
-                    onClick={() => setLocalFilters(f => ({ 
-                      ...f, 
-                      rating: f.rating === r ? undefined : r 
+                    onClick={() => setLocalFilters(f => ({
+                      ...f,
+                      rating: f.rating === r ? undefined : r
                     }))}
                     className="flex items-center gap-1"
                   >
@@ -339,7 +339,7 @@ function FiltersSheet({
                 ))}
               </div>
             </div>
-            
+
             {/* Price */}
             <div>
               <h4 className="font-medium mb-3">Preço</h4>
@@ -349,9 +349,9 @@ function FiltersSheet({
                     key={key}
                     variant={localFilters.preco === key ? 'default' : 'outline'}
                     size="sm"
-                    onClick={() => setLocalFilters(f => ({ 
-                      ...f, 
-                      preco: f.preco === key ? undefined : key 
+                    onClick={() => setLocalFilters(f => ({
+                      ...f,
+                      preco: f.preco === key ? undefined : key
                     }))}
                   >
                     {val.icon} {val.label}
@@ -359,7 +359,7 @@ function FiltersSheet({
                 ))}
               </div>
             </div>
-            
+
             {/* Tags */}
             <div>
               <h4 className="font-medium mb-3">Tags</h4>
@@ -384,7 +384,7 @@ function FiltersSheet({
             </div>
           </div>
         </ScrollArea>
-        
+
         {/* Action buttons */}
         <div className="flex gap-3 pt-4 border-t border-border">
           <Button variant="outline" className="flex-1" onClick={handleReset}>
@@ -421,13 +421,13 @@ export default function TourismScreen({ scrollRef }: TourismScreenProps) {
     search: searchQuery || undefined,
   }), [filters, selectedCategory, searchQuery]);
 
-  const { 
-    spots, 
+  const {
+    spots,
     featuredSpots,
     usedCategories,
     allTags,
-    isLoading, 
-    likeSpot, 
+    isLoading,
+    likeSpot,
     saveSpot,
     isOnline,
   } = useOfflineTourism(combinedFilters);
@@ -463,7 +463,7 @@ export default function TourismScreen({ scrollRef }: TourismScreenProps) {
               </Badge>
             )}
           </div>
-          
+
           {/* Search bar */}
           <div className="flex gap-2">
             <div className="relative flex-1">
@@ -485,7 +485,7 @@ export default function TourismScreen({ scrollRef }: TourismScreenProps) {
                 </button>
               )}
             </div>
-            <FiltersSheet 
+            <FiltersSheet
               filters={filters}
               onChange={setFilters}
               usedCategories={usedCategories}
@@ -493,7 +493,7 @@ export default function TourismScreen({ scrollRef }: TourismScreenProps) {
             />
           </div>
         </div>
-        
+
         {/* Category chips */}
         <ScrollArea className="px-4 pb-3">
           <div className="flex gap-2">
@@ -509,7 +509,7 @@ export default function TourismScreen({ scrollRef }: TourismScreenProps) {
           <ScrollBar orientation="horizontal" />
         </ScrollArea>
       </div>
-      
+
       {/* Content */}
       <div className="px-4 pb-24 mt-4">
         {/* Featured section (only when no filters) */}
@@ -540,7 +540,7 @@ export default function TourismScreen({ scrollRef }: TourismScreenProps) {
                         <div className="flex items-center gap-2 mt-1">
                           <StarRating rating={spot.rating} />
                           <span className="text-white/80 text-xs">
-                            {spot.rating.toFixed(1)} ({spot.reviewsCount})
+                            {Number(spot.rating || 0).toFixed(1)} ({spot.reviewsCount})
                           </span>
                         </div>
                       </div>
@@ -552,7 +552,7 @@ export default function TourismScreen({ scrollRef }: TourismScreenProps) {
             </ScrollArea>
           </div>
         )}
-        
+
         {/* Results count */}
         {!isLoading && (
           <div className="flex items-center justify-between mb-4">
@@ -561,7 +561,7 @@ export default function TourismScreen({ scrollRef }: TourismScreenProps) {
             </p>
           </div>
         )}
-        
+
         {/* Spots grid */}
         <AnimatePresence mode="popLayout">
           {isLoading ? (

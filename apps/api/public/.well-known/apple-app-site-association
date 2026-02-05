@@ -1,0 +1,11 @@
+{
+    "applinks": {
+        "apps": [],
+        "details": [
+            {
+                "appID": "TEAMID.br.com.tijucas.app",
+                "paths": [ "/events/*", "/reports/*", "/forum/*", "/tourism/*" ]
+            }
+        ]
+    }
+}
