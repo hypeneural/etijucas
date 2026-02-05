@@ -19,6 +19,7 @@ import {
 import { cn } from '@/lib/utils';
 import { ForumVivoPayload } from '@/types/home.types';
 import { useHaptic } from '@/hooks/useHaptic';
+import { useAuthStore } from '@/store/useAuthStore';
 
 interface BocaNoTromboneVivoProps {
     data?: ForumVivoPayload;
@@ -30,6 +31,8 @@ export function BocaNoTromboneVivo({ data, className }: BocaNoTromboneVivoProps)
     const navigate = useNavigate();
     const haptic = useHaptic();
 
+    const { isAuthenticated } = useAuthStore();
+
     const handleClick = () => {
         haptic.light();
         navigate('/forum');
@@ -38,7 +41,12 @@ export function BocaNoTromboneVivo({ data, className }: BocaNoTromboneVivoProps)
     const handleNewTopic = (e: React.MouseEvent) => {
         e.stopPropagation();
         haptic.medium();
-        navigate('/forum/novo');
+
+        if (isAuthenticated) {
+            navigate('/forum/novo');
+        } else {
+            navigate('/forum');
+        }
     };
 
     const handleTopTopic = (e: React.MouseEvent) => {
