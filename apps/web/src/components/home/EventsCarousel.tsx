@@ -13,9 +13,14 @@ import { useEvents } from '@/hooks/queries/useEventsApi';
 import { addDays, isWithinInterval, parseISO, startOfDay, endOfDay } from 'date-fns';
 import { cn } from '@/lib/utils';
 
+// ... imports
+// ... imports
+import { EventListItem } from '@/types/events.api';
+
 interface EventsCarouselProps {
     onNavigate: (tab: TabId) => void;
     onEventClick?: (eventId: string) => void;
+    data?: EventListItem[]; // New prop for external data
 }
 
 // Gradient colors for event cards - more vibrant
@@ -30,17 +35,18 @@ const cardGradients = [
 export default function EventsCarousel({
     onNavigate,
     onEventClick,
+    data: externalEvents,
 }: EventsCarouselProps) {
     const containerRef = useRef<HTMLDivElement>(null);
 
-    // Fetch events from real API
+    // Fetch events from real API only if data prop is not provided
     const { data: eventsResponse, isLoading } = useEvents({
         perPage: 15,
         orderBy: 'startDateTime',
         order: 'asc',
-    });
+    }, !externalEvents);
 
-    const events = eventsResponse?.data ?? [];
+    const events = externalEvents ?? eventsResponse?.data ?? [];
 
     // Calculate events count for this week (next 7 days)
     const weekEventsCount = useMemo(() => {
@@ -105,7 +111,7 @@ export default function EventsCarousel({
         onEventClick?.(eventId);
     };
 
-    if (isLoading) {
+    if (isLoading && !externalEvents) {
         return (
             <div className="py-5">
                 <div className="flex items-center justify-between px-4 mb-4">
@@ -207,18 +213,13 @@ export default function EventsCarousel({
                 </div>
             </div>
 
-            {/* Horizontal scroll container */}
+            {/* Horizontal scroll container with Native Scroll Snap */}
             <div
                 ref={containerRef}
-                className="overflow-x-auto scrollbar-hide"
+                className="overflow-x-auto overflow-y-hidden scrollbar-hide touch-pan-x snap-x snap-mandatory"
+                style={{ WebkitOverflowScrolling: 'touch' }}
             >
-                <motion.div
-                    className="flex gap-3 px-4 pb-2"
-                    drag="x"
-                    dragConstraints={containerRef}
-                    dragElastic={0.1}
-                    onDragStart={() => hapticFeedback('selection')}
-                >
+                <div className="flex gap-4 px-4 pb-4">
                     {events.slice(0, 10).map((event, index) => (
                         <motion.button
                             key={event.id}
@@ -228,8 +229,8 @@ export default function EventsCarousel({
                             whileTap={{ scale: 0.97 }}
                             onClick={() => handleEventTap(event.id)}
                             className={cn(
-                                "flex-shrink-0 w-72 h-36 rounded-2xl p-4 text-white text-left overflow-hidden relative group",
-                                "bg-gradient-to-br shadow-lg",
+                                "snap-start flex-shrink-0 w-80 h-40 rounded-3xl p-5 text-white text-left overflow-hidden relative group",
+                                "bg-gradient-to-br shadow-xl shadow-muted/20",
                                 cardGradients[index % cardGradients.length]
                             )}
                         >
@@ -238,13 +239,13 @@ export default function EventsCarousel({
 
                             {/* Background decorative elements */}
                             <div className="absolute inset-0 overflow-hidden opacity-20">
-                                <div className="absolute -top-6 -right-6 w-28 h-28 rounded-full bg-white/30 blur-xl" />
-                                <div className="absolute -bottom-10 -left-10 w-36 h-36 rounded-full bg-white/20 blur-2xl" />
+                                <div className="absolute -top-6 -right-6 w-32 h-32 rounded-full bg-white/30 blur-xl" />
+                                <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-white/20 blur-2xl" />
                             </div>
 
                             {/* Free badge */}
                             {event.ticket?.type === 'free' && (
-                                <div className="absolute top-3 right-3 px-2 py-0.5 bg-white/25 backdrop-blur-sm rounded-full text-[10px] font-bold uppercase tracking-wide">
+                                <div className="absolute top-4 right-4 px-2.5 py-1 bg-white/25 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-wide border border-white/20 shadow-sm">
                                     Grátis
                                 </div>
                             )}
@@ -252,21 +253,24 @@ export default function EventsCarousel({
                             {/* Content */}
                             <div className="relative z-10 h-full flex flex-col justify-between">
                                 <div>
-                                    <div className="flex items-center gap-2 text-xs opacity-90">
-                                        <Calendar className="w-3.5 h-3.5" />
-                                        <span className="font-medium">{formatEventDate(event.startDateTime)}</span>
-                                        <span className="opacity-60">•</span>
-                                        <Clock className="w-3.5 h-3.5" />
-                                        <span>{formatTime(event.startDateTime)}</span>
+                                    <div className="flex items-center gap-2 text-xs opacity-90 mb-2">
+                                        <div className="flex items-center gap-1 bg-black/10 px-2 py-0.5 rounded-full backdrop-blur-[2px]">
+                                            <Calendar className="w-3 h-3" />
+                                            <span className="font-medium">{formatEventDate(event.startDateTime)}</span>
+                                        </div>
+                                        <div className="flex items-center gap-1 bg-black/10 px-2 py-0.5 rounded-full backdrop-blur-[2px]">
+                                            <Clock className="w-3 h-3" />
+                                            <span>{formatTime(event.startDateTime)}</span>
+                                        </div>
                                     </div>
-                                    <h3 className="font-bold mt-2 line-clamp-2 leading-snug text-[15px]">
+                                    <h3 className="font-bold text-lg leading-tight line-clamp-2 drop-shadow-sm pr-12">
                                         {event.title}
                                     </h3>
                                 </div>
 
-                                <div className="flex items-center gap-1.5 text-xs opacity-80">
+                                <div className="flex items-center gap-1.5 text-xs opacity-90">
                                     <MapPin className="w-3.5 h-3.5 shrink-0" />
-                                    <span className="truncate">
+                                    <span className="truncate font-medium">
                                         {event.venue?.name ?? 'Tijucas'}
                                         {event.venue?.bairro?.nome && ` • ${event.venue.bairro.nome}`}
                                     </span>
@@ -286,18 +290,18 @@ export default function EventsCarousel({
                             onNavigate('agenda');
                         }}
                         className={cn(
-                            "flex-shrink-0 w-36 h-36 rounded-2xl",
-                            "bg-gradient-to-br from-muted/80 to-muted border-2 border-dashed border-primary/30",
+                            "snap-start flex-shrink-0 w-36 h-40 rounded-3xl",
+                            "bg-muted/50 border-2 border-dashed border-muted-foreground/20",
                             "flex flex-col items-center justify-center gap-3",
-                            "text-primary hover:border-primary/50 transition-colors"
+                            "text-muted-foreground hover:text-primary hover:border-primary/50 transition-all"
                         )}
                     >
-                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                        <div className="w-12 h-12 rounded-full bg-background shadow-sm flex items-center justify-center text-primary">
                             <Calendar className="w-6 h-6" />
                         </div>
                         <span className="text-sm font-semibold">Ver agenda</span>
                     </motion.button>
-                </motion.div>
+                </div>
             </div>
         </div>
     );
