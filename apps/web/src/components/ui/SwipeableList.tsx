@@ -1,5 +1,5 @@
+// Simplified version for debugging Error #310
 import React from "react";
-import { motion, PanInfo, useAnimation } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 interface SwipeableItemProps {
@@ -15,57 +15,12 @@ interface SwipeableItemProps {
 
 export const SwipeableItem: React.FC<SwipeableItemProps> = ({
     children,
-    onSwipeRight,
-    onSwipeLeft,
-    rightActionColor = "bg-red-500",
-    leftActionColor = "bg-blue-500",
-    rightIcon = "delete",
-    leftIcon = "search",
     className,
 }) => {
-    const controls = useAnimation();
-
-    const handleDragEnd = async (event: any, info: PanInfo) => {
-        const threshold = 100;
-        if (info.offset.x < -threshold && onSwipeRight) {
-            await controls.start({ x: -500, opacity: 0, transition: { duration: 0.2 } });
-            onSwipeRight();
-        } else if (info.offset.x > threshold && onSwipeLeft) {
-            // For left action (e.g. search), we might not want to disappear, just trigger
-            // await controls.start({ x: 500, opacity: 0 }); 
-            // or just bounce back
-            onSwipeLeft();
-            controls.start({ x: 0 });
-        } else {
-            controls.start({ x: 0 });
-        }
-    };
-
     return (
-        <div className={cn("relative overflow-hidden rounded-xl", className)}>
-            {/* Background Actions */}
-            <div className="absolute inset-0 flex items-center justify-between pointer-events-none">
-                {/* Left Action Background */}
-                <div className={cn("h-full w-full flex items-center pl-4 justify-start", leftActionColor)}>
-                    <span className="material-symbols-outlined text-white">{leftIcon}</span>
-                </div>
-                {/* Right Action Background - Overlaying? No, we need separate layers or just one backing */}
-            </div>
-            <div className={cn("absolute inset-0 flex items-center justify-end pr-4 pointer-events-none", rightActionColor)}>
-                <span className="material-symbols-outlined text-white">{rightIcon}</span>
-            </div>
-
-            {/* Foreground Content */}
-            <motion.div
-                drag="x"
-                dragConstraints={{ left: 0, right: 0 }}
-                dragElastic={0.5}
-                onDragEnd={handleDragEnd}
-                animate={controls}
-                className="relative bg-[#1e293b] z-10"
-            >
-                {children}
-            </motion.div>
+        <div className={cn("relative overflow-hidden rounded-xl bg-[#1e293b]", className)}>
+            {children}
         </div>
     );
 };
+
