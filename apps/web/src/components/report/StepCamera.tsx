@@ -780,7 +780,7 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
                     <Button
                         variant="outline"
                         size="lg"
-                        className="h-14 rounded-2xl flex-1 text-base"
+                        className="h-12 rounded-xl flex-1 text-base"
                         onClick={() => {
                             stopCamera();
                             onBack();
@@ -790,7 +790,7 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
                     </Button>
                     <Button
                         size="lg"
-                        className="h-14 rounded-2xl flex-[2] text-base font-semibold"
+                        className="h-12 rounded-xl flex-[2] text-base font-semibold"
                         onClick={() => {
                             stopCamera();
                             onNext();

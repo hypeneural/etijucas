@@ -93,14 +93,6 @@ export function WizardProgress({ currentStep, totalSteps, labels }: WizardProgre
                 />
             </div>
 
-            {/* Spacer to account for absolute positioning */}
-            <div className="h-4" />
-
-            {/* Current step indicator text */}
-            <div className="flex items-center justify-center gap-2 text-sm">
-                <span className="font-semibold text-primary">Etapa {currentStep}</span>
-                <span className="text-muted-foreground">de {totalSteps}</span>
-            </div>
         </div>
     );
 }

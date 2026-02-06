@@ -86,9 +86,13 @@ export async function createReport(
             },
         });
 
-        // Cache to IndexedDB
+        // Cache to IndexedDB (non-blocking)
         if (response.data) {
-            await reportsDB.save(response.data as unknown as import('@/types').Report);
+            try {
+                await reportsDB.save(response.data as unknown as import('@/types').Report);
+            } catch (cacheErr) {
+                console.warn('[ReportService] Failed to cache report to IndexedDB:', cacheErr);
+            }
         }
 
         return response.data;
@@ -151,11 +155,15 @@ export async function getMyReports(
 
         const response = await apiClient.get<MyReportsResponse>(url);
 
-        // Cache to IndexedDB
+        // Cache to IndexedDB (non-blocking)
         if (response.data.length > 0) {
-            await reportsDB.saveMany(
-                response.data as unknown as import('@/types').Report[]
-            );
+            try {
+                await reportsDB.saveMany(
+                    response.data as unknown as import('@/types').Report[]
+                );
+            } catch (cacheErr) {
+                console.warn('[ReportService] Failed to cache reports to IndexedDB:', cacheErr);
+            }
         }
 
         return response;
@@ -257,8 +265,12 @@ export async function getReportById(id: string): Promise<CitizenReport | null> {
             data: CitizenReport;
         }>(ENDPOINTS.reports.get(id));
 
-        // Cache to IndexedDB
-        await reportsDB.save(response.data as unknown as import('@/types').Report);
+        // Cache to IndexedDB (non-blocking)
+        try {
+            await reportsDB.save(response.data as unknown as import('@/types').Report);
+        } catch (cacheErr) {
+            console.warn('[ReportService] Failed to cache report to IndexedDB:', cacheErr);
+        }
 
         return response.data;
     } catch (error) {

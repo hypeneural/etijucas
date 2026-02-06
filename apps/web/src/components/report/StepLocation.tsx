@@ -459,7 +459,7 @@ export function StepLocation({ draft, onUpdate, onNext, onBack }: StepLocationPr
                         <Button
                             size="lg"
                             onClick={requestLocation}
-                            className="h-14 px-8 rounded-2xl"
+                            className="h-12 px-8 rounded-xl"
                         >
                             <Navigation className="h-5 w-5 mr-2" />
                             Usar minha localização
@@ -576,7 +576,7 @@ export function StepLocation({ draft, onUpdate, onNext, onBack }: StepLocationPr
                     <Button
                         variant="outline"
                         size="lg"
-                        className="h-14 rounded-2xl flex-1 text-base"
+                        className="h-12 rounded-xl flex-1 text-base"
                         onClick={onBack}
                     >
                         Voltar
@@ -584,7 +584,7 @@ export function StepLocation({ draft, onUpdate, onNext, onBack }: StepLocationPr
                     <Button
                         size="lg"
                         className={cn(
-                            "h-14 rounded-2xl flex-[2] text-base font-semibold",
+                            "h-12 rounded-xl flex-[2] text-base font-semibold",
                             !canContinue && "opacity-50"
                         )}
                         disabled={!canContinue}
