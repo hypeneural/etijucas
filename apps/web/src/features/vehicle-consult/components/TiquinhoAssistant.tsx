@@ -28,16 +28,11 @@ const MESSAGES: Record<TiquinhoState, string> = {
     ocr_success: "Placa identificada! Confere se está certa 👆",
 };
 
-// Get base URL from environment or default to production
-const getBaseUrl = () => {
-    if (typeof window !== 'undefined') {
-        return window.location.origin;
-    }
-    return 'https://etijucas.com.br';
-};
+// Import local avatar image
+import tiquinhoImg from "@/assets/tiquinho.jpg";
 
-// Avatar image with absolute URL
-const TIQUINHO_AVATAR = `${getBaseUrl()}/app/images/tiquinho.jpg`;
+// Avatar image source
+const TIQUINHO_AVATAR = tiquinhoImg;
 
 // Typing animation hook
 function useTypingEffect(text: string, speed: number = 35) {

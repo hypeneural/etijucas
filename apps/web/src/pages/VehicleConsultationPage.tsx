@@ -485,7 +485,7 @@ const VehicleConsultationPage: React.FC = () => {
                                     ) : (
                                         <>
                                             <Search className="w-5 h-5" />
-                                            Ver dados do veículo
+                                            Ver dados do Veículo
                                         </>
                                     )}
                                 </button>
