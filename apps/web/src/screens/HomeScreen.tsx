@@ -83,12 +83,28 @@ function mapAggregatorEventsToEventListItems(events: AggregatorEventItem[]): Eve
 }
 
 export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
+  // DEBUG: Track hook execution order
+  console.log('[HomeScreen] DEBUG: Starting render');
+
+  console.log('[HomeScreen] DEBUG: Hook 1 - useRef containerRef');
   const containerRef = useRef<HTMLDivElement>(null);
+
+  console.log('[HomeScreen] DEBUG: Hook 2 - useRef startYRef');
   const startYRef = useRef(0);
+
+  console.log('[HomeScreen] DEBUG: Hook 3 - useNavigate');
   const navigate = useNavigate();
+
+  console.log('[HomeScreen] DEBUG: Hook 4 - useAppStore');
   const { isRefreshing, setIsRefreshing, selectedBairro } = useAppStore();
+
+  console.log('[HomeScreen] DEBUG: Hook 5 - useToast');
   const { toast } = useToast();
+
+  console.log('[HomeScreen] DEBUG: Hook 6 - useState isPulling');
   const [isPulling, setIsPulling] = useState(false);
+
+  console.log('[HomeScreen] DEBUG: Hook 7 - useState hasTriggered');
   const [hasTriggered, setHasTriggered] = useState(false);
 
   // Default navigation handler if prop not provided
@@ -99,6 +115,7 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
   // ========================================
   // Home Aggregator Hook
   // ========================================
+  console.log('[HomeScreen] DEBUG: Hook 8 - useHomeData');
   const {
     blocks,
     meta,
@@ -111,6 +128,7 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
   } = useHomeData();
 
   // Debug: Log error in console for developers
+  console.log('[HomeScreen] DEBUG: Hook 9 - useEffect (error logging)');
   useEffect(() => {
     if (isError) {
       console.error('[HomeScreen] Home data error:', error, failureReason);
@@ -120,6 +138,7 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
   // ========================================
   // Check-in Hook (daily streak)
   // ========================================
+  console.log('[HomeScreen] DEBUG: Hook 10 - useCheckIn');
   const {
     streak: checkInStreak,
     checkIn,
@@ -130,6 +149,7 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
 
   // Get streak from aggregator meta (for logged-in users) or from check-in hook
   // Maps to BoletimDoDia's StreakData interface (current, longest, checked_in_today)
+  console.log('[HomeScreen] DEBUG: Hook 11 - useMemo userStreak');
   const userStreak = useMemo(() => {
     // Prefer aggregator data (already fetched), fallback to check-in hook
     if (meta?.user?.streak) {
@@ -148,6 +168,7 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
   }, [meta?.user?.streak, checkInStreak]);
 
   // Celebrate milestone with confetti
+  console.log('[HomeScreen] DEBUG: Hook 12 - useEffect (milestone celebration)');
   useEffect(() => {
     if (justReachedMilestone && MILESTONES.includes(justReachedMilestone)) {
       celebrateMilestone(justReachedMilestone);
@@ -160,6 +181,7 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
   }, [justReachedMilestone, clearMilestone, toast]);
 
   // Handle "mark as read" on boletim - triggers check-in as micro-action
+  console.log('[HomeScreen] DEBUG: Hook 13 - useCallback handleBoletimRead');
   const handleBoletimRead = useCallback(() => {
     if (isAuthenticated) {
       checkIn(); // Micro-action: viewing boletim counts as engagement
@@ -171,6 +193,7 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
   const alertItems = blocks.alerts?.payload?.alerts || [];
 
   // Map aggregator events to EventListItem format for carousel
+  console.log('[HomeScreen] DEBUG: Hook 14 - useMemo aggregatorEvents');
   const aggregatorEvents = useMemo(() => {
     const events = blocks.events?.payload?.events;
     if (!events || events.length === 0) return undefined;
@@ -178,16 +201,19 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
   }, [blocks.events]);
 
   // Extract tourism data for carousel
+  console.log('[HomeScreen] DEBUG: Hook 15 - useMemo aggregatorTourism');
   const aggregatorTourism = useMemo(() => {
     return blocks.tourism?.payload?.spots;
   }, [blocks.tourism]);
 
   // Check if specific blocks had errors
+  console.log('[HomeScreen] DEBUG: Hook 16 - useCallback hasBlockError');
   const hasBlockError = useCallback((blockName: string) => {
     return meta?.errors?.includes(blockName) ?? false;
   }, [meta?.errors]);
 
   // Compute "Near You" items from aggregator blocks
+  console.log('[HomeScreen] DEBUG: Hook 17 - useMemo nearYouItems');
   const nearYouItems = useMemo(() => {
     const items: Array<{
       type: 'fiscaliza' | 'evento' | 'alerta';
@@ -237,11 +263,13 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
   }, [blocks.fiscaliza, blocks.events, alertItems.length]);
 
   // Simple pull distance state for CSS-based animation
+  console.log('[HomeScreen] DEBUG: Hook 18 - useState pullDistance');
   const [pullDistance, setPullDistance] = useState(0);
 
   // ========================================
   // Pull to Refresh - Connected to aggregator
   // ========================================
+  console.log('[HomeScreen] DEBUG: Hook 19 - useCallback handleRefresh');
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     hapticFeedback('success');
@@ -258,6 +286,7 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
     });
   }, [setIsRefreshing, toast, refreshHomeData]);
 
+  console.log('[HomeScreen] DEBUG: Hook 20 - useCallback handleTouchStart');
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (containerRef.current?.scrollTop === 0 && !isRefreshing) {
       startYRef.current = e.touches[0].clientY;
@@ -266,6 +295,7 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
     }
   }, [isRefreshing]);
 
+  console.log('[HomeScreen] DEBUG: Hook 21 - useCallback handleTouchMove');
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (!isPulling || isRefreshing) return;
     if (containerRef.current && containerRef.current.scrollTop > 0) {
@@ -290,6 +320,7 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
     }
   }, [isPulling, isRefreshing, hasTriggered]);
 
+  console.log('[HomeScreen] DEBUG: Hook 22 - useCallback handleTouchEnd');
   const handleTouchEnd = useCallback(() => {
     if (!isPulling) return;
 
@@ -304,11 +335,14 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
   }, [isPulling, pullDistance, isRefreshing, handleRefresh]);
 
   // Reset pull distance when refreshing stops
+  console.log('[HomeScreen] DEBUG: Hook 23 - useEffect (reset pull distance)');
   useEffect(() => {
     if (!isRefreshing) {
       setPullDistance(0);
     }
   }, [isRefreshing]);
+
+  console.log('[HomeScreen] DEBUG: ✅ All 23 hooks completed successfully!');
 
   return (
     <div
