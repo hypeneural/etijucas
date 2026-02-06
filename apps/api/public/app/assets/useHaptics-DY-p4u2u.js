@@ -1,1 +1,0 @@
-import"./vendor-app-CVYGrm5O.js";const r={light:10,medium:25,heavy:50,success:[10,50,10],warning:[30,50,30],error:[50,100,50,100,50],selection:5};function n(t="light"){if(typeof navigator>"u"||!("vibrate"in navigator))return!1;try{const e=r[t];return navigator.vibrate(e),!0}catch{return!1}}export{n as h};

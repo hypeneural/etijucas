@@ -12,7 +12,6 @@ import { AlertTotem } from '@/components/home/AlertTotem';
 import { BoletimDoDia } from '@/components/home/BoletimDoDia';
 import { FiscalizaVivo } from '@/components/home/FiscalizaVivo';
 import { BocaNoTromboneVivo } from '@/components/home/BocaNoTromboneVivo';
-import { TijucanosCounter } from '@/components/home/TijucanosCounter';
 import QuickAccessGridVivo from '@/components/home/QuickAccessGridVivo';
 import { NearYouBento } from '@/components/home/NearYouBento';
 import { HojeShareCard } from '@/components/home/HojeShareCard';
@@ -519,14 +518,6 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
             newToday={blocks.stats.payload.new_today}
           />
         )}
-
-        {/* ========================================
-            TIJUCANOS COUNTER - Gamification Footer
-            Always visible - shows skeleton when loading
-            ======================================== */}
-        <div className="px-4">
-          <TijucanosCounter data={blocks.stats?.payload} isLoading={isLoading} />
-        </div>
       </div>
     </div>
   );

@@ -124,7 +124,7 @@ export function FiscalizaVivo({ data, isLoading, hasError, className }: Fiscaliz
         haptic.trigger('medium');
 
         if (isAuthenticated) {
-            navigate('/denuncias/nova');
+            navigate('/denuncia/nova');
         } else {
             navigate('/denuncias');
         }

@@ -19,7 +19,6 @@ import {
 import { cn } from '@/lib/utils';
 import { ForumVivoPayload } from '@/types/home.types';
 import { useHaptic } from '@/hooks/useHaptic';
-import { useAuthStore } from '@/store/useAuthStore';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface BocaNoTromboneVivoProps {
@@ -83,8 +82,6 @@ export function BocaNoTromboneVivo({ data, isLoading, hasError, className }: Boc
     const navigate = useNavigate();
     const haptic = useHaptic();
 
-    const { isAuthenticated } = useAuthStore();
-
     const handleClick = () => {
         haptic.light();
         navigate('/forum');
@@ -93,12 +90,8 @@ export function BocaNoTromboneVivo({ data, isLoading, hasError, className }: Boc
     const handleNewTopic = (e: React.MouseEvent) => {
         e.stopPropagation();
         haptic.medium();
-
-        if (isAuthenticated) {
-            navigate('/forum/novo');
-        } else {
-            navigate('/forum');
-        }
+        // Navega para o fórum - a criação de tópico é feita via TopicComposerSheet modal
+        navigate('/forum');
     };
 
     const handleTopTopic = (e: React.MouseEvent) => {
