@@ -3,8 +3,10 @@
  * Removes non-alphanumeric characters and converts to uppercase.
  */
 export function normalizePlate(value: string): string {
-    return (value || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+    return (value || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 7);
 }
+
+export type PlateType = "old" | "mercosul" | "invalid" | "partial";
 
 /**
  * Validates if the plate is in the Old format (Gray/3 Letters + 4 Numbers)
@@ -28,6 +30,109 @@ export function isMercosulFormat(plate: string): boolean {
 export function isValidPlate(plate: string): boolean {
     return isOldFormat(plate) || isMercosulFormat(plate);
 }
+
+export function plateType(plate: string): PlateType {
+    if (isOldFormat(plate)) return "old";
+    if (isMercosulFormat(plate)) return "mercosul";
+    if (isPlatePartialValid(plate)) return "partial";
+    return "invalid";
+}
+
+/**
+ * Validação por posição (parcial).
+ * Retorna true se o prefixo atual ainda pode virar uma placa válida.
+ */
+export function isPlatePartialValid(p: string): boolean {
+    if (!p) return true;
+    const clean = normalizePlate(p);
+
+    // 1-3: letras
+    if (clean.length >= 1 && !isAZ(clean[0])) return false;
+    if (clean.length >= 2 && !isAZ(clean[1])) return false;
+    if (clean.length >= 3 && !isAZ(clean[2])) return false;
+
+    // 4: número
+    if (clean.length >= 4 && !is09(clean[3])) return false;
+
+    // 5: letra OU número
+    if (clean.length >= 5 && !(isAZ(clean[4]) || is09(clean[4]))) return false;
+
+    // 6-7: números
+    if (clean.length >= 6 && !is09(clean[5])) return false;
+    if (clean.length >= 7 && !is09(clean[6])) return false;
+
+    return true;
+}
+
+/**
+ * Filtra um input "ao vivo": remove caracteres inválidos e mantém apenas o que
+ * respeita a regra por posição. Ótimo para onChange.
+ */
+export function filterPlateByPosition(raw: string): string {
+    const s = (raw || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+    const out: string[] = [];
+
+    for (const ch of s) {
+        const i = out.length; // próxima posição (0..6)
+        if (i >= 7) break;
+
+        // pos 0-2: letras
+        if (i <= 2) {
+            if (isAZ(ch)) out.push(ch);
+            continue;
+        }
+
+        // pos 3: número
+        if (i === 3) {
+            if (is09(ch)) out.push(ch);
+            continue;
+        }
+
+        // pos 4: letra ou número
+        if (i === 4) {
+            if (isAZ(ch) || is09(ch)) out.push(ch);
+            continue;
+        }
+
+        // pos 5-6: número
+        if (i >= 5) {
+            if (is09(ch)) out.push(ch);
+            continue;
+        }
+    }
+
+    return out.join("");
+}
+
+function isAZ(ch: string) {
+    const c = ch.charCodeAt(0);
+    return c >= 65 && c <= 90; // A-Z
+}
+function is09(ch: string) {
+    const c = ch.charCodeAt(0);
+    return c >= 48 && c <= 57; // 0-9
+}
+
+export function getPlateHint(plate: string): string | null {
+    if (!plate) return "Digite 3 letras";
+
+    // Normalizar para contar apenas caracteres válidos
+    const clean = normalizePlate(plate);
+    const len = clean.length;
+
+    if (len < 3) return "Digite 3 letras";
+    if (len === 3) return "Agora 1 número";
+    if (len === 4) return "Agora letra ou número";
+    if (len >= 5 && len < 7) return "Agora 2 números";
+
+    if (len === 7) {
+        if (isMercosulFormat(clean)) return "Placa Mercosul detectada";
+        if (isOldFormat(clean)) return "Placa Antiga detectada";
+    }
+
+    return null;
+}
+
 
 /**
  * Extracts the final digit of the plate for IPVA schedule lookup.

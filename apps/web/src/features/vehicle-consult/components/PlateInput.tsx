@@ -1,7 +1,7 @@
 import React, { useRef } from "react";
-import { normalizePlate, formatPlateVisual } from "@/domain/vehicle/plate";
+import { normalizePlate, formatPlateVisual, filterPlateByPosition, getPlateHint } from "@/domain/vehicle/plate";
 import { cn } from "@/lib/utils";
-import { LoaderCircle, BadgeCheck, TriangleAlert, ScanLine } from "lucide-react";
+import { LoaderCircle, BadgeCheck, ScanLine, Info, TriangleAlert } from "lucide-react";
 
 interface PlateInputProps {
     value: string;
@@ -23,26 +23,31 @@ export const PlateInput: React.FC<PlateInputProps> = ({
     const inputRef = useRef<HTMLInputElement>(null);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        // Get raw value
-        const raw = e.target.value;
-        // Normalize immediately (uppercase, alphanumeric only)
-        const normalized = normalizePlate(raw);
+        // Filter by position rules immediately
+        const filtered = filterPlateByPosition(e.target.value);
 
-        // Limit to 7 chars
-        if (normalized.length <= 7) {
-            onChange(normalized);
+        // Limit to 7 chars is already handled by filterPlateByPosition implicit logic,
+        // but explicit check is good.
+        if (filtered.length <= 7) {
+            onChange(filtered);
         }
     };
 
     const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
         e.preventDefault();
         const pastedData = e.clipboardData.getData("text");
-        const normalized = normalizePlate(pastedData).slice(0, 7);
-        onChange(normalized);
+        // Smart paste filtering
+        const filtered = filterPlateByPosition(pastedData).slice(0, 7);
+        onChange(filtered);
     };
+
+    // Calculate hint based on current value
+    // Only show hint if not valid yet, not loading, and no error
+    const hint = !isValid && !hasError && !isLoading ? getPlateHint(value) : null;
 
     // Visual format for display (e.g., ABC·1D23)
     const displayValue = formatPlateVisual(value);
+
     // Focus input on mount
     React.useEffect(() => {
         // Optional: Auto-focus if needed, but might be annoying on mobile.
@@ -163,11 +168,20 @@ export const PlateInput: React.FC<PlateInputProps> = ({
             </div>
 
             {/* Helper text / Error Message */}
-            {errorMessage && hasError && (
-                <div className="mt-3 text-center text-sm text-red-400 font-medium animate-in fade-in slide-in-from-top-2 duration-300">
-                    {errorMessage}
-                </div>
-            )}
+            <div className="mt-3 text-center min-h-[20px]">
+                {errorMessage && hasError ? (
+                    <div className="text-sm text-red-500 font-medium animate-in fade-in slide-in-from-top-2 duration-300 flex items-center justify-center gap-2">
+                        <TriangleAlert className="w-4 h-4" />
+                        {errorMessage}
+                    </div>
+                ) : hint ? (
+                    <div className="text-sm text-muted-foreground animate-in fade-in slide-in-from-top-2 duration-300 flex items-center justify-center gap-2">
+                        <Info className="w-4 h-4 text-blue-400" />
+                        {hint}
+                    </div>
+                ) : null}
+            </div>
+
             <div className="sr-only">Digite a placa do veículo</div>
         </div>
     );
