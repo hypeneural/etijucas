@@ -17,6 +17,7 @@ import {
   User,
   LogOut,
   Vote,
+  Car,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -60,6 +61,7 @@ export default function MoreScreen({ scrollRef }: MoreScreenProps) {
   const menuItems = [
     { id: 'perfil' as const, label: 'Meu Perfil', icon: User, color: 'bg-primary/10 text-primary', isLink: true },
     { id: 'lixo' as ScreenView, label: 'Coleta de Lixo', icon: Trash2, color: 'bg-emerald-100 text-emerald-600', badge: 'Novo' },
+    { id: 'veiculos' as const, label: 'Consultar Veículos', icon: Car, color: 'bg-blue-100 text-blue-600', isLink: true, badge: 'Novo' },
     { id: 'votacoes' as const, label: 'Votações da Câmara', icon: Vote, color: 'bg-indigo-100 text-indigo-600', isLink: true, badge: 'Novo' },
     { id: 'turismo' as ScreenView, label: 'Pontos Turísticos', icon: MapPin, color: 'bg-secondary/10 text-secondary' },
     { id: 'missas' as ScreenView, label: 'Horários das Missas', icon: Church, color: 'bg-primary/10 text-primary' },
@@ -359,6 +361,8 @@ export default function MoreScreen({ scrollRef }: MoreScreenProps) {
                   navigate('/votacoes');
                 } else if (item.id === 'lixo') {
                   navigate('/coleta-lixo');
+                } else if (item.id === 'veiculos') {
+                  navigate('/veiculos');
                 } else if (item.id === 'turismo') {
                   navigate('/pontos-turisticos');
                 } else if (item.id === 'envios') {
