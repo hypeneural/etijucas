@@ -420,9 +420,9 @@ const VehicleConsultationPage: React.FC = () => {
                     </div>
                 )}
 
-                {/* Tiquinho Assistant with Sticky Header */}
+                {/* Tiquinho Assistant - Auto-sticky when scrolling out of view */}
                 <div className="mb-6">
-                    <TiquinhoAssistant state={tiquinhoState} isSticky={step >= 2} />
+                    <TiquinhoAssistant state={tiquinhoState} />
                 </div>
 
                 {/* Car Loading Animation - Show during vehicle data fetch */}
