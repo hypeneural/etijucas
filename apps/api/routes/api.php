@@ -343,6 +343,13 @@ Route::prefix('v1')->group(function () {
     });
 
     // =====================================================
+    // Plate OCR Routes (Public with throttle)
+    // =====================================================
+    Route::prefix('plates')->middleware('throttle:10,1')->group(function () {
+        Route::post('recognize', [\App\Http\Controllers\Api\PlateOcrController::class, 'recognize']);
+    });
+
+    // =====================================================
     // System Routes (Public - for maintenance without SSH)
     // =====================================================
     Route::prefix('system')->group(function () {

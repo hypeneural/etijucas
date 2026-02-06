@@ -53,6 +53,11 @@ export interface VehicleFipeEntry {
     texto_modelo: string;
     texto_valor: string;
     score: number;
+    mes_referencia?: string;
+    referencia_fipe?: number;
+    sigla_combustivel?: string;
+    id_valor?: number;
+    tipo_modelo?: number;
 }
 
 export interface VehicleFipeData {

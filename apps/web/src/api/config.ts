@@ -224,6 +224,11 @@ export const ENDPOINTS = {
         lookup: '/vehicles/lookup',
         stats: '/vehicles/stats',
     },
+
+    // ==================== PLATES (OCR) ====================
+    plates: {
+        recognize: '/plates/recognize',
+    },
 } as const;
 
 // ======================================================

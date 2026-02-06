@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect, useMemo } from "react";
 import { filterPlateByPosition, getPlateHint, isValidPlate } from "@/domain/vehicle/plate";
 import { cn } from "@/lib/utils";
-import { LoaderCircle, BadgeCheck, ScanLine, Info, TriangleAlert, HelpCircle } from "lucide-react";
+import { LoaderCircle, BadgeCheck, ScanLine, Info, TriangleAlert, Camera } from "lucide-react";
 import { toast } from "sonner";
 
 interface PlateInputProps {
@@ -11,6 +11,7 @@ interface PlateInputProps {
     isValid?: boolean;
     hasError?: boolean;
     errorMessage?: string;
+    onOcrClick?: () => void;  // Optional OCR camera button
 }
 
 type PlateMode = "unknown" | "old" | "mercosul";
@@ -65,6 +66,7 @@ export const PlateInput: React.FC<PlateInputProps> = ({
     isValid = false,
     hasError = false,
     errorMessage,
+    onOcrClick,
 }) => {
     const inputRef = useRef<HTMLInputElement>(null);
     const [isFocused, setIsFocused] = useState(false);
@@ -379,6 +381,19 @@ export const PlateInput: React.FC<PlateInputProps> = ({
                     ) : null}
                 </div>
             </div>
+
+            {/* OCR Camera Button */}
+            {onOcrClick && value.length === 0 && !isLoading && (
+                <div className="mt-3 flex justify-center animate-in fade-in duration-300">
+                    <button
+                        onClick={onOcrClick}
+                        className="flex items-center gap-2 px-4 py-2 bg-slate-800/80 hover:bg-slate-700 border border-white/10 rounded-full text-slate-300 text-sm font-medium transition-all hover:scale-105 active:scale-95"
+                    >
+                        <Camera className="w-4 h-4 text-blue-400" />
+                        Ler placa por foto
+                    </button>
+                </div>
+            )}
 
             {/* Format Badge + Hint Area */}
             <div className="mt-3 text-center min-h-[24px] space-y-1">

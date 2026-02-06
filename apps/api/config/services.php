@@ -50,4 +50,18 @@ return [
         'client_token' => env('ZAPI_CLIENT_TOKEN'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Plate Recognizer OCR
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for Plate Recognizer Snapshot API.
+    | Get your token at: https://app.platerecognizer.com/
+    |
+    */
+    'plate_recognizer' => [
+        'token' => env('PLATE_RECOGNIZER_TOKEN'),
+        'regions' => env('PLATE_RECOGNIZER_REGIONS', 'br'),
+    ],
+
 ];

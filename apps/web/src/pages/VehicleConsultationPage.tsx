@@ -6,6 +6,7 @@ import { isValidPlate, getPlateFinal, formatPlateVisual } from "../domain/vehicl
 import { getIpvaDates, IpvaScheduleDates } from "../domain/vehicle/scheduleSC";
 import { getShareLink } from "../domain/vehicle/whatsapp";
 import { ViralCardModal } from "../features/vehicle-consult/components/ViralCardModal";
+import { PlateOcrSheet } from "../features/vehicle-consult/components/PlateOcrSheet";
 import { SwipeableItem } from "../components/ui/SwipeableList";
 import { vehicleService, VehicleLookupResponse } from "../services/vehicle.service";
 import { toast } from "sonner";
@@ -64,6 +65,7 @@ const VehicleConsultationPage: React.FC = () => {
     // Step: 0=Empty, 1=Plate valid (show dates + button), 2=Loading vehicle, 3=Vehicle data shown
     const [step, setStep] = useState(0);
     const [showViralModal, setShowViralModal] = useState(false);
+    const [showOcrSheet, setShowOcrSheet] = useState(false);
 
     // Load Saved Vehicles
     useEffect(() => {
@@ -388,6 +390,7 @@ const VehicleConsultationPage: React.FC = () => {
                         isValid={status === "valid"}
                         isLoading={isLoadingVehicle}
                         hasError={status === "error"}
+                        onOcrClick={() => setShowOcrSheet(true)}
                     />
                 </div>
 
@@ -671,6 +674,16 @@ const VehicleConsultationPage: React.FC = () => {
                     schedule={schedule}
                 />
             )}
+
+            {/* Plate OCR Sheet */}
+            <PlateOcrSheet
+                isOpen={showOcrSheet}
+                onClose={() => setShowOcrSheet(false)}
+                onPlateSelected={(recognizedPlate) => {
+                    setPlate(recognizedPlate);
+                    setShowOcrSheet(false);
+                }}
+            />
 
         </div>
     );
