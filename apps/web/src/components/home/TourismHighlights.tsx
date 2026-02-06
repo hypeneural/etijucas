@@ -115,6 +115,7 @@ export default function TourismHighlights({ onNavigate, data: externalData }: To
 
   console.log('[TourismHighlights] DEBUG: ✅ All 11 hooks completed!');
 
+  // Loading state - uses regular divs, no motion components
   if (isLoading) {
     return (
       <div className="px-4 py-4">
@@ -127,16 +128,15 @@ export default function TourismHighlights({ onNavigate, data: externalData }: To
     );
   }
 
-  if (!featuredSpots || featuredSpots.length === 0) {
-    return null;
-  }
+  // Get current spot safely - use first spot as fallback or null
+  const currentSpot = featuredSpots.length > 0 ? featuredSpots[activeIndex % featuredSpots.length] : null;
+  const categoryConfig = currentSpot ? TOURISM_CATEGORIES[currentSpot.categoria] : null;
 
-  const currentSpot = featuredSpots[activeIndex];
-  const categoryConfig = TOURISM_CATEGORIES[currentSpot.categoria];
-
+  // IMPORTANT: Always render the motion components to maintain consistent hook count
+  // Use conditional content INSIDE the motion components, not conditional rendering OF them
   return (
     <div className="py-4">
-      {/* Header */}
+      {/* Header - always rendered */}
       <div className="flex items-center justify-between px-4 mb-3">
         <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
           <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 2, repeat: Infinity, repeatDelay: 2 }}>
@@ -149,7 +149,7 @@ export default function TourismHighlights({ onNavigate, data: externalData }: To
         </motion.button>
       </div>
 
-      {/* Main Carousel Card */}
+      {/* Main Carousel Card - always rendered, content conditional */}
       <div className="px-4" onMouseEnter={() => setIsPaused(true)} onMouseLeave={() => setIsPaused(false)}>
         <motion.div
           drag="x"
@@ -158,97 +158,111 @@ export default function TourismHighlights({ onNavigate, data: externalData }: To
           onDragEnd={handleDragEnd}
           className="relative h-52 rounded-2xl overflow-hidden shadow-xl cursor-grab active:cursor-grabbing"
         >
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentSpot.id}
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -50 }}
-              transition={{ duration: 0.3 }}
-              className="absolute inset-0"
-              onClick={() => handleSpotTap(currentSpot.id)}
-            >
-              {/* Background Image */}
-              {currentSpot.imageUrl ? (
-                <img src={currentSpot.imageUrl} alt={currentSpot.titulo} className="absolute inset-0 w-full h-full object-cover" />
-              ) : (
-                <div className="absolute inset-0 bg-gradient-to-br from-primary to-secondary" />
-              )}
-
-              {/* Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-
-              {/* Category badge */}
-              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="absolute top-3 left-3">
-                <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-white/90 text-foreground backdrop-blur-sm flex items-center gap-1">
-                  <span>{categoryConfig?.icon || '📍'}</span>
-                  {categoryConfig?.label || currentSpot.categoria}
-                </span>
-              </motion.div>
-
-              {/* Like button */}
-              <motion.button
-                whileTap={{ scale: 0.8 }}
-                onClick={(e) => handleLike(e, currentSpot.id)}
-                className={cn(
-                  "absolute top-3 right-3 w-10 h-10 rounded-full flex items-center justify-center bg-white/90 backdrop-blur-sm shadow-lg",
-                  currentSpot.liked && "bg-red-500"
-                )}
+          {/* Only render content if we have data */}
+          {currentSpot ? (
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentSpot.id}
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -50 }}
+                transition={{ duration: 0.3 }}
+                className="absolute inset-0"
+                onClick={() => handleSpotTap(currentSpot.id)}
               >
-                <Heart className={cn("w-5 h-5 transition-all", currentSpot.liked ? "fill-white text-white" : "text-foreground")} />
-              </motion.button>
-
-              {/* Content */}
-              <div className="absolute bottom-0 left-0 right-0 p-4">
-                {/* Rating */}
-                {currentSpot.rating > 0 && (
-                  <div className="flex items-center gap-1 mb-2">
-                    <div className="flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-amber-500 text-white">
-                      <Star className="w-3 h-3 fill-current" />
-                      <span className="text-xs font-bold">
-                        {typeof currentSpot.rating === 'number'
-                          ? currentSpot.rating.toFixed(1)
-                          : Number(currentSpot.rating || 0).toFixed(1)}
-                      </span>
-                    </div>
-                    <span className="text-xs text-white/80">({currentSpot.reviewsCount} avaliações)</span>
-                  </div>
+                {/* Background Image */}
+                {currentSpot.imageUrl ? (
+                  <img src={currentSpot.imageUrl} alt={currentSpot.titulo} className="absolute inset-0 w-full h-full object-cover" />
+                ) : (
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary to-secondary" />
                 )}
 
-                {/* Title */}
-                <h3 className="text-xl font-bold text-white mb-1">{currentSpot.titulo}</h3>
+                {/* Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
 
-                {/* Location */}
-                <div className="flex items-center gap-1 text-xs text-white/80">
-                  <MapPin className="w-3 h-3" />
-                  {currentSpot.bairroNome || currentSpot.endereco?.split(',')[0]}
-                </div>
+                {/* Category badge */}
+                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="absolute top-3 left-3">
+                  <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-white/90 text-foreground backdrop-blur-sm flex items-center gap-1">
+                    <span>{categoryConfig?.icon || '📍'}</span>
+                    {categoryConfig?.label || currentSpot.categoria}
+                  </span>
+                </motion.div>
 
-                {/* CTA */}
+                {/* Like button */}
                 <motion.button
-                  whileTap={{ scale: 0.95 }}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-white text-foreground text-sm font-semibold mt-3"
-                  onClick={(e) => { e.stopPropagation(); handleSpotTap(currentSpot.id); }}
+                  whileTap={{ scale: 0.8 }}
+                  onClick={(e) => handleLike(e, currentSpot.id)}
+                  className={cn(
+                    "absolute top-3 right-3 w-10 h-10 rounded-full flex items-center justify-center bg-white/90 backdrop-blur-sm shadow-lg",
+                    currentSpot.liked && "bg-red-500"
+                  )}
                 >
-                  <Sparkles className="w-4 h-4" /> Explorar
+                  <Heart className={cn("w-5 h-5 transition-all", currentSpot.liked ? "fill-white text-white" : "text-foreground")} />
                 </motion.button>
-              </div>
-            </motion.div>
-          </AnimatePresence>
+
+                {/* Content */}
+                <div className="absolute bottom-0 left-0 right-0 p-4">
+                  {/* Rating */}
+                  {currentSpot.rating > 0 && (
+                    <div className="flex items-center gap-1 mb-2">
+                      <div className="flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-amber-500 text-white">
+                        <Star className="w-3 h-3 fill-current" />
+                        <span className="text-xs font-bold">
+                          {typeof currentSpot.rating === 'number'
+                            ? currentSpot.rating.toFixed(1)
+                            : Number(currentSpot.rating || 0).toFixed(1)}
+                        </span>
+                      </div>
+                      <span className="text-xs text-white/80">({currentSpot.reviewsCount} avaliações)</span>
+                    </div>
+                  )}
+
+                  {/* Title */}
+                  <h3 className="text-xl font-bold text-white mb-1">{currentSpot.titulo}</h3>
+
+                  {/* Location */}
+                  <div className="flex items-center gap-1 text-xs text-white/80">
+                    <MapPin className="w-3 h-3" />
+                    {currentSpot.bairroNome || currentSpot.endereco?.split(',')[0]}
+                  </div>
+
+                  {/* CTA */}
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-white text-foreground text-sm font-semibold mt-3"
+                    onClick={(e) => { e.stopPropagation(); handleSpotTap(currentSpot.id); }}
+                  >
+                    <Sparkles className="w-4 h-4" /> Explorar
+                  </motion.button>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          ) : (
+            // Empty state placeholder - keeps structure consistent
+            <div className="absolute inset-0 bg-gradient-to-br from-muted to-muted-foreground/20 flex items-center justify-center">
+              <p className="text-muted-foreground text-sm">Carregando pontos turísticos...</p>
+            </div>
+          )}
         </motion.div>
 
-        {/* Dots indicator */}
+        {/* Dots indicator - always render container, dots conditional */}
         <div className="flex justify-center gap-1.5 mt-3">
-          {featuredSpots.map((_, index) => (
-            <motion.button
-              key={index}
-              onClick={() => { setActiveIndex(index); hapticFeedback('light'); }}
-              className={cn("rounded-full transition-all duration-300", index === activeIndex ? "w-6 h-2 bg-primary" : "w-2 h-2 bg-muted-foreground/30")}
-              whileTap={{ scale: 0.9 }}
-            />
-          ))}
+          {featuredSpots.length > 0 ? (
+            featuredSpots.map((_, index) => (
+              <motion.button
+                key={index}
+                onClick={() => { setActiveIndex(index); hapticFeedback('light'); }}
+                className={cn("rounded-full transition-all duration-300", index === activeIndex ? "w-6 h-2 bg-primary" : "w-2 h-2 bg-muted-foreground/30")}
+                whileTap={{ scale: 0.9 }}
+              />
+            ))
+          ) : (
+            // Placeholder dots when no data
+            <div className="w-2 h-2 rounded-full bg-muted-foreground/30" />
+          )}
         </div>
       </div>
     </div>
   );
 }
+
