@@ -19,9 +19,7 @@ type PlateMode = "unknown" | "old" | "mercosul";
 function detectPlateMode(plate: string): PlateMode {
     if (plate.length < 5) return "unknown";
     const fifthChar = plate[4];
-    // If 5th char is a letter (A-Z), it's Mercosul
     if (/[A-Z]/.test(fifthChar)) return "mercosul";
-    // If it's a number, it's old format
     if (/[0-9]/.test(fifthChar)) return "old";
     return "unknown";
 }
@@ -41,10 +39,10 @@ function isCharValidAtPosition(char: string, position: number): boolean {
     const isLetter = /[A-Z]/.test(char);
     const isNumber = /[0-9]/.test(char);
 
-    if (position <= 2) return isLetter; // 0-2: letters
-    if (position === 3) return isNumber; // 3: number
-    if (position === 4) return isLetter || isNumber; // 4: letter OR number
-    if (position >= 5) return isNumber; // 5-6: numbers
+    if (position <= 2) return isLetter;
+    if (position === 3) return isNumber;
+    if (position === 4) return isLetter || isNumber;
+    if (position >= 5) return isNumber;
     return false;
 }
 
@@ -55,7 +53,7 @@ function getSlotType(position: number, mode: PlateMode): "letter" | "number" | "
     if (position === 4) {
         if (mode === "mercosul") return "letter";
         if (mode === "old") return "number";
-        return "flex"; // unknown
+        return "flex";
     }
     return "number";
 }
@@ -85,8 +83,6 @@ export const PlateInput: React.FC<PlateInputProps> = ({
             setLastDetectedMode(plateMode);
             const label = plateMode === "mercosul" ? "Mercosul" : "Antiga";
             toast.success(`Placa ${label} detectada`, { duration: 1200, icon: "🚗" });
-
-            // Haptic feedback
             if (navigator.vibrate) navigator.vibrate([30, 50, 30]);
         }
     }, [plateMode, lastDetectedMode, value.length]);
@@ -101,13 +97,11 @@ export const PlateInput: React.FC<PlateInputProps> = ({
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const filtered = filterPlateByPosition(e.target.value);
 
-        // Check if user tried to type an invalid character
         if (e.target.value.length > value.length) {
             const attemptedChar = e.target.value.toUpperCase().slice(-1);
             const nextPosition = value.length;
 
             if (!isCharValidAtPosition(attemptedChar, nextPosition) && /[A-Z0-9]/.test(attemptedChar)) {
-                // Flash the current slot red
                 setFlashSlot(nextPosition);
                 setTimeout(() => setFlashSlot(null), 400);
                 if (navigator.vibrate) navigator.vibrate(50);
@@ -125,7 +119,6 @@ export const PlateInput: React.FC<PlateInputProps> = ({
         const filtered = filterPlateByPosition(pastedData).slice(0, 7);
         onChange(filtered);
 
-        // Visual feedback for paste
         setJustPasted(true);
         setTimeout(() => setJustPasted(false), 300);
         if (navigator.vibrate) navigator.vibrate([20, 30, 20]);
@@ -152,80 +145,77 @@ export const PlateInput: React.FC<PlateInputProps> = ({
         }
     }, [isValid, isLoading]);
 
-    // Header content based on mode
-    const renderHeader = () => {
-        if (plateMode === "old") {
-            return (
-                <div className="h-8 bg-gradient-to-b from-slate-300 via-slate-200 to-slate-300 flex items-center justify-between px-3 relative z-10 border-b border-slate-400/50 transition-all duration-300">
-                    {/* Old plate style - silver/gray with state */}
-                    <span className="text-slate-600 font-bold text-[10px] tracking-[0.15em]">SC · TIJUCAS</span>
-                    {/* Fake screws */}
-                    <div className="absolute left-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-slate-400 shadow-inner"></div>
-                    <div className="absolute right-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-slate-400 shadow-inner"></div>
-                </div>
-            );
-        }
+    // =========================================
+    // RENDER SLOTS (7 character boxes)
+    // =========================================
+    const renderSlots = () => (
+        <div className="relative z-10 flex items-center gap-1 sm:gap-1.5 px-2">
+            {chars.map((char, index) => {
+                const isFilled = char.trim() !== "";
+                const isCurrentSlot = value.length === index;
+                const slotType = getSlotType(index, plateMode);
+                const isFlashing = flashSlot === index;
+                const isAfterSeparator = index === 3;
 
-        // Mercosul or Unknown (show Mercosul style by default)
-        return (
-            <div className={cn(
-                "h-10 flex items-center justify-between px-3 relative z-10 border-b transition-all duration-300",
-                plateMode === "mercosul"
-                    ? "bg-[#1e40af] border-[#172554]"
-                    : "bg-[#1e40af]/80 border-[#172554]/80"
-            )}>
-                {/* LEFT: Mercosul Flag (CSS) */}
-                <div className="flex items-center gap-1.5">
-                    {/* Mercosul flag: Blue with 4 stars (Southern Cross) */}
-                    <div className="w-6 h-4 bg-[#00247d] rounded-[2px] overflow-hidden relative border border-white/20 shadow-sm">
-                        {/* Simplified 4 stars for Southern Cross */}
-                        <div className="absolute top-[2px] left-[3px] w-[3px] h-[3px] bg-white rounded-full"></div>
-                        <div className="absolute top-[6px] left-[9px] w-[4px] h-[4px] bg-white rounded-full"></div>
-                        <div className="absolute top-[10px] left-[3px] w-[3px] h-[3px] bg-white rounded-full"></div>
-                        <div className="absolute top-[6px] left-[16px] w-[3px] h-[3px] bg-white rounded-full"></div>
-                    </div>
-                    <span className="text-white/60 font-bold text-[8px] tracking-[0.1em]">MERCOSUL</span>
-                </div>
+                return (
+                    <React.Fragment key={index}>
+                        {isAfterSeparator && (
+                            <div className="w-2 h-2 rounded-full bg-slate-400 mx-0.5 sm:mx-1"></div>
+                        )}
 
-                {/* CENTER: BRASIL text */}
-                <span className={cn(
-                    "text-white font-bold text-xs tracking-[0.25em] drop-shadow-sm transition-all duration-300 absolute left-1/2 -translate-x-1/2",
-                    plateMode === "mercosul" ? "opacity-100" : "opacity-70"
-                )}>BRASIL</span>
+                        <div
+                            className={cn(
+                                "w-9 h-12 sm:w-10 sm:h-14 rounded-md flex items-center justify-center text-xl sm:text-2xl font-black font-sans uppercase transition-all duration-200 relative",
+                                isFilled
+                                    ? isValid
+                                        ? "bg-green-500/10 text-slate-900"
+                                        : plateMode === "old"
+                                            ? "bg-slate-200/80 text-slate-900"
+                                            : "bg-white text-slate-900"
+                                    : isCurrentSlot && isFocused
+                                        ? "bg-blue-500/10 border-2 border-blue-500/50"
+                                        : "bg-slate-100/50 border-2 border-dashed border-slate-300",
+                                !isFilled && !isCurrentSlot && slotType === "letter" && "border-blue-200",
+                                !isFilled && !isCurrentSlot && slotType === "number" && "border-amber-200",
+                                !isFilled && !isCurrentSlot && slotType === "flex" && "border-purple-200",
+                                isFlashing && "!bg-red-500/20 !border-red-500 animate-[shake_0.3s_ease-in-out]",
+                                isValid && isFilled && "shadow-[0_0_8px_rgba(34,197,94,0.3)]"
+                            )}
+                        >
+                            {isFilled ? (
+                                char
+                            ) : (
+                                <span className={cn(
+                                    "text-slate-300 text-lg",
+                                    isCurrentSlot && isFocused && "animate-pulse text-blue-400"
+                                )}>
+                                    {placeholder[index]}
+                                </span>
+                            )}
 
-                {/* RIGHT: Brazil Flag (CSS) */}
-                <div className="flex items-center gap-1.5">
-                    {/* Brazilian flag: Green bg, yellow diamond, blue circle */}
-                    <div className="w-6 h-4 bg-[#009c3b] rounded-[2px] overflow-hidden relative border border-white/20 shadow-sm">
-                        {/* Yellow diamond */}
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-4 h-3 bg-[#ffdf00] rotate-45 scale-[0.7]"></div>
+                            {isCurrentSlot && isFocused && !isFilled && (
+                                <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-5 h-0.5 bg-blue-500 animate-pulse rounded-full"></div>
+                            )}
                         </div>
-                        {/* Blue circle */}
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-[8px] h-[8px] bg-[#002776] rounded-full"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    };
+                    </React.Fragment>
+                );
+            })}
+        </div>
+    );
 
     return (
         <div className="w-full relative group">
 
-            {/* HUD Overlay Container (Visible on Focus/Typing) */}
+            {/* HUD Overlay (Focus indicator) */}
             <div className={cn(
                 "absolute -inset-4 border rounded-2xl transition-all duration-300 pointer-events-none z-0",
                 isFocused ? "border-blue-500/30" : "border-transparent"
             )}>
-                {/* Corner Accents */}
                 <div className={cn("absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-blue-400 transition-opacity duration-300", isFocused ? "opacity-100" : "opacity-0")}></div>
                 <div className={cn("absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-blue-400 transition-opacity duration-300", isFocused ? "opacity-100" : "opacity-0")}></div>
                 <div className={cn("absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-blue-400 transition-opacity duration-300", isFocused ? "opacity-100" : "opacity-0")}></div>
                 <div className={cn("absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-blue-400 transition-opacity duration-300", isFocused ? "opacity-100" : "opacity-0")}></div>
 
-                {/* HUD Label */}
                 <div className={cn(
                     "absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-mono font-bold text-blue-400 tracking-widest transition-all duration-300 flex items-center gap-2",
                     isFocused ? "opacity-100" : "opacity-0"
@@ -235,139 +225,163 @@ export const PlateInput: React.FC<PlateInputProps> = ({
                 </div>
             </div>
 
+            {/* =========================================
+                PLATE CONTAINER
+            ========================================= */}
             <div
                 className={cn(
-                    "relative w-full rounded-xl overflow-hidden shadow-lg transition-all duration-300 transform z-10",
+                    "relative w-full overflow-hidden shadow-lg transition-all duration-300 transform z-10",
+                    plateMode === "old" ? "rounded-xl" : "rounded-lg",
                     isFocused ? "scale-[1.02]" : "scale-100",
                     justPasted ? "animate-[snap_0.3s_ease-out]" : "",
                     isValid
-                        ? "shadow-[0_0_30px_rgba(34,197,94,0.3)] ring-2 ring-green-500 border-green-500"
+                        ? "shadow-[0_0_30px_rgba(34,197,94,0.3)] ring-2 ring-green-500"
                         : hasError
-                            ? "shadow-[0_0_30px_rgba(239,68,68,0.3)] ring-2 ring-red-500 border-red-500 animate-[shake_0.5s_ease-in-out]"
+                            ? "shadow-[0_0_30px_rgba(239,68,68,0.3)] ring-2 ring-red-500 animate-[shake_0.5s_ease-in-out]"
                             : plateMode === "old"
-                                ? "shadow-slate-500/30 border border-slate-400"
-                                : "shadow-slate-900/20 border border-slate-700/50",
+                                ? "shadow-slate-400/40 border-2 border-slate-400"
+                                : "shadow-slate-900/30 border-2 border-slate-300",
                     isLoading ? "animate-pulse" : ""
                 )}
+                onClick={() => inputRef.current?.focus()}
             >
-                {/* Dynamic Header */}
-                {renderHeader()}
-
-                {/* Plate Body with Slots */}
-                <div
-                    className={cn(
-                        "h-24 flex items-center justify-center relative cursor-text overflow-hidden transition-all duration-300",
-                        plateMode === "old"
-                            ? "bg-gradient-to-b from-slate-200 via-slate-100 to-slate-200"
-                            : "bg-white"
-                    )}
-                    onClick={() => inputRef.current?.focus()}
-                >
-                    {/* Hidden real input */}
-                    <input
-                        ref={inputRef}
-                        type="text"
-                        inputMode="text"
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-text z-20"
-                        value={value}
-                        onChange={handleChange}
-                        onPaste={handlePaste}
-                        onFocus={() => setIsFocused(true)}
-                        onBlur={() => setIsFocused(false)}
-                        autoComplete="off"
-                        autoCorrect="off"
-                        autoCapitalize="characters"
-                        spellCheck="false"
-                    />
-
-                    {/* 7 Slots Display */}
-                    <div className="relative z-10 flex items-center gap-1 sm:gap-1.5 px-2">
-                        {chars.map((char, index) => {
-                            const isFilled = char.trim() !== "";
-                            const isCurrentSlot = value.length === index;
-                            const slotType = getSlotType(index, plateMode);
-                            const isFlashing = flashSlot === index;
-                            const isAfterSeparator = index === 3;
-
-                            return (
-                                <React.Fragment key={index}>
-                                    {/* Separator dot after 3rd character */}
-                                    {isAfterSeparator && (
-                                        <div className="w-2 h-2 rounded-full bg-slate-400 mx-0.5 sm:mx-1"></div>
-                                    )}
-
-                                    <div
-                                        className={cn(
-                                            "w-9 h-14 sm:w-11 sm:h-16 rounded-lg flex items-center justify-center text-2xl sm:text-3xl font-bold font-mono uppercase transition-all duration-200 relative",
-                                            // Background states
-                                            isFilled
-                                                ? isValid
-                                                    ? "bg-green-500/10 text-slate-900"
-                                                    : "bg-slate-100 text-slate-900"
-                                                : isCurrentSlot && isFocused
-                                                    ? "bg-blue-500/10 border-2 border-blue-500/50"
-                                                    : "bg-slate-100/50 border-2 border-dashed border-slate-300",
-                                            // Slot type indicator
-                                            !isFilled && !isCurrentSlot && slotType === "letter" && "border-blue-200",
-                                            !isFilled && !isCurrentSlot && slotType === "number" && "border-amber-200",
-                                            !isFilled && !isCurrentSlot && slotType === "flex" && "border-purple-200",
-                                            // Flash error
-                                            isFlashing && "!bg-red-500/20 !border-red-500 animate-[shake_0.3s_ease-in-out]",
-                                            // Success glow on valid
-                                            isValid && isFilled && "shadow-[0_0_8px_rgba(34,197,94,0.3)]"
-                                        )}
-                                    >
-                                        {isFilled ? (
-                                            char
-                                        ) : (
-                                            <span className={cn(
-                                                "text-slate-300 text-lg",
-                                                isCurrentSlot && isFocused && "animate-pulse text-blue-400"
-                                            )}>
-                                                {placeholder[index]}
-                                            </span>
-                                        )}
-
-                                        {/* Cursor blink for current slot */}
-                                        {isCurrentSlot && isFocused && !isFilled && (
-                                            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-5 h-0.5 bg-blue-500 animate-pulse rounded-full"></div>
-                                        )}
-                                    </div>
-                                </React.Fragment>
-                            );
-                        })}
-                    </div>
-
-                    {/* Loading Scan Effect */}
-                    {isLoading && (
-                        <div className="absolute inset-0 z-10 overflow-hidden pointer-events-none">
-                            <div className="absolute top-0 left-0 w-full h-1 bg-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.5)] animate-[scan-y_1.5s_linear_infinite]"></div>
+                {/* =========================================
+                    OLD PLATE LAYOUT (Gray, UF-CIDADE header)
+                ========================================= */}
+                {plateMode === "old" ? (
+                    <div className="bg-gradient-to-b from-[#d8d8d8] via-[#c8c8c8] to-[#b8b8b8] relative">
+                        {/* Header with UF-CIDADE */}
+                        <div className="h-6 bg-gradient-to-b from-[#f0f0f0] to-[#e0e0e0] flex items-center justify-center relative z-10 border-b border-slate-300">
+                            <span className="text-slate-700 font-bold text-[10px] tracking-[0.06em] font-sans">
+                                SC-TIJUCAS
+                            </span>
                         </div>
-                    )}
 
-                    {/* Chrome shine effect for old plates */}
-                    {plateMode === "old" && (
-                        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                            <div className="absolute -left-full top-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12 animate-[shine_3s_ease-in-out_infinite]"></div>
-                        </div>
-                    )}
+                        {/* Body */}
+                        <div className="h-16 flex items-center justify-center relative bg-gradient-to-b from-[#e0e0e0] via-[#d8d8d8] to-[#d0d0d0]">
+                            {/* Screw holes in corners */}
+                            <div className="absolute left-2 top-2 w-1.5 h-1.5 rounded-full bg-slate-500/50 shadow-inner"></div>
+                            <div className="absolute right-2 top-2 w-1.5 h-1.5 rounded-full bg-slate-500/50 shadow-inner"></div>
+                            <div className="absolute left-2 bottom-2 w-1.5 h-1.5 rounded-full bg-slate-500/50 shadow-inner"></div>
+                            <div className="absolute right-2 bottom-2 w-1.5 h-1.5 rounded-full bg-slate-500/50 shadow-inner"></div>
 
-                    {/* Validity Indicator */}
-                    <div className="absolute right-2 top-2 animate-in fade-in zoom-in duration-300 z-20">
-                        {isLoading ? (
-                            <LoaderCircle className="w-5 h-5 text-blue-500 animate-spin" />
-                        ) : isValid ? (
-                            <div className="bg-green-500 rounded-full p-1 shadow-lg shadow-green-500/30">
-                                <BadgeCheck className="w-4 h-4 text-white" />
+                            {/* Chrome shine effect */}
+                            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                                <div className="absolute -left-full top-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/25 to-transparent skew-x-12 animate-[shine_4s_ease-in-out_infinite]"></div>
                             </div>
-                        ) : null}
+
+                            {renderSlots()}
+                        </div>
                     </div>
+                ) : (
+                    /* =========================================
+                        MERCOSUL PLATE LAYOUT (Blue header, green BR stripe)
+                    ========================================= */
+                    <div className="bg-white relative flex">
+                        {/* Green side stripe with BR */}
+                        <div className="w-7 bg-[#009739] flex flex-col items-center justify-end pb-1.5 relative shrink-0 rounded-l-lg">
+                            <span className="text-white font-bold text-[9px] tracking-tight">BR</span>
+                        </div>
+
+                        {/* Main plate area */}
+                        <div className="flex-1 flex flex-col">
+                            {/* Blue header with MERCOSUL + BRASIL + Flag */}
+                            <div className={cn(
+                                "h-7 flex items-center justify-between px-2 relative z-10 transition-all duration-300",
+                                plateMode === "mercosul" ? "bg-[#003399]" : "bg-[#003399]/80"
+                            )}>
+                                {/* LEFT: MERCOSUL text */}
+                                <span className="text-white/70 font-bold text-[6px] tracking-[0.03em] uppercase">MERCOSUL</span>
+
+                                {/* CENTER: BRASIL text */}
+                                <span className={cn(
+                                    "text-white font-bold text-[10px] tracking-[0.12em] transition-all duration-300 absolute left-1/2 -translate-x-1/2",
+                                    plateMode === "mercosul" ? "opacity-100" : "opacity-70"
+                                )}>BRASIL</span>
+
+                                {/* RIGHT: Brazil Flag (CSS) */}
+                                <div className="w-5 h-3 bg-[#009c3b] rounded-[1px] overflow-hidden relative border border-white/10">
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <div className="w-3 h-2 bg-[#ffdf00] rotate-45 scale-[0.55]"></div>
+                                    </div>
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <div className="w-[5px] h-[5px] bg-[#002776] rounded-full"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* White body */}
+                            <div className="h-16 flex items-center justify-center relative bg-white">
+                                {renderSlots()}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Unknown mode - Default to Mercosul style but dimmed */}
+                {plateMode === "unknown" && (
+                    <div className="absolute inset-0 bg-white flex" style={{ display: plateMode === "unknown" ? "flex" : "none" }}>
+                        <div className="w-7 bg-[#009739]/60 flex flex-col items-center justify-end pb-1.5 shrink-0 rounded-l-lg">
+                            <span className="text-white/70 font-bold text-[9px]">BR</span>
+                        </div>
+                        <div className="flex-1 flex flex-col">
+                            <div className="h-7 flex items-center justify-between px-2 bg-[#003399]/60">
+                                <span className="text-white/50 font-bold text-[6px] tracking-[0.03em]">MERCOSUL</span>
+                                <span className="text-white/60 font-bold text-[10px] tracking-[0.12em] absolute left-1/2 -translate-x-1/2">BRASIL</span>
+                                <div className="w-5 h-3 bg-[#009c3b]/60 rounded-[1px] overflow-hidden relative">
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <div className="w-3 h-2 bg-[#ffdf00]/60 rotate-45 scale-[0.55]"></div>
+                                    </div>
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <div className="w-[5px] h-[5px] bg-[#002776]/60 rounded-full"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="h-16 flex items-center justify-center bg-white/90">
+                                {renderSlots()}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Hidden real input */}
+                <input
+                    ref={inputRef}
+                    type="text"
+                    inputMode="text"
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-text z-20"
+                    value={value}
+                    onChange={handleChange}
+                    onPaste={handlePaste}
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => setIsFocused(false)}
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="characters"
+                    spellCheck="false"
+                />
+
+                {/* Loading Scan Effect */}
+                {isLoading && (
+                    <div className="absolute inset-0 z-10 overflow-hidden pointer-events-none">
+                        <div className="absolute top-0 left-0 w-full h-1 bg-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.5)] animate-[scan-y_1.5s_linear_infinite]"></div>
+                    </div>
+                )}
+
+                {/* Validity Indicator */}
+                <div className="absolute right-2 top-2 animate-in fade-in zoom-in duration-300 z-20">
+                    {isLoading ? (
+                        <LoaderCircle className="w-5 h-5 text-blue-500 animate-spin" />
+                    ) : isValid ? (
+                        <div className="bg-green-500 rounded-full p-1 shadow-lg shadow-green-500/30">
+                            <BadgeCheck className="w-4 h-4 text-white" />
+                        </div>
+                    ) : null}
                 </div>
             </div>
 
             {/* Format Badge + Hint Area */}
             <div className="mt-3 text-center min-h-[24px] space-y-1">
-                {/* Error Message */}
                 {errorMessage && hasError ? (
                     <div className="text-sm text-red-500 font-medium animate-in fade-in slide-in-from-top-2 duration-300 flex items-center justify-center gap-2">
                         <TriangleAlert className="w-4 h-4" />
@@ -385,7 +399,6 @@ export const PlateInput: React.FC<PlateInputProps> = ({
                     </div>
                 ) : null}
 
-                {/* Format Preview Tabs (when unknown and has some input) */}
                 {plateMode === "unknown" && value.length >= 1 && value.length < 5 && (
                     <div className="flex items-center justify-center gap-2 mt-2 animate-in fade-in duration-300">
                         <span className="text-[10px] text-slate-500 font-medium px-2 py-0.5 rounded-full bg-slate-200/50 border border-slate-300/50">
