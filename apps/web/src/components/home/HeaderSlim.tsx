@@ -118,7 +118,7 @@ export default function HeaderSlim({
                                 className="flex items-center gap-1 px-2 py-1 rounded-full bg-white/10 text-primary-foreground text-xs font-medium"
                             >
                                 <MapPin className="w-3 h-3" />
-                                <span className="max-w-[60px] truncate">{selectedBairro.nome}</span>
+                                <span className="max-w-[60px] truncate">{selectedBairro?.nome ?? 'Bairro'}</span>
                                 <ChevronDown className="w-3 h-3" />
                             </motion.button>
                         </SheetTrigger>
@@ -137,7 +137,7 @@ export default function HeaderSlim({
                                         }}
                                         className={cn(
                                             'p-3 rounded-xl text-left font-medium transition-colors',
-                                            selectedBairro.id === bairro.id
+                                            selectedBairro?.id === bairro.id
                                                 ? 'bg-primary text-primary-foreground'
                                                 : 'bg-muted text-foreground hover:bg-muted/80'
                                         )}

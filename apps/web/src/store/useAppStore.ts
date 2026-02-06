@@ -1,8 +1,12 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Topic, Report, Bairro } from '@/types';
-import { initialTopics, bairros, myReports as initialReports } from '@/data/mockData';
+import { bairros } from '@/constants/bairros';
+import { initialTopics, myReports as initialReports } from '@/data/mockData';
 import { generateUUID } from '@/lib/uuid';
+
+// Default bairro (Centro de Tijucas) - fallback for hydration issues
+const DEFAULT_BAIRRO: Bairro = bairros.find(b => b.slug === 'centro') || bairros[0];
 
 // Sync status for optimistic UI
 export type SyncStatus = 'synced' | 'pending' | 'syncing' | 'error';
@@ -62,7 +66,7 @@ const initialOptimisticReports: OptimisticReport[] = initialReports.map(r => ({
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
-      selectedBairro: bairros[0],
+      selectedBairro: DEFAULT_BAIRRO,
       setSelectedBairro: (bairro) => set({ selectedBairro: bairro }),
 
       topics: initialTopics,
@@ -174,11 +178,33 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'etijucas-storage',
-      version: 1,
-      migrate: (persistedState) => {
+      version: 2, // Bumped to force migration of selectedBairro
+      migrate: (persistedState, version) => {
         const state = persistedState as {
+          selectedBairro?: Bairro;
           reports?: Array<OptimisticReport>;
         } | undefined;
+
+        // V1 -> V2: Fix selectedBairro incompatibility (old mockData IDs vs new UUID format)
+        if (version < 2) {
+          // Check if selectedBairro has old-style ID (simple numbers like '1', '2')
+          // Or if it's missing the slug property (new format has slug)
+          if (state?.selectedBairro) {
+            const hasOldId = /^[0-9]+$/.test(state.selectedBairro.id || '');
+            const missingSlug = !state.selectedBairro.slug;
+
+            if (hasOldId || missingSlug) {
+              // Find matching bairro by name, or use default
+              const matchedBairro = bairros.find(
+                b => b.nome === state.selectedBairro?.nome
+              );
+              state.selectedBairro = matchedBairro || DEFAULT_BAIRRO;
+            }
+          } else {
+            // No bairro at all - set default
+            state.selectedBairro = DEFAULT_BAIRRO;
+          }
+        }
 
         if (state?.reports) {
           state.reports = state.reports.map((report) => ({
