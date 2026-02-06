@@ -32,29 +32,32 @@ class PlateOcrController extends Controller
         $regions = config('services.plate_recognizer.regions', 'br');
 
         try {
-            // Build multipart form data to match curl behavior exactly
-            $response = Http::timeout(15)
+            // Use file_get_contents for binary content
+            $fileContent = file_get_contents($file->getRealPath());
+            $fileName = $file->getClientOriginalName() ?: 'image.jpg';
+
+            // Build multipart form data
+            $response = Http::timeout(20)
                 ->withHeaders([
                     'Authorization' => "Token {$token}",
                 ])
-                ->asMultipart()
+                ->attach('upload', $fileContent, $fileName)
                 ->post('https://api.platerecognizer.com/v1/plate-reader/', [
-                    [
-                        'name' => 'upload',
-                        'contents' => fopen($file->getRealPath(), 'r'),
-                        'filename' => $file->getClientOriginalName(),
-                    ],
-                    [
-                        'name' => 'regions',
-                        'contents' => $regions,
-                    ],
+                    'regions' => $regions,
                 ]);
+
+            // Log response for debugging
+            \Log::info('Plate Recognizer Response', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
 
             if (!$response->successful()) {
                 return response()->json([
                     'ok' => false,
                     'message' => 'Falha no reconhecimento',
                     'status' => $response->status(),
+                    'debug' => $response->body(),
                 ], 502);
             }
 
