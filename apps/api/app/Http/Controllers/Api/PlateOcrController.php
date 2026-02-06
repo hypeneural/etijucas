@@ -59,7 +59,7 @@ class PlateOcrController extends Controller
                     'config' => json_encode($config),
                 ]);
 
-            if (!$response->ok()) {
+            if (!$response->successful()) {
                 return response()->json([
                     'ok' => false,
                     'message' => 'Falha no reconhecimento',
