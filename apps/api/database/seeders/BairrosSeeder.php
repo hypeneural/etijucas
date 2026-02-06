@@ -10,22 +10,31 @@ class BairrosSeeder extends Seeder
 {
     /**
      * Run the database seeds.
+     * 
+     * Bairros reais de Tijucas, SC
      */
     public function run(): void
     {
+        // Delete all existing bairros first
+        Bairro::query()->delete();
+
         $bairros = [
             'Centro',
-            'Meia Praia',
+            'Areias',
+            'Joaia',
+            'Pernambuco',
+            'Praça',
+            'Santa Luzia',
+            'Sul do Rio',
+            'Universitário',
+            'XV de Novembro',
+            'Campo Novo',
+            'Itinga',
             'Morretes',
-            'Canto da Praia',
-            'Jardim Praia Mar',
-            'Tabuleiro',
-            'Andorinha',
-            'Ilhota',
-            'Várzea',
-            'Sertãozinho',
-            'Casa Branca',
-            'Morro do Boi',
+            'Nova Descoberta',
+            'Oliveira',
+            'Terra Nova',
+            'Timbé',
         ];
 
         foreach ($bairros as $nome) {
@@ -36,6 +45,6 @@ class BairrosSeeder extends Seeder
             ]);
         }
 
-        $this->command->info('Created ' . count($bairros) . ' bairros successfully!');
+        $this->command->info('Deleted old bairros and created ' . count($bairros) . ' real Tijucas bairros successfully!');
     }
 }

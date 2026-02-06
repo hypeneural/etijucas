@@ -36,7 +36,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { TopicCategory } from '@/types';
-import { bairros } from '@/constants/bairros';
+import { useBairros } from '@/hooks';
 import { useUploadImage } from '@/hooks/useUploadImage';
 import { toast } from 'sonner';
 
@@ -88,6 +88,9 @@ export function TopicComposerSheet({
 
     // Image upload hook
     const { uploadAsync, isUploading } = useUploadImage();
+
+    // Fetch bairros from API
+    const { data: bairros = [], isLoading: isLoadingBairros } = useBairros();
 
     const validate = (): boolean => {
         const newErrors: Record<string, string> = {};
@@ -388,11 +391,15 @@ export function TopicComposerSheet({
                                 <SelectValue placeholder="Selecione o bairro" />
                             </SelectTrigger>
                             <SelectContent>
-                                {bairros.map((b) => (
-                                    <SelectItem key={b.id} value={b.id}>
-                                        {b.nome}
-                                    </SelectItem>
-                                ))}
+                                {isLoadingBairros ? (
+                                    <SelectItem value="loading" disabled>Carregando...</SelectItem>
+                                ) : (
+                                    bairros.map((b) => (
+                                        <SelectItem key={b.id} value={b.id}>
+                                            {b.nome}
+                                        </SelectItem>
+                                    ))
+                                )}
                             </SelectContent>
                         </Select>
                         {errors.bairroId && (
