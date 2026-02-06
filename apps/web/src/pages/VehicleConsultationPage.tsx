@@ -404,7 +404,10 @@ const VehicleConsultationPage: React.FC = () => {
                         isValid={step >= 1}
                         isLoading={isLoadingVehicle}
                         hasError={hasError}
-                        onOcrClick={() => setShowOcrSheet(true)}
+                        onOcrClick={() => {
+                            setShowOcrSheet(true);
+                            window.scrollTo({ top: 0, behavior: "smooth" });
+                        }}
                     />
                 </div>
 

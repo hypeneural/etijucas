@@ -20,7 +20,7 @@ interface TiquinhoAssistantProps {
 const MESSAGES: Record<TiquinhoState, string> = {
     greeting: "Olá! Sou o Tiquinho, o Atendente do Despachante Titico de Tijucas/SC! 👋",
     idle: "Digite a placa que eu te mostro as datas rapidinho! 🚗",
-    plate_valid: "Boa! Placa reconhecida ✅ Clique em 'Ver dados' para consultar!",
+    plate_valid: "Boa! Placa reconhecida ✅ Clique em 'Ver dados do Veículo' para consultar!",
     loading_vehicle: "Aguarde... Estou buscando os dados do veículo! 🔍",
     data_loaded: "Pronto! Confere as informações abaixo 👇",
     error: "Ops! Não encontrei na base, mas chama no WhatsApp que eu resolvo! 📱",
@@ -28,8 +28,16 @@ const MESSAGES: Record<TiquinhoState, string> = {
     ocr_success: "Placa identificada! Confere se está certa 👆",
 };
 
-// Local avatar image
-const TIQUINHO_AVATAR = "/app/images/tiquinho.jpg";
+// Get base URL from environment or default to production
+const getBaseUrl = () => {
+    if (typeof window !== 'undefined') {
+        return window.location.origin;
+    }
+    return 'https://etijucas.com.br';
+};
+
+// Avatar image with absolute URL
+const TIQUINHO_AVATAR = `${getBaseUrl()}/app/images/tiquinho.jpg`;
 
 // Typing animation hook
 function useTypingEffect(text: string, speed: number = 35) {
@@ -138,7 +146,7 @@ export const TiquinhoAssistant: React.FC<TiquinhoAssistantProps> = ({
             >
                 <p className={cn(
                     "font-medium leading-relaxed text-slate-100",
-                    isCompact ? "text-xs min-h-[1.2rem]" : "text-sm min-h-[1.5rem]"
+                    isCompact ? "text-sm min-h-[1.5rem]" : "text-sm min-h-[1.5rem]"
                 )}>
                     {displayedText}
                     {isTyping && (
