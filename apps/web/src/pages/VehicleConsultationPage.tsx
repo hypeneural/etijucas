@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { PlateInput } from "../features/vehicle-consult/components/PlateInput";
-import { MascotBubble, MascotState } from "../features/vehicle-consult/components/MascotBubble";
+import { TiquinhoAssistant, TiquinhoState } from "../features/vehicle-consult/components/TiquinhoAssistant";
+import { CarLoadingAnimation } from "../features/vehicle-consult/components/CarLoadingAnimation";
 import { DebtCards } from "../features/vehicle-consult/components/DebtCards";
 import { isValidPlate, getPlateFinal, formatPlateVisual } from "../domain/vehicle/plate";
 import { getIpvaDates, IpvaScheduleDates } from "../domain/vehicle/scheduleSC";
@@ -53,7 +54,6 @@ const WHATSAPP_LINK = "https://api.whatsapp.com/send?phone=5548991414232";
 
 const VehicleConsultationPage: React.FC = () => {
     const [plate, setPlate] = useState("");
-    const [status, setStatus] = useState<MascotState>("empty");
     const [schedule, setSchedule] = useState<IpvaScheduleDates | undefined>(undefined);
     const [vehicleData, setVehicleData] = useState<VehicleLookupResponse | null>(null);
     const [savedVehicles, setSavedVehicles] = useState<SavedVehicle[]>([]);
@@ -61,11 +61,25 @@ const VehicleConsultationPage: React.FC = () => {
     const [isLoadingVehicle, setIsLoadingVehicle] = useState(false);
     const [showExtraInfo, setShowExtraInfo] = useState(false);
     const [showFipeInfo, setShowFipeInfo] = useState(false);
+    const [hasError, setHasError] = useState(false);
 
     // Step: 0=Empty, 1=Plate valid (show dates + button), 2=Loading vehicle, 3=Vehicle data shown
     const [step, setStep] = useState(0);
     const [showViralModal, setShowViralModal] = useState(false);
     const [showOcrSheet, setShowOcrSheet] = useState(false);
+    const [isOcrAnalyzing, setIsOcrAnalyzing] = useState(false);
+
+    // Map step to TiquinhoState
+    const tiquinhoState = useMemo<TiquinhoState>(() => {
+        if (isOcrAnalyzing) return "ocr_analyzing";
+        if (hasError) return "error";
+        if (step === 0 && plate.length === 0) return "greeting";
+        if (step === 0) return "idle";
+        if (step === 1) return "plate_valid";
+        if (step === 2) return "loading_vehicle";
+        if (step === 3) return "data_loaded";
+        return "idle";
+    }, [step, plate, hasError, isOcrAnalyzing]);
 
     // Load Saved Vehicles
     useEffect(() => {
@@ -113,16 +127,16 @@ const VehicleConsultationPage: React.FC = () => {
             const finalDigit = getPlateFinal(plate);
             const dates = getIpvaDates(finalDigit);
             setSchedule(dates);
-            setStatus("valid");
             setStep(1); // Show dates + "Ver dados" button
             setVehicleData(null); // Reset previous data
             setShowExtraInfo(false);
             setShowFipeInfo(false);
+            setHasError(false);
         } else {
-            if (plate.length === 0) setStatus("empty");
             setSchedule(undefined);
             setStep(0);
             setVehicleData(null);
+            setHasError(false);
         }
     }, [plate]);
 
@@ -138,20 +152,20 @@ const VehicleConsultationPage: React.FC = () => {
 
             if (response.ok && response.data.basic) {
                 setVehicleData(response);
-                setStatus("valid");
+                setHasError(false);
                 setStep(3);
 
                 if (response.cache.hit) {
                     toast.info("Dados do cache", { duration: 2000, icon: "💾" });
                 }
             } else {
-                setStatus("error");
+                setHasError(true);
                 setStep(1);
                 toast.error(response.message ?? "Veículo não encontrado");
             }
         } catch (err) {
             console.error("Vehicle lookup error:", err);
-            setStatus("error");
+            setHasError(true);
             setStep(1);
             toast.error("Erro ao consultar. Tente novamente.");
         } finally {
@@ -387,9 +401,9 @@ const VehicleConsultationPage: React.FC = () => {
                     <PlateInput
                         value={plate}
                         onChange={setPlate}
-                        isValid={status === "valid"}
+                        isValid={step >= 1}
                         isLoading={isLoadingVehicle}
-                        hasError={status === "error"}
+                        hasError={hasError}
                         onOcrClick={() => setShowOcrSheet(true)}
                     />
                 </div>
@@ -406,9 +420,17 @@ const VehicleConsultationPage: React.FC = () => {
                     </div>
                 )}
 
+                {/* Tiquinho Assistant with Sticky Header */}
                 <div className="mb-6">
-                    <MascotBubble state={status} />
+                    <TiquinhoAssistant state={tiquinhoState} isSticky={step >= 2} />
                 </div>
+
+                {/* Car Loading Animation - Show during vehicle data fetch */}
+                {step === 2 && (
+                    <div className="animate-in fade-in zoom-in duration-300">
+                        <CarLoadingAnimation />
+                    </div>
+                )}
 
                 {/* RESULTS - Show when plate is valid */}
                 {schedule && step >= 1 && (
