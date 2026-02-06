@@ -171,7 +171,7 @@ export default function ReportWizardPage() {
     return (
         <div className="fixed inset-0 z-50 bg-background flex flex-col overflow-hidden">
             {/* Header */}
-            <header className="shrink-0 bg-background/95 backdrop-blur-lg border-b safe-top">
+            <header className="shrink-0 bg-background/95 backdrop-blur-lg safe-top">
                 <div className="flex items-center justify-between px-4 py-3">
                     <Button
                         variant="ghost"
@@ -193,7 +193,7 @@ export default function ReportWizardPage() {
                 </div>
 
                 {/* Progress */}
-                <div className="px-4 pb-4">
+                <div className="px-4 pb-2">
                     <WizardProgress
                         currentStep={draft.currentStep}
                         totalSteps={4}

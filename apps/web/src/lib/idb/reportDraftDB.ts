@@ -41,6 +41,7 @@ interface StoredDraft {
     categoryId: string | null;
     category: ReportCategory | null;
     location: LocationData | null;
+    locationNote: string | null;
     title: string;
     description: string;
     confirmed: boolean;
@@ -157,6 +158,7 @@ export async function saveDraft(
         categoryId: draft.categoryId,
         category: draft.category,
         location: draft.location,
+        locationNote: draft.locationNote || null,
         title: draft.title,
         description: draft.description,
         confirmed: draft.confirmed,
@@ -175,20 +177,23 @@ export async function saveDraft(
         updatedAt: now,
     });
 
-    // Save images as blobs
+    // Save images as blobs - use a single transaction for all image operations
     const tx = db.transaction('images', 'readwrite');
+    const imageStore = tx.objectStore('images');
 
-    // Delete existing images for this draft
-    const existingImages = await db.getAllFromIndex('images', 'by-draft', draftId);
+    // Get existing images within the same transaction
+    const existingImages = await imageStore.index('by-draft').getAll(draftId);
+
+    // Delete existing images
     for (const img of existingImages) {
-        await tx.store.delete(img.id);
+        await imageStore.delete(img.id);
     }
 
     // Add new images
     for (const image of draft.images) {
         // Convert File to Blob
         const blob = image.file;
-        await tx.store.put({
+        await imageStore.put({
             id: image.id,
             draftId,
             blob,
@@ -236,6 +241,7 @@ export async function getDraft(draftId: string): Promise<ReportDraft | null> {
         createdAt: new Date(stored.createdAt),
         updatedAt: new Date(stored.updatedAt),
         idempotencyKey: stored.idempotencyKey,
+        locationNote: stored.locationNote || null,
         images,
     };
 }
@@ -373,6 +379,7 @@ export async function migrateFromLocalStorage(): Promise<boolean> {
             createdAt: new Date(),
             updatedAt: new Date(),
             idempotencyKey: generateId(),
+            locationNote: parsed.locationNote || null,
             images: [], // Images can't be recovered from localStorage
         };
 
