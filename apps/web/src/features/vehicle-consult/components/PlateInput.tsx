@@ -174,21 +174,38 @@ export const PlateInput: React.FC<PlateInputProps> = ({
                     ? "bg-[#1e40af] border-[#172554]"
                     : "bg-[#1e40af]/80 border-[#172554]/80"
             )}>
-                {/* Mercosul Flag */}
+                {/* LEFT: Mercosul Flag (CSS) */}
                 <div className="flex items-center gap-1.5">
-                    <div className="w-6 h-4 bg-blue-900 rounded-[2px] overflow-hidden relative border border-white/10 shadow-sm">
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-full h-[50%] bg-green-600/20 rotate-45 transform scale-150"></div>
-                        </div>
+                    {/* Mercosul flag: Blue with 4 stars (Southern Cross) */}
+                    <div className="w-6 h-4 bg-[#00247d] rounded-[2px] overflow-hidden relative border border-white/20 shadow-sm">
+                        {/* Simplified 4 stars for Southern Cross */}
+                        <div className="absolute top-[2px] left-[3px] w-[3px] h-[3px] bg-white rounded-full"></div>
+                        <div className="absolute top-[6px] left-[9px] w-[4px] h-[4px] bg-white rounded-full"></div>
+                        <div className="absolute top-[10px] left-[3px] w-[3px] h-[3px] bg-white rounded-full"></div>
+                        <div className="absolute top-[6px] left-[16px] w-[3px] h-[3px] bg-white rounded-full"></div>
                     </div>
-                    <span className={cn(
-                        "text-white font-bold text-[10px] tracking-[0.2em] drop-shadow-sm transition-all duration-300",
-                        plateMode === "mercosul" ? "opacity-100" : "opacity-70"
-                    )}>BRASIL</span>
+                    <span className="text-white/60 font-bold text-[8px] tracking-[0.1em]">MERCOSUL</span>
                 </div>
 
-                <div className="flex items-center gap-1 opacity-80">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/2/20/Mercosul_flag.svg" className="w-4 h-4 opacity-50" alt="Mercosul" />
+                {/* CENTER: BRASIL text */}
+                <span className={cn(
+                    "text-white font-bold text-xs tracking-[0.25em] drop-shadow-sm transition-all duration-300 absolute left-1/2 -translate-x-1/2",
+                    plateMode === "mercosul" ? "opacity-100" : "opacity-70"
+                )}>BRASIL</span>
+
+                {/* RIGHT: Brazil Flag (CSS) */}
+                <div className="flex items-center gap-1.5">
+                    {/* Brazilian flag: Green bg, yellow diamond, blue circle */}
+                    <div className="w-6 h-4 bg-[#009c3b] rounded-[2px] overflow-hidden relative border border-white/20 shadow-sm">
+                        {/* Yellow diamond */}
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-4 h-3 bg-[#ffdf00] rotate-45 scale-[0.7]"></div>
+                        </div>
+                        {/* Blue circle */}
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-[8px] h-[8px] bg-[#002776] rounded-full"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         );

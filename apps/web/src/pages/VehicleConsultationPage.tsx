@@ -368,15 +368,16 @@ const VehicleConsultationPage: React.FC = () => {
 
             </main>
 
-            {/* STAGE 3: CTA - FIXED BOTTOM */}
+            {/* STAGE 3: CTA - FIXED ABOVE TAB BAR */}
             {step >= 3 && (
                 <div
                     className={cn(
-                        "fixed bottom-0 left-0 w-full z-50 p-4 transition-all duration-500 ease-in-out",
+                        "fixed left-0 w-full z-40 p-4 transition-all duration-500 ease-in-out",
                         isCtaMinimized
-                            ? "translate-y-0 opacity-100 py-2 bg-[#101623]/95 backdrop-blur-md border-t border-white/5"
+                            ? "py-2 bg-[#101623]/95 backdrop-blur-md border-t border-white/5"
                             : "bg-gradient-to-t from-[#101623] via-[#101623]/95 to-transparent backdrop-blur-[2px]"
                     )}
+                    style={{ bottom: 'calc(var(--tab-bar-height, 5rem) + 0.5rem)' }}
                 >
                     <div className="max-w-md mx-auto flex flex-col gap-2">
                         <button
