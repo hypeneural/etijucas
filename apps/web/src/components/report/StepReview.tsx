@@ -281,7 +281,7 @@ export function StepReview({
                     <Button
                         variant="outline"
                         size="lg"
-                        className="h-12 rounded-xl flex-1 text-base"
+                        className="h-9 rounded-xl flex-1 text-base"
                         onClick={onBack}
                         disabled={isSubmitting}
                     >
@@ -290,7 +290,7 @@ export function StepReview({
                     <Button
                         size="lg"
                         className={cn(
-                            'h-12 rounded-xl flex-[2] text-base font-semibold',
+                            'h-9 rounded-xl flex-[2] text-base font-semibold',
                             canSubmit
                                 ? 'bg-green-600 hover:bg-green-700'
                                 : 'opacity-50'

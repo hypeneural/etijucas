@@ -576,7 +576,7 @@ export function StepLocation({ draft, onUpdate, onNext, onBack }: StepLocationPr
                     <Button
                         variant="outline"
                         size="lg"
-                        className="h-12 rounded-xl flex-1 text-base"
+                        className="h-9 rounded-xl flex-1 text-base"
                         onClick={onBack}
                     >
                         Voltar
@@ -584,7 +584,7 @@ export function StepLocation({ draft, onUpdate, onNext, onBack }: StepLocationPr
                     <Button
                         size="lg"
                         className={cn(
-                            "h-12 rounded-xl flex-[2] text-base font-semibold",
+                            "h-9 rounded-xl flex-[2] text-base font-semibold",
                             !canContinue && "opacity-50"
                         )}
                         disabled={!canContinue}

@@ -182,7 +182,7 @@ export function StepCategory({ draft, onUpdate, onNext }: StepCategoryProps) {
                     <Button
                         size="lg"
                         className={cn(
-                            "w-full h-12 text-base font-semibold rounded-xl transition-all",
+                            "w-full h-9 text-base font-semibold rounded-xl transition-all",
                             !canContinue && "opacity-50"
                         )}
                         disabled={!canContinue}

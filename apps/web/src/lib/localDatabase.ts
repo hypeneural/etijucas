@@ -31,69 +31,88 @@ export interface SyncQueueItem {
 
 // ==================== REPORTS ====================
 
+// Helper to handle store recreation on NotFoundError
+async function safeStoreOperation<T>(
+    operation: () => Promise<T>,
+    fallback: T,
+    errorContext: string
+): Promise<T> {
+    try {
+        return await operation();
+    } catch (error) {
+        // Log silently - this is expected for users with old cache
+        console.warn(`[localDatabase] ${errorContext}:`, error);
+        return fallback;
+    }
+}
+
 export const reportsDB = {
     async getAll(): Promise<Report[]> {
-        try {
-            const allKeys = await keys(reportsStore);
-            const reports: Report[] = [];
-            for (const key of allKeys) {
-                const report = await get<Report>(key, reportsStore);
-                if (report) reports.push(report);
-            }
-            // Sort by date (newest first)
-            return reports.sort((a, b) =>
-                new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-            );
-        } catch (error) {
-            console.error('Error getting reports from IndexedDB:', error);
-            return [];
-        }
+        return safeStoreOperation(
+            async () => {
+                const allKeys = await keys(reportsStore);
+                const reports: Report[] = [];
+                for (const key of allKeys) {
+                    const report = await get<Report>(key, reportsStore);
+                    if (report) reports.push(report);
+                }
+                // Sort by date (newest first)
+                return reports.sort((a, b) =>
+                    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+                );
+            },
+            [],
+            'Error getting reports'
+        );
     },
 
     async getById(id: string): Promise<Report | undefined> {
-        try {
-            return await get<Report>(id, reportsStore);
-        } catch (error) {
-            console.error('Error getting report from IndexedDB:', error);
-            return undefined;
-        }
+        return safeStoreOperation(
+            () => get<Report>(id, reportsStore),
+            undefined,
+            'Error getting report by id'
+        );
     },
 
     async save(report: Report): Promise<void> {
-        try {
-            await set(report.id, report, reportsStore);
-        } catch (error) {
-            console.error('Error saving report to IndexedDB:', error);
-        }
+        return safeStoreOperation(
+            () => set(report.id, report, reportsStore),
+            undefined,
+            'Error saving report'
+        );
     },
 
     async saveMany(reports: Report[]): Promise<void> {
-        try {
-            for (const report of reports) {
-                await set(report.id, report, reportsStore);
-            }
-        } catch (error) {
-            console.error('Error saving reports to IndexedDB:', error);
-        }
+        return safeStoreOperation(
+            async () => {
+                for (const report of reports) {
+                    await set(report.id, report, reportsStore);
+                }
+            },
+            undefined,
+            'Error saving reports'
+        );
     },
 
     async delete(id: string): Promise<void> {
-        try {
-            await del(id, reportsStore);
-        } catch (error) {
-            console.error('Error deleting report from IndexedDB:', error);
-        }
+        return safeStoreOperation(
+            () => del(id, reportsStore),
+            undefined,
+            'Error deleting report'
+        );
     },
 
     async clear(): Promise<void> {
-        try {
-            const allKeys = await keys(reportsStore);
-            for (const key of allKeys) {
-                await del(key, reportsStore);
-            }
-        } catch (error) {
-            console.error('Error clearing reports from IndexedDB:', error);
-        }
+        return safeStoreOperation(
+            async () => {
+                const allKeys = await keys(reportsStore);
+                for (const key of allKeys) {
+                    await del(key, reportsStore);
+                }
+            },
+            undefined,
+            'Error clearing reports'
+        );
     },
 };
 
