@@ -66,7 +66,8 @@ class PlateOcrController extends Controller
             // Normalize results for frontend
             $results = collect($json['results'] ?? [])
                 ->map(function ($result) {
-                    $plate = strtoupper(preg_replace('/[^A-Z0-9]/', '', $result['plate'] ?? ''));
+                    // Use case-insensitive regex to keep letters before uppercasing
+                    $plate = strtoupper(preg_replace('/[^a-zA-Z0-9]/', '', $result['plate'] ?? ''));
                     $score = round($result['score'] ?? 0, 3);
                     $dscore = round($result['dscore'] ?? 0, 3);
 
@@ -74,7 +75,7 @@ class PlateOcrController extends Controller
                     $candidates = collect($result['candidates'] ?? [])
                         ->map(function ($c) {
                         return [
-                            'plate' => strtoupper(preg_replace('/[^A-Z0-9]/', '', $c['plate'] ?? '')),
+                            'plate' => strtoupper(preg_replace('/[^a-zA-Z0-9]/', '', $c['plate'] ?? '')),
                             'score' => round($c['score'] ?? 0, 3),
                         ];
                     })
@@ -92,10 +93,14 @@ class PlateOcrController extends Controller
                         'vehicle_type' => $result['vehicle']['type'] ?? null,
                     ];
                 })
-                // Filter only valid BR plates (7 chars)
-                ->filter(fn($r) => strlen($r['plate']) === 7)
                 ->values()
                 ->toArray();
+
+            // Log normalized results for debugging
+            \Log::info('Plate OCR Normalized Results', [
+                'raw_count' => count($json['results'] ?? []),
+                'results' => $results,
+            ]);
 
             return response()->json([
                 'ok' => true,
