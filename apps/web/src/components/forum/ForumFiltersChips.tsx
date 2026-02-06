@@ -13,7 +13,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { bairros } from '@/constants/bairros';
+import { useBairros } from '@/hooks';
 
 const categoryOptions: { value: TopicCategory; label: string; color: string }[] = [
     { value: 'reclamacao', label: 'Reclamação', color: 'bg-red-100 text-red-700 border-red-200' },
@@ -49,6 +49,7 @@ interface ForumFiltersChipsProps {
 
 export function ForumFiltersChips({ filters, onChange, userBairroId }: ForumFiltersChipsProps) {
     const [isExpanded, setIsExpanded] = useState(false);
+    const { data: bairros = [] } = useBairros();
 
     const activeFiltersCount = Object.values(filters).filter(Boolean).length;
 

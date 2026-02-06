@@ -14,7 +14,7 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { Bell, ChevronDown, User, CloudSun, MapPin } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
-import { bairros } from '@/constants/bairros';
+import { useBairros } from '@/hooks';
 import { useAppStore } from '@/store/useAppStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { WeatherMiniPayload } from '@/types/home.types';
@@ -43,6 +43,7 @@ export default function HeaderSlim({
     const { selectedBairro, setSelectedBairro } = useAppStore();
     const { user, isAuthenticated } = useAuthStore();
     const [bairroSheetOpen, setBairroSheetOpen] = useState(false);
+    const { data: bairros = [] } = useBairros();
 
     const { scrollY } = useScroll({
         container: scrollRef,

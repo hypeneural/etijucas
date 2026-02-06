@@ -8,7 +8,7 @@ import { Heart, MessageCircle, Share2, MoreHorizontal, MapPin, Image as ImageIco
 import { Badge } from '@/components/ui/badge';
 import { Topic, TopicCategory } from '@/types';
 import { formatTimeAgo, formatDateAccessible } from '@/lib/formatTimeAgo';
-import { bairros } from '@/constants/bairros';
+import { useBairroName } from '@/hooks';
 
 const categoryConfig: Record<TopicCategory, { label: string; color: string }> = {
     reclamacao: { label: 'Reclamação', color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
@@ -40,7 +40,7 @@ export const TopicCard = memo(function TopicCard({
     onMore,
 }: TopicCardProps) {
     const category = categoryConfig[topic.categoria] || categoryConfig.outros;
-    const bairroName = bairros.find(b => b.id === topic.bairroId)?.nome || 'Tijucas';
+    const bairroName = useBairroName(topic.bairroId);
     const timeAgo = formatTimeAgo(topic.createdAt);
     const accessibleDate = formatDateAccessible(topic.createdAt);
 
@@ -125,16 +125,6 @@ export const TopicCard = memo(function TopicCard({
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                 </div>
             )}
-
-            {/* Author */}
-            <div className="flex items-center gap-2 mb-3">
-                <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium text-muted-foreground">
-                    {topic.isAnon ? '?' : (topic.autorNome?.[0] || 'U')}
-                </div>
-                <span className="text-xs text-muted-foreground">
-                    {topic.isAnon ? 'Anônimo' : topic.autorNome}
-                </span>
-            </div>
 
             {/* Actions Bar */}
             <div className="flex items-center justify-between pt-2 border-t border-border/50">

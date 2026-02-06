@@ -58,12 +58,31 @@ export default function ForumScreen({ scrollRef }: ForumScreenProps) {
   // Check if should open composer from URL (e.g., ?novo=true)
   useEffect(() => {
     if (searchParams.get('novo') === 'true') {
-      setIsComposerOpen(true);
-      // Clear the query param after opening
+      // Clear the query param first
       searchParams.delete('novo');
       setSearchParams(searchParams, { replace: true });
+
+      // Only open if authenticated
+      if (isAuthenticated) {
+        setIsComposerOpen(true);
+      } else {
+        // Show login toast
+        toast({
+          title: 'Login necessário',
+          description: 'Para criar um tópico, você precisa estar logado.',
+          action: (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.location.href = '/login'}
+            >
+              Entrar
+            </Button>
+          ),
+        });
+      }
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams, isAuthenticated, toast]);
 
   // Infinite scroll state
   const [displayCount, setDisplayCount] = useState(10);
