@@ -331,6 +331,18 @@ Route::prefix('v1')->group(function () {
     });
 
     // =====================================================
+    // Vehicle Lookup Routes (Public with throttle)
+    // =====================================================
+    Route::prefix('vehicles')->middleware('throttle:10,1')->group(function () {
+        Route::post('lookup', [\App\Http\Controllers\Api\VehicleLookupController::class, 'lookup']);
+    });
+
+    // Vehicle Stats (Admin only)
+    Route::middleware(['auth:sanctum', 'role:admin'])->prefix('vehicles')->group(function () {
+        Route::get('stats', [\App\Http\Controllers\Api\VehicleLookupController::class, 'stats']);
+    });
+
+    // =====================================================
     // System Routes (Public - for maintenance without SSH)
     // =====================================================
     Route::prefix('system')->group(function () {

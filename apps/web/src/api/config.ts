@@ -218,6 +218,12 @@ export const ENDPOINTS = {
         partidos: '/partidos',
         legislaturas: '/legislaturas',
     },
+
+    // ==================== VEHICLES (Consulta Veicular) ====================
+    vehicles: {
+        lookup: '/vehicles/lookup',
+        stats: '/vehicles/stats',
+    },
 } as const;
 
 // ======================================================

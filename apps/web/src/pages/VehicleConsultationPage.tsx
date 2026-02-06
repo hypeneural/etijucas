@@ -8,6 +8,7 @@ import { getIpvaDates, IpvaScheduleDates } from "../domain/vehicle/scheduleSC";
 import { getConsultationLink, getNotFoundLink, getShareLink } from "../domain/vehicle/whatsapp";
 import { ViralCardModal } from "../features/vehicle-consult/components/ViralCardModal";
 import { SwipeableItem } from "../components/ui/SwipeableList";
+import { vehicleService, VehicleLookupResponse, VehicleBasicData } from "../services/vehicle.service";
 import { toast } from "sonner";
 import { cn } from "../lib/utils";
 import { Icon } from "@iconify/react";
@@ -23,36 +24,32 @@ import {
     CalendarDays,
     Check,
     ArrowUpRight,
-    Dices
+    Dices,
+    RefreshCw,
+    Info,
+    Car
 } from "lucide-react";
-
-// Mock Data Service
-const fetchVehicleData = async (plate: string) => {
-    return new Promise((resolve, reject) => {
-        setTimeout(() => {
-            if (plate.endsWith("000")) {
-                reject("Veículo não encontrado");
-            } else {
-                resolve({
-                    brand: "HONDA",
-                    model: "CIVIC EXL CVT",
-                    yearFab: "2021",
-                    yearMod: "2022",
-                    color: "Prata",
-                    fuel: "Flex",
-                    plate: plate,
-                    city: "TIJUCAS",
-                    state: "SC"
-                });
-            }
-        }, 2000); // 2s delay to show off animations
-    });
-};
 
 interface SavedVehicle {
     plate: string;
     addedAt: number;
     finalDigit: number;
+}
+
+// Vehicle data for display (mapped from API response)
+interface VehicleDisplayData {
+    brand: string;
+    model: string;
+    yearFab: string;
+    yearMod: string;
+    color: string;
+    fuel: string;
+    plate: string;
+    city: string;
+    state: string;
+    logoUrl?: string;
+    situacao?: string;
+    fipeValue?: string;
 }
 
 const VehicleConsultationPage: React.FC = () => {
@@ -139,27 +136,72 @@ const VehicleConsultationPage: React.FC = () => {
         setShowGarage(false);
 
         // STAGE 1: Confirm Plate & Show Dates (Immediate/Fast)
-        // "Final da placa: X" + cards de vencimento
         setTimeout(() => {
             setStep(1);
         }, 300);
 
         // STAGE 2: Start Vehicle Fetch & Show Skeleton
-        // "Dados do veículo surgem com skeleton"
         setTimeout(() => {
             setStep(2);
         }, 800);
 
         try {
-            const data = await fetchVehicleData(currentPlate);
-            setVehicleData(data);
-            setStatus("valid");
+            // Call real backend API
+            const response = await vehicleService.lookup({ plate: currentPlate });
+
+            if (response.ok && response.data.basic) {
+                // Map API response to display format
+                const basic = response.data.basic;
+                const extra = response.data.extra;
+                const fipe = response.data.fipe;
+
+                // Get best FIPE value (highest score)
+                let fipeValue: string | undefined;
+                if (fipe?.dados?.length) {
+                    const bestFipe = fipe.dados.reduce((best, curr) =>
+                        curr.score > (best?.score ?? 0) ? curr : best
+                        , fipe.dados[0]);
+                    fipeValue = bestFipe?.texto_valor;
+                }
+
+                const displayData: VehicleDisplayData = {
+                    brand: basic.brand ?? "N/A",
+                    model: basic.model ?? "N/A",
+                    yearFab: basic.ano ?? extra?.ano_fabricacao ?? "N/A",
+                    yearMod: basic.anoModelo ?? extra?.ano_modelo ?? "N/A",
+                    color: basic.color ?? "N/A",
+                    fuel: extra?.combustivel ?? "N/A",
+                    plate: response.plate,
+                    city: basic.municipio ?? "N/A",
+                    state: basic.uf ?? "SC",
+                    logoUrl: basic.logoUrl ?? undefined,
+                    situacao: basic.situacao ?? undefined,
+                    fipeValue,
+                };
+
+                setVehicleData(displayData);
+                setStatus("valid");
+
+                // Show cache info if it was a cache hit
+                if (response.cache.hit) {
+                    toast.info("Dados do cache (atualizado recentemente)", {
+                        duration: 2000,
+                        icon: "💾"
+                    });
+                }
+            } else {
+                // API returned error or no data
+                setStatus("error");
+                toast.error(response.message ?? "Veículo não encontrado");
+            }
 
             // STAGE 3: Show CTA (Complete)
             setStep(3);
         } catch (err) {
+            console.error("Vehicle lookup error:", err);
             setStatus("error");
             setStep(3); // Show CTA anyway to allow "Talk to Titico"
+            toast.error("Erro ao consultar veículo. Tente novamente.");
         }
     };
 
