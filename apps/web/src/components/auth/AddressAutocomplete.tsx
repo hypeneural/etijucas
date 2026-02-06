@@ -1,11 +1,11 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Loader2, Check, AlertCircle, Home, Building2 } from 'lucide-react';
+import { MapPin, Loader2, Check, AlertCircle, Home, Building2, ChevronDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
-import { viacepService, formatCEP, cleanCEP, validateCEP } from '@/services/viacep.service';
-import type { ViaCEPResponse, Address } from '@/types/auth.types';
+import { cepService, formatCEP, cleanCEP, validateCEP } from '@/services/cep.service';
+import type { Address, BairroOption, CepLookupResponse } from '@/types/auth.types';
 
 interface AddressAutocompleteProps {
     value: Partial<Address>;
@@ -25,6 +25,13 @@ export function AddressAutocomplete({
     const [cepError, setCepError] = useState<string | null>(null);
     const [cepSuccess, setCepSuccess] = useState(false);
 
+    // Bairro selector state
+    const [showBairroSelector, setShowBairroSelector] = useState(false);
+    const [availableBairros, setAvailableBairros] = useState<BairroOption[]>([]);
+    const [bairroLocked, setBairroLocked] = useState(false);
+
+    const numeroInputRef = useRef<HTMLInputElement>(null);
+
     // Handle CEP input change
     const handleCepChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const raw = e.target.value;
@@ -34,9 +41,11 @@ export function AddressAutocomplete({
             setCepInput(formatCEP(clean));
             setCepError(null);
             setCepSuccess(false);
+            setShowBairroSelector(false);
+            setBairroLocked(false);
 
             // Update only CEP in parent
-            onChange({ ...value, cep: clean });
+            onChange({ ...value, cep: clean, bairroId: undefined });
         }
     }, [onChange, value]);
 
@@ -50,43 +59,84 @@ export function AddressAutocomplete({
                 setCepError(null);
                 setCepSuccess(false);
 
-                try {
-                    const data: ViaCEPResponse = await viacepService.fetchByCEP(clean);
+                const response: CepLookupResponse = await cepService.lookup(clean);
 
-                    // Validate: Only Tijucas allowed
-                    if (data.localidade?.toLowerCase() !== 'tijucas') {
-                        setCepError('Somente moradores de Tijucas podem se cadastrar. Este CEP é de ' + data.localidade + '.');
-                        onChange({ cep: clean });
-                        return;
-                    }
-
-                    // Update address with ViaCEP data (city/state fixed to Tijucas/SC)
-                    onChange({
-                        cep: clean,
-                        logradouro: data.logradouro,
-                        bairro: data.bairro,
-                        localidade: 'Tijucas',  // Always Tijucas
-                        uf: 'SC',               // Always SC
-                        complemento: data.complemento || undefined,
-                    });
-
-                    setCepSuccess(true);
-                } catch (err) {
-                    setCepError(err instanceof Error ? err.message : 'Erro ao buscar CEP');
-                    // Clear address fields on error
+                if (!response.success || !response.data) {
+                    setCepError(response.message || 'Erro ao buscar CEP');
                     onChange({ cep: clean });
-                } finally {
                     setIsLoading(false);
+                    return;
                 }
+
+                const { address, match, ui_hints, available_bairros } = response.data;
+
+                // Check city restriction
+                if (!match.city_ok) {
+                    setCepError(`Somente moradores de Tijucas podem se cadastrar. Este CEP é de ${address.city_name || 'outra cidade'}.`);
+                    onChange({ cep: clean });
+                    setIsLoading(false);
+                    return;
+                }
+
+                // Update address with API data
+                const newAddress: Partial<Address> = {
+                    cep: clean,
+                    logradouro: address.logradouro || '',
+                    bairro: address.bairro_text || '',
+                    localidade: 'Tijucas',
+                    uf: 'SC',
+                    complemento: address.complemento || undefined,
+                };
+
+                // If bairro matched, save bairroId
+                if (match.bairro_ok && match.bairro_id) {
+                    newAddress.bairroId = match.bairro_id;
+                    setBairroLocked(true);
+                    setCepSuccess(true);
+                } else {
+                    // Show bairro selector
+                    setAvailableBairros(available_bairros || []);
+                    setShowBairroSelector(true);
+                    setBairroLocked(false);
+                }
+
+                onChange(newAddress);
+
+                // Show toast if needed
+                if (ui_hints.toast) {
+                    // Could integrate with toast system here
+                    console.info(ui_hints.toast);
+                }
+
+                // Focus numero if bairro matched
+                if (ui_hints.focus_next === 'numero' && match.bairro_ok) {
+                    setTimeout(() => numeroInputRef.current?.focus(), 100);
+                }
+
+                setIsLoading(false);
             };
 
             fetchAddress();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [cepInput]);
 
     // Update field handler
     const updateField = useCallback((field: keyof Address, fieldValue: string) => {
         onChange({ ...value, [field]: fieldValue });
+    }, [onChange, value]);
+
+    // Handle bairro selection
+    const handleBairroSelect = useCallback((bairro: BairroOption) => {
+        onChange({
+            ...value,
+            bairro: bairro.nome,
+            bairroId: bairro.id,
+        });
+        setShowBairroSelector(false);
+        setBairroLocked(true);
+        setCepSuccess(true);
+        setTimeout(() => numeroInputRef.current?.focus(), 100);
     }, [onChange, value]);
 
     return (
@@ -167,13 +217,15 @@ export function AddressAutocomplete({
                         <button
                             type="button"
                             onClick={() => {
-                                // Enable manual entry mode
+                                // Enable manual entry mode - fetch bairros
+                                cepService.getBairros().then(setAvailableBairros);
+                                setShowBairroSelector(true);
                                 onChange({
                                     ...value,
-                                    logradouro: ' ',  // Trigger fields to appear
+                                    logradouro: ' ',
                                     bairro: '',
-                                    localidade: '',
-                                    uf: '',
+                                    localidade: 'Tijucas',
+                                    uf: 'SC',
                                 });
                             }}
                             className="text-xs text-primary hover:underline"
@@ -183,6 +235,43 @@ export function AddressAutocomplete({
                     )}
                 </div>
             </div>
+
+            {/* Bairro Selector - When bairro not matched */}
+            <AnimatePresence>
+                {showBairroSelector && availableBairros.length > 0 && !bairroLocked && (
+                    <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="space-y-2"
+                    >
+                        <Label className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+                            <AlertCircle className="h-4 w-4" />
+                            Selecione seu bairro
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                            Não conseguimos identificar seu bairro automaticamente. Selecione abaixo:
+                        </p>
+                        <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-1">
+                            {availableBairros.map((bairro) => (
+                                <motion.button
+                                    key={bairro.id}
+                                    type="button"
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={() => handleBairroSelect(bairro)}
+                                    className={cn(
+                                        'p-3 rounded-xl text-left text-sm font-medium transition-colors',
+                                        'bg-muted hover:bg-primary hover:text-primary-foreground',
+                                        value.bairroId === bairro.id && 'bg-primary text-primary-foreground'
+                                    )}
+                                >
+                                    {bairro.nome}
+                                </motion.button>
+                            ))}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Address Fields - Animated appearance */}
             <AnimatePresence>
@@ -213,6 +302,7 @@ export function AddressAutocomplete({
                             <div className="space-y-2">
                                 <Label>Número</Label>
                                 <Input
+                                    ref={numeroInputRef}
                                     type="text"
                                     placeholder="123"
                                     value={value.numero || ''}
@@ -235,16 +325,45 @@ export function AddressAutocomplete({
                             </div>
                         </div>
 
-                        {/* Neighborhood */}
+                        {/* Neighborhood - Show as locked if matched, or editable if manual */}
                         <div className="space-y-2">
-                            <Label>Bairro</Label>
-                            <Input
-                                type="text"
-                                value={value.bairro || ''}
-                                onChange={(e) => updateField('bairro', e.target.value)}
-                                disabled={disabled}
-                                className="h-12 bg-muted/30"
-                            />
+                            <Label className="flex items-center gap-2">
+                                Bairro
+                                {bairroLocked && value.bairroId && (
+                                    <span className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
+                                        <Check className="h-3 w-3" /> Verificado
+                                    </span>
+                                )}
+                            </Label>
+                            <div className="relative">
+                                <Input
+                                    type="text"
+                                    value={value.bairro || ''}
+                                    onChange={(e) => {
+                                        if (!bairroLocked) {
+                                            updateField('bairro', e.target.value);
+                                        }
+                                    }}
+                                    disabled={disabled || bairroLocked}
+                                    className={cn(
+                                        'h-12 bg-muted/30',
+                                        bairroLocked && 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+                                    )}
+                                />
+                                {bairroLocked && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setBairroLocked(false);
+                                            setShowBairroSelector(true);
+                                            cepService.getBairros().then(setAvailableBairros);
+                                        }}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-primary hover:underline"
+                                    >
+                                        Alterar
+                                    </button>
+                                )}
+                            </div>
                         </div>
 
                         {/* City & State */}
@@ -256,9 +375,8 @@ export function AddressAutocomplete({
                                 </Label>
                                 <Input
                                     type="text"
-                                    value={value.localidade || ''}
-                                    onChange={(e) => updateField('localidade', e.target.value)}
-                                    disabled={disabled}
+                                    value={value.localidade || 'Tijucas'}
+                                    disabled={true}
                                     className="h-12 bg-muted/30"
                                 />
                             </div>
@@ -267,9 +385,8 @@ export function AddressAutocomplete({
                                 <Label>UF</Label>
                                 <Input
                                     type="text"
-                                    value={value.uf || ''}
-                                    onChange={(e) => updateField('uf', e.target.value)}
-                                    disabled={disabled}
+                                    value={value.uf || 'SC'}
+                                    disabled={true}
                                     maxLength={2}
                                     className="h-12 bg-muted/30 text-center uppercase"
                                 />
