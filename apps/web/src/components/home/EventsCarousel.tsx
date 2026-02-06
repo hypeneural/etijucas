@@ -37,9 +37,13 @@ export default function EventsCarousel({
     onEventClick,
     data: externalEvents,
 }: EventsCarouselProps) {
+    console.log('[EventsCarousel] DEBUG: Starting render');
+
+    console.log('[EventsCarousel] DEBUG: Hook 1 - useRef containerRef');
     const containerRef = useRef<HTMLDivElement>(null);
 
     // Fetch events from real API only if data prop is not provided
+    console.log('[EventsCarousel] DEBUG: Hook 2 - useEvents');
     const { data: eventsResponse, isLoading } = useEvents({
         perPage: 15,
         orderBy: 'startDateTime',
@@ -49,6 +53,7 @@ export default function EventsCarousel({
     const events = externalEvents ?? eventsResponse?.data ?? [];
 
     // Calculate events count for this week (next 7 days)
+    console.log('[EventsCarousel] DEBUG: Hook 3 - useMemo weekEventsCount');
     const weekEventsCount = useMemo(() => {
         if (!events || events.length === 0) return 0;
         const now = startOfDay(new Date());
@@ -65,6 +70,7 @@ export default function EventsCarousel({
     }, [events]);
 
     // Calculate today's events count
+    console.log('[EventsCarousel] DEBUG: Hook 4 - useMemo todayEventsCount');
     const todayEventsCount = useMemo(() => {
         if (!events || events.length === 0) return 0;
         const today = new Date().toDateString();
@@ -76,6 +82,8 @@ export default function EventsCarousel({
             }
         }).length;
     }, [events]);
+
+    console.log('[EventsCarousel] DEBUG: ✅ All 4 hooks completed!');
 
     const formatEventDate = (dateStr: string) => {
         try {

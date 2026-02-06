@@ -38,10 +38,16 @@ function mapAggregatorToSpots(items: AggregatorTourismItem[]) {
 }
 
 export default function TourismHighlights({ onNavigate, data: externalData }: TourismHighlightsProps) {
+  console.log('[TourismHighlights] DEBUG: Starting render');
+
+  console.log('[TourismHighlights] DEBUG: Hook 1 - useNavigate');
   const navigate = useNavigate();
+
+  console.log('[TourismHighlights] DEBUG: Hook 2 - useOfflineTourism');
   const { featuredSpots: hookSpots, isLoading: hookLoading, likeSpot } = useOfflineTourism();
 
   // Use external data if available, otherwise use hook data
+  console.log('[TourismHighlights] DEBUG: Hook 3 - useMemo featuredSpots');
   const featuredSpots = useMemo(() => {
     if (externalData && externalData.length > 0) {
       return mapAggregatorToSpots(externalData);
@@ -52,11 +58,17 @@ export default function TourismHighlights({ onNavigate, data: externalData }: To
   // Only show loading if no external data and hook is loading
   const isLoading = !externalData && hookLoading;
 
+  console.log('[TourismHighlights] DEBUG: Hook 4 - useState activeIndex');
   const [activeIndex, setActiveIndex] = useState(0);
+
+  console.log('[TourismHighlights] DEBUG: Hook 5 - useState isPaused');
   const [isPaused, setIsPaused] = useState(false);
+
+  console.log('[TourismHighlights] DEBUG: Hook 6 - useRef intervalRef');
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Auto-play carousel
+  console.log('[TourismHighlights] DEBUG: Hook 7 - useEffect autoplay');
   useEffect(() => {
     if (isPaused || featuredSpots.length <= 1) return;
 
@@ -69,6 +81,7 @@ export default function TourismHighlights({ onNavigate, data: externalData }: To
     };
   }, [isPaused, featuredSpots.length]);
 
+  console.log('[TourismHighlights] DEBUG: Hook 8 - useCallback handleDragEnd');
   const handleDragEnd = useCallback((_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const threshold = 50;
 
@@ -81,21 +94,26 @@ export default function TourismHighlights({ onNavigate, data: externalData }: To
     }
   }, [featuredSpots.length]);
 
+  console.log('[TourismHighlights] DEBUG: Hook 9 - useCallback handleSpotTap');
   const handleSpotTap = useCallback((spotId: string) => {
     hapticFeedback('selection');
     navigate(`/ponto-turistico/${spotId}`);
   }, [navigate]);
 
+  console.log('[TourismHighlights] DEBUG: Hook 10 - useCallback handleLike');
   const handleLike = useCallback((e: React.MouseEvent, spotId: string) => {
     e.stopPropagation();
     hapticFeedback('medium');
     likeSpot(spotId);
   }, [likeSpot]);
 
+  console.log('[TourismHighlights] DEBUG: Hook 11 - useCallback handleViewAll');
   const handleViewAll = useCallback(() => {
     hapticFeedback('selection');
     navigate('/pontos-turisticos');
   }, [navigate]);
+
+  console.log('[TourismHighlights] DEBUG: ✅ All 11 hooks completed!');
 
   if (isLoading) {
     return (
