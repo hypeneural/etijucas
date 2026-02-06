@@ -31,32 +31,15 @@ class PlateOcrController extends Controller
         $file = $request->file('image');
         $regions = config('services.plate_recognizer.regions', 'br');
 
-        // Config optimized for BR plates
-        $config = [
-            'mode' => 'fast',
-            'detection_rule' => 'strict',
-            'plates_per_vehicle' => 1,
-            'text_formats' => [
-                // Mercosul: AAA0X00
-                '[a-z][a-z][a-z][0-9][a-z][0-9][0-9]',
-                // Antiga: AAA0000
-                '[a-z][a-z][a-z][0-9][0-9][0-9][0-9]',
-            ],
-        ];
-
         try {
-            $response = Http::timeout(10)
+            // Send multipart form data exactly as API docs specify
+            $response = Http::timeout(15)
                 ->withHeaders([
                     'Authorization' => "Token {$token}",
                 ])
-                ->attach(
-                    'upload',
-                    file_get_contents($file->getRealPath()),
-                    $file->getClientOriginalName()
-                )
+                ->attach('upload', file_get_contents($file->getRealPath()), $file->getClientOriginalName())
                 ->post('https://api.platerecognizer.com/v1/plate-reader/', [
                     'regions' => $regions,
-                    'config' => json_encode($config),
                 ]);
 
             if (!$response->successful()) {
