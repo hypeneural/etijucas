@@ -8,6 +8,7 @@ import AppShell from "./components/layout/AppShell";
 import { OfflineIndicator } from "./components/ui/OfflineIndicator";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { idbPersister } from "./lib/queryPersister";
+import { PersistGate } from "./components/providers/PersistGate";
 
 // ======================================================
 // Lazy-loaded pages for smaller initial bundle
@@ -91,6 +92,10 @@ const persistOptions = {
 /**
  * AppProviders - Wrapper component that contains hooks
  * Hooks must be inside React component and inside QueryClientProvider
+ * 
+ * PersistGate blocks rendering until React Query cache is restored from IndexedDB.
+ * This prevents the "Rendered more hooks than during the previous render" error (#310)
+ * that can occur when components try to render while the cache is being restored.
  */
 function AppProviders({ children }: { children: React.ReactNode }) {
   return (
@@ -98,12 +103,14 @@ function AppProviders({ children }: { children: React.ReactNode }) {
       client={queryClient}
       persistOptions={persistOptions}
     >
-      <TooltipProvider>
-        <OfflineIndicator />
-        <Toaster />
-        <Sonner />
-        {children}
-      </TooltipProvider>
+      <PersistGate>
+        <TooltipProvider>
+          <OfflineIndicator />
+          <Toaster />
+          <Sonner />
+          {children}
+        </TooltipProvider>
+      </PersistGate>
     </PersistQueryClientProvider>
   );
 }
