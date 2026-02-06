@@ -69,6 +69,11 @@ Route::prefix('v1')->group(function () {
     Route::get('bairros', [BairroController::class, 'index'])
         ->middleware('cache.headers:static');
 
+    // CEP Lookup (public, with address matching)
+    Route::get('cep/{cep}', [\App\Http\Controllers\Api\CepController::class, 'lookup'])
+        ->middleware('throttle:30,1')
+        ->where('cep', '[0-9\-]+');
+
     // =====================================================
     // Home Aggregator API - "Hoje em Tijucas"
     // Returns all home data in a single optimized request

@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
             'cache.headers' => \App\Http\Middleware\CacheHeaders::class,
             'idempotent' => \App\Http\Middleware\IdempotencyKey::class,
+            'tenant' => \App\Http\Middleware\TenantContext::class,
         ]);
 
         // Exclude public API auth routes from CSRF verification
@@ -30,6 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->api(append: [
             \App\Http\Middleware\RequestId::class,
             \App\Http\Middleware\Utf8Response::class,
+            \App\Http\Middleware\TenantContext::class,
         ]);
 
         // Rate limiting for auth endpoints

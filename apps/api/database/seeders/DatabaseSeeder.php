@@ -14,7 +14,9 @@ class DatabaseSeeder extends Seeder
         // Seed roles and permissions first
         $this->call([
             RolesAndPermissionsSeeder::class,
-            BairrosSeeder::class,
+            CitiesSeeder::class,        // Cities must be seeded before bairros
+            BairrosSeeder::class,       // Bairros with city_id
+            BairroAliasesSeeder::class, // Aliases for bairro names
             AdminUserSeeder::class,
         ]);
     }
