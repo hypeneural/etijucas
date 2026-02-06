@@ -1,1 +1,0 @@
-import{j as m}from"./vendor-app-DyDkrbNW.js";import{c as o}from"./index-Cp_HTg1s.js";function n({className:e,...t}){return m.jsx("div",{className:o("animate-pulse rounded-md bg-muted",e),...t})}export{n as S};

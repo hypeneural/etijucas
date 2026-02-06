@@ -2,13 +2,12 @@ import React, { useState, useEffect } from "react";
 import { PlateInput } from "../features/vehicle-consult/components/PlateInput";
 import { MascotBubble, MascotState } from "../features/vehicle-consult/components/MascotBubble";
 import { DebtCards } from "../features/vehicle-consult/components/DebtCards";
-import { VehicleCard } from "../features/vehicle-consult/components/VehicleCard";
 import { isValidPlate, getPlateFinal, formatPlateVisual } from "../domain/vehicle/plate";
 import { getIpvaDates, IpvaScheduleDates } from "../domain/vehicle/scheduleSC";
-import { getConsultationLink, getNotFoundLink, getShareLink } from "../domain/vehicle/whatsapp";
+import { getShareLink } from "../domain/vehicle/whatsapp";
 import { ViralCardModal } from "../features/vehicle-consult/components/ViralCardModal";
 import { SwipeableItem } from "../components/ui/SwipeableList";
-import { vehicleService, VehicleLookupResponse, VehicleBasicData } from "../services/vehicle.service";
+import { vehicleService, VehicleLookupResponse } from "../services/vehicle.service";
 import { toast } from "sonner";
 import { cn } from "../lib/utils";
 import { Icon } from "@iconify/react";
@@ -23,11 +22,23 @@ import {
     Share2,
     CalendarDays,
     Check,
-    ArrowUpRight,
     Dices,
-    RefreshCw,
-    Info,
-    Car
+    Car,
+    Search,
+    Fuel,
+    Palette,
+    MapPin,
+    Users,
+    Gauge,
+    Globe,
+    ShieldCheck,
+    Tag,
+    DollarSign,
+    Calendar,
+    Hash,
+    Loader2,
+    ChevronDown,
+    ChevronUp
 } from "lucide-react";
 
 interface SavedVehicle {
@@ -36,31 +47,21 @@ interface SavedVehicle {
     finalDigit: number;
 }
 
-// Vehicle data for display (mapped from API response)
-interface VehicleDisplayData {
-    brand: string;
-    model: string;
-    yearFab: string;
-    yearMod: string;
-    color: string;
-    fuel: string;
-    plate: string;
-    city: string;
-    state: string;
-    logoUrl?: string;
-    situacao?: string;
-    fipeValue?: string;
-}
+// WhatsApp link for consultations
+const WHATSAPP_LINK = "https://api.whatsapp.com/send?phone=5548991414232";
 
 const VehicleConsultationPage: React.FC = () => {
     const [plate, setPlate] = useState("");
     const [status, setStatus] = useState<MascotState>("empty");
     const [schedule, setSchedule] = useState<IpvaScheduleDates | undefined>(undefined);
-    const [vehicleData, setVehicleData] = useState<any>(null);
+    const [vehicleData, setVehicleData] = useState<VehicleLookupResponse | null>(null);
     const [savedVehicles, setSavedVehicles] = useState<SavedVehicle[]>([]);
     const [showGarage, setShowGarage] = useState(false);
+    const [isLoadingVehicle, setIsLoadingVehicle] = useState(false);
+    const [showExtraInfo, setShowExtraInfo] = useState(false);
+    const [showFipeInfo, setShowFipeInfo] = useState(false);
 
-    // Animation Steps: 0=Idle, 1=Dates, 2=VehicleSkeleton, 3=Complete/CTA
+    // Step: 0=Empty, 1=Plate valid (show dates + button), 2=Loading vehicle, 3=Vehicle data shown
     const [step, setStep] = useState(0);
     const [showViralModal, setShowViralModal] = useState(false);
 
@@ -91,7 +92,7 @@ const VehicleConsultationPage: React.FC = () => {
             return;
         }
 
-        const updated = [newVehicle, ...savedVehicles].slice(0, 5); // Limit 5
+        const updated = [newVehicle, ...savedVehicles].slice(0, 5);
         setSavedVehicles(updated);
         localStorage.setItem("titico_vehicles", JSON.stringify(updated));
         toast.success("Veículo salvo na garagem!");
@@ -104,118 +105,60 @@ const VehicleConsultationPage: React.FC = () => {
         toast.info("Veículo removido.");
     };
 
-    // Instant Partial Result Logic (Pre-calculation)
+    // When plate changes - show IPVA dates immediately but don't fetch vehicle
     useEffect(() => {
         if (isValidPlate(plate)) {
             const finalDigit = getPlateFinal(plate);
             const dates = getIpvaDates(finalDigit);
             setSchedule(dates);
             setStatus("valid");
-
-            // If we are already viewing results and plate changes, we might want to reset or live update?
-            // tailored for "Scan Mode": Only auto-search if it matches a pattern or user clicks?
-            // For now, let's keep auto-trigger if not already showing results
-            if (step === 0) {
-                handleSearch(plate);
-            }
+            setStep(1); // Show dates + "Ver dados" button
+            setVehicleData(null); // Reset previous data
+            setShowExtraInfo(false);
+            setShowFipeInfo(false);
         } else {
             if (plate.length === 0) setStatus("empty");
-            if (plate.length < 7) {
-                setSchedule(undefined);
-                setStep(0);
-                setVehicleData(null);
-            }
+            setSchedule(undefined);
+            setStep(0);
+            setVehicleData(null);
         }
     }, [plate]);
 
-    const handleSearch = async (currentPlate: string) => {
-        // Reset sequence
-        setStep(0);
-        setStatus("loading");
-        setVehicleData(null);
-        setShowGarage(false);
+    // Fetch vehicle data when user clicks button
+    const handleFetchVehicle = async () => {
+        if (!isValidPlate(plate)) return;
 
-        // STAGE 1: Confirm Plate & Show Dates (Immediate/Fast)
-        setTimeout(() => {
-            setStep(1);
-        }, 300);
-
-        // STAGE 2: Start Vehicle Fetch & Show Skeleton
-        setTimeout(() => {
-            setStep(2);
-        }, 800);
+        setIsLoadingVehicle(true);
+        setStep(2);
 
         try {
-            // Call real backend API
-            const response = await vehicleService.lookup({ plate: currentPlate });
+            const response = await vehicleService.lookup({ plate });
 
             if (response.ok && response.data.basic) {
-                // Map API response to display format
-                const basic = response.data.basic;
-                const extra = response.data.extra;
-                const fipe = response.data.fipe;
-
-                // Get best FIPE value (highest score)
-                let fipeValue: string | undefined;
-                if (fipe?.dados?.length) {
-                    const bestFipe = fipe.dados.reduce((best, curr) =>
-                        curr.score > (best?.score ?? 0) ? curr : best
-                        , fipe.dados[0]);
-                    fipeValue = bestFipe?.texto_valor;
-                }
-
-                const displayData: VehicleDisplayData = {
-                    brand: basic.brand ?? "N/A",
-                    model: basic.model ?? "N/A",
-                    yearFab: basic.ano ?? extra?.ano_fabricacao ?? "N/A",
-                    yearMod: basic.anoModelo ?? extra?.ano_modelo ?? "N/A",
-                    color: basic.color ?? "N/A",
-                    fuel: extra?.combustivel ?? "N/A",
-                    plate: response.plate,
-                    city: basic.municipio ?? "N/A",
-                    state: basic.uf ?? "SC",
-                    logoUrl: basic.logoUrl ?? undefined,
-                    situacao: basic.situacao ?? undefined,
-                    fipeValue,
-                };
-
-                setVehicleData(displayData);
+                setVehicleData(response);
                 setStatus("valid");
+                setStep(3);
 
-                // Show cache info if it was a cache hit
                 if (response.cache.hit) {
-                    toast.info("Dados do cache (atualizado recentemente)", {
-                        duration: 2000,
-                        icon: "💾"
-                    });
+                    toast.info("Dados do cache", { duration: 2000, icon: "💾" });
                 }
             } else {
-                // API returned error or no data
                 setStatus("error");
+                setStep(1);
                 toast.error(response.message ?? "Veículo não encontrado");
             }
-
-            // STAGE 3: Show CTA (Complete)
-            setStep(3);
         } catch (err) {
             console.error("Vehicle lookup error:", err);
             setStatus("error");
-            setStep(3); // Show CTA anyway to allow "Talk to Titico"
-            toast.error("Erro ao consultar veículo. Tente novamente.");
+            setStep(1);
+            toast.error("Erro ao consultar. Tente novamente.");
+        } finally {
+            setIsLoadingVehicle(false);
         }
     };
 
     const handleWhatsappClick = () => {
-        if (status === "error" || !vehicleData) {
-            window.open(getNotFoundLink(plate), "_blank");
-        } else {
-            window.open(getConsultationLink(plate), "_blank");
-        }
-    };
-
-    const handleShare = () => {
-        const link = getShareLink(plate, "Confira os vencimentos!");
-        window.open(link, "_blank");
+        window.open(WHATSAPP_LINK, "_blank");
     };
 
     const setExample = (val: string) => setPlate(val);
@@ -227,20 +170,127 @@ const VehicleConsultationPage: React.FC = () => {
     useEffect(() => {
         const handleScroll = () => {
             const currentScrollY = window.scrollY;
-
-            // Minimize on scroll down (if > 50px), Expand on scroll up
             if (currentScrollY > lastScrollY && currentScrollY > 50) {
                 setIsCtaMinimized(true);
             } else {
                 setIsCtaMinimized(false);
             }
-
             setLastScrollY(currentScrollY);
         };
 
         window.addEventListener("scroll", handleScroll, { passive: true });
         return () => window.removeEventListener("scroll", handleScroll);
     }, [lastScrollY]);
+
+    // Helper to get best FIPE value
+    const getBestFipe = () => {
+        const fipeData = vehicleData?.data.fipe?.dados;
+        if (!fipeData?.length) return null;
+        return fipeData.reduce((best, curr) =>
+            curr.score > (best?.score ?? 0) ? curr : best
+            , fipeData[0]);
+    };
+
+    // Render extra info with icons
+    const renderExtraInfo = () => {
+        const extra = vehicleData?.data.extra;
+        if (!extra) return null;
+
+        const infoItems = [
+            { icon: Fuel, label: "Combustível", value: extra.combustivel, show: !!extra.combustivel },
+            { icon: Gauge, label: "Cilindradas", value: extra.cilindradas ? `${extra.cilindradas} cc` : null, show: !!extra.cilindradas },
+            { icon: Users, label: "Passageiros", value: extra.quantidade_passageiro, show: !!extra.quantidade_passageiro },
+            { icon: Globe, label: "Nacionalidade", value: extra.nacionalidade, show: !!extra.nacionalidade },
+            { icon: Tag, label: "Espécie", value: extra.especie, show: !!extra.especie },
+            { icon: Car, label: "Tipo", value: extra.tipo_veiculo, show: !!extra.tipo_veiculo },
+            { icon: Tag, label: "Segmento", value: extra.segmento, show: !!extra.segmento },
+            { icon: MapPin, label: "Município Faturado", value: extra.municipio, show: !!extra.municipio },
+            { icon: Hash, label: "Chassi", value: extra.chassi, show: !!extra.chassi },
+        ].filter(item => item.show && item.value);
+
+        // Add restrictions if they exist and are not "SEM RESTRICAO"
+        const restrictions = [extra.restricao_1, extra.restricao_2, extra.restricao_3, extra.restricao_4]
+            .filter(r => r && !r.toUpperCase().includes("SEM RESTRICAO") && !r.toUpperCase().includes("SEM RESTRIÇÃO"));
+
+        return (
+            <div className="space-y-2">
+                {infoItems.map((item, idx) => (
+                    <div key={idx} className="flex items-center gap-3 text-sm">
+                        <item.icon className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                        <span className="text-slate-400">{item.label}:</span>
+                        <span className="text-white font-medium">{item.value}</span>
+                    </div>
+                ))}
+
+                {restrictions.length > 0 && (
+                    <div className="mt-3 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+                        <div className="flex items-center gap-2 text-amber-400 text-sm font-medium mb-1">
+                            <ShieldCheck className="w-4 h-4" />
+                            Restrições
+                        </div>
+                        {restrictions.map((r, idx) => (
+                            <p key={idx} className="text-amber-300 text-xs">{r}</p>
+                        ))}
+                    </div>
+                )}
+            </div>
+        );
+    };
+
+    // Render FIPE info
+    const renderFipeInfo = () => {
+        const fipeData = vehicleData?.data.fipe?.dados;
+        if (!fipeData?.length) return null;
+
+        const sortedFipe = [...fipeData].sort((a, b) => b.score - a.score);
+        const bestMatch = sortedFipe[0];
+
+        return (
+            <div className="space-y-3">
+                {/* Best match highlighted */}
+                <div className="p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-xl">
+                    <div className="flex items-center gap-2 text-green-400 text-xs font-medium mb-2">
+                        <DollarSign className="w-4 h-4" />
+                        Melhor Correspondência (Score: {bestMatch.score}%)
+                    </div>
+                    <p className="text-white font-semibold text-lg">{bestMatch.texto_valor}</p>
+                    <p className="text-slate-400 text-sm mt-1">{bestMatch.texto_modelo}</p>
+                    <div className="flex items-center gap-4 mt-2 text-xs text-slate-500">
+                        <span className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {bestMatch.mes_referencia}
+                        </span>
+                        <span className="flex items-center gap-1">
+                            <Fuel className="w-3 h-3" />
+                            {bestMatch.combustivel}
+                        </span>
+                        <span className="flex items-center gap-1">
+                            <Hash className="w-3 h-3" />
+                            FIPE: {bestMatch.codigo_fipe}
+                        </span>
+                    </div>
+                </div>
+
+                {/* Other matches */}
+                {sortedFipe.length > 1 && (
+                    <div className="space-y-2">
+                        <p className="text-xs text-slate-500 font-medium">Outras correspondências:</p>
+                        {sortedFipe.slice(1, 4).map((fipe, idx) => (
+                            <div key={idx} className="p-3 bg-slate-800/50 rounded-lg flex items-center justify-between">
+                                <div>
+                                    <p className="text-white text-sm font-medium">{fipe.texto_valor}</p>
+                                    <p className="text-slate-400 text-xs truncate max-w-[200px]">{fipe.texto_modelo}</p>
+                                </div>
+                                <span className="text-xs text-slate-500 bg-slate-700/50 px-2 py-1 rounded">
+                                    {fipe.score}%
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        );
+    };
 
     return (
         <div className="min-h-screen bg-[#101623] pb-40 font-sans relative overflow-x-hidden selection:bg-blue-500/30">
@@ -277,7 +327,7 @@ const VehicleConsultationPage: React.FC = () => {
                             Minha Garagem
                         </h3>
                         {savedVehicles.length === 0 ? (
-                            <p className="text-slate-400 text-sm py-2">Nenhum veículo salvo ainda. Consulte uma placa e clique em salvar!</p>
+                            <p className="text-slate-400 text-sm py-2">Nenhum veículo salvo ainda.</p>
                         ) : (
                             <div className="space-y-3">
                                 {savedVehicles.map((v) => (
@@ -328,7 +378,7 @@ const VehicleConsultationPage: React.FC = () => {
 
                 <div className="text-center mb-8 mt-4 animate-in slide-in-from-top-4 fade-in duration-500">
                     <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">Consulta Veicular</h1>
-                    <p className="text-slate-400 text-sm font-medium">Digite sua placa e veja IPVA + licenciamento em 2 segundos.</p>
+                    <p className="text-slate-400 text-sm font-medium">Digite sua placa e veja IPVA + licenciamento.</p>
                 </div>
 
                 <div className="mb-6 relative z-20">
@@ -336,16 +386,15 @@ const VehicleConsultationPage: React.FC = () => {
                         value={plate}
                         onChange={setPlate}
                         isValid={status === "valid"}
-                        isLoading={status === "loading"}
+                        isLoading={isLoadingVehicle}
                         hasError={status === "error"}
-                        errorMessage={status === "error" ? "Veículo não encontrado. Tente novamente ou fale com o Titico." : undefined}
                     />
                 </div>
 
                 {step === 0 && (
                     <div className="flex gap-2 justify-center mb-8 animate-in fade-in duration-700 delay-150">
                         <button
-                            onClick={() => setExample("MKE9876")} // Example plate
+                            onClick={() => setExample("OZL7H33")}
                             className="bg-slate-800/50 hover:bg-slate-700/80 border border-slate-700/50 backdrop-blur-sm text-slate-300 px-4 py-2 rounded-full text-xs font-medium flex items-center gap-2 transition-all hover:scale-105 active:scale-95 group"
                         >
                             <Dices className="w-4 h-4 text-blue-400 group-hover:rotate-180 transition-transform duration-500" />
@@ -358,11 +407,11 @@ const VehicleConsultationPage: React.FC = () => {
                     <MascotBubble state={status} />
                 </div>
 
-                {/* RESULTS SHEET - STAGED REVEAL */}
+                {/* RESULTS - Show when plate is valid */}
                 {schedule && step >= 1 && (
                     <div className="flex flex-col gap-6">
 
-                        {/* STAGE 1: DATES & HEADER */}
+                        {/* IPVA DATES */}
                         <div className="animate-in slide-in-from-bottom-8 fade-in duration-500 fill-mode-forwards">
                             <div className="flex items-center justify-between mb-3 px-1">
                                 <h3 className="text-white font-bold flex items-center gap-2">
@@ -370,7 +419,6 @@ const VehicleConsultationPage: React.FC = () => {
                                     Vencimentos <span className="text-slate-500 text-sm font-normal">(Final {getPlateFinal(plate)})</span>
                                 </h3>
 
-                                {/* Only show actions when fully loaded */}
                                 {step >= 3 && (
                                     <div className="flex gap-2 animate-in fade-in zoom-in duration-300">
                                         <button
@@ -393,16 +441,174 @@ const VehicleConsultationPage: React.FC = () => {
                             <DebtCards dates={schedule} />
                         </div>
 
-                        {/* STAGE 2: VEHICLE DATA */}
-                        {step >= 2 && (
-                            <div className="animate-in slide-in-from-bottom-8 fade-in duration-500 fill-mode-forwards delay-100">
-                                <VehicleCard isLoading={step < 3} data={vehicleData} />
+                        {/* BUTTON TO FETCH VEHICLE DATA - Only show if not fetched yet */}
+                        {step === 1 && (
+                            <div className="animate-in slide-in-from-bottom-8 fade-in duration-500">
+                                <button
+                                    onClick={handleFetchVehicle}
+                                    disabled={isLoadingVehicle}
+                                    className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-500/20 transition-all duration-300 transform hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {isLoadingVehicle ? (
+                                        <>
+                                            <Loader2 className="w-5 h-5 animate-spin" />
+                                            Buscando dados...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Search className="w-5 h-5" />
+                                            Ver dados do veículo
+                                        </>
+                                    )}
+                                </button>
+                                <p className="text-center text-xs text-slate-500 mt-2">
+                                    Consulta marca, modelo, FIPE e mais detalhes
+                                </p>
                             </div>
                         )}
 
-                        {step >= 3 && (
+                        {/* VEHICLE DATA - Show after fetching */}
+                        {step >= 3 && vehicleData?.data.basic && (
+                            <div className="animate-in slide-in-from-bottom-8 fade-in duration-500 fill-mode-forwards">
+                                <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-md rounded-2xl border border-white/10 overflow-hidden shadow-xl">
+
+                                    {/* Header with Logo */}
+                                    <div className="p-5 flex items-center gap-4 border-b border-white/5">
+                                        {vehicleData.data.basic.logoUrl && (
+                                            <div className="w-16 h-16 rounded-xl bg-white flex items-center justify-center p-2 shadow-lg">
+                                                <img
+                                                    src={vehicleData.data.basic.logoUrl}
+                                                    alt={vehicleData.data.basic.brand ?? "Logo"}
+                                                    className="w-full h-full object-contain"
+                                                    onError={(e) => {
+                                                        (e.target as HTMLImageElement).style.display = 'none';
+                                                    }}
+                                                />
+                                            </div>
+                                        )}
+                                        <div className="flex-1">
+                                            <h3 className="text-white font-bold text-lg leading-tight">
+                                                {vehicleData.data.basic.brand}
+                                            </h3>
+                                            <p className="text-blue-400 font-medium">
+                                                {vehicleData.data.basic.model}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Basic Info Grid */}
+                                    <div className="p-5 grid grid-cols-2 gap-4">
+                                        <div className="flex items-center gap-2">
+                                            <Calendar className="w-4 h-4 text-slate-400" />
+                                            <div>
+                                                <p className="text-xs text-slate-500">Ano</p>
+                                                <p className="text-white font-medium">
+                                                    {vehicleData.data.basic.ano ?? vehicleData.data.extra?.ano_fabricacao ?? "-"}/
+                                                    {vehicleData.data.basic.anoModelo ?? vehicleData.data.extra?.ano_modelo ?? "-"}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-2">
+                                            <Palette className="w-4 h-4 text-slate-400" />
+                                            <div>
+                                                <p className="text-xs text-slate-500">Cor</p>
+                                                <p className="text-white font-medium">{vehicleData.data.basic.color ?? "-"}</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-2">
+                                            <MapPin className="w-4 h-4 text-slate-400" />
+                                            <div>
+                                                <p className="text-xs text-slate-500">Cidade/UF</p>
+                                                <p className="text-white font-medium">
+                                                    {vehicleData.data.basic.municipio ?? "-"}/{vehicleData.data.basic.uf ?? "-"}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {vehicleData.data.extra?.combustivel && (
+                                            <div className="flex items-center gap-2">
+                                                <Fuel className="w-4 h-4 text-slate-400" />
+                                                <div>
+                                                    <p className="text-xs text-slate-500">Combustível</p>
+                                                    <p className="text-white font-medium text-sm">{vehicleData.data.extra.combustivel}</p>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* FIPE Value - Best Match */}
+                                    {getBestFipe() && (
+                                        <div className="px-5 pb-4">
+                                            <div className="p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-xl">
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <p className="text-xs text-green-400 font-medium flex items-center gap-1">
+                                                            <DollarSign className="w-3 h-3" />
+                                                            Valor FIPE
+                                                        </p>
+                                                        <p className="text-white font-bold text-xl">{getBestFipe()?.texto_valor}</p>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <span className="text-xs text-slate-500 bg-slate-700/50 px-2 py-1 rounded">
+                                                            {getBestFipe()?.score}% match
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <p className="text-xs text-slate-400 mt-1">{getBestFipe()?.mes_referencia}</p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Expandable Extra Info */}
+                                    {vehicleData.data.extra && Object.keys(vehicleData.data.extra).length > 0 && (
+                                        <div className="border-t border-white/5">
+                                            <button
+                                                onClick={() => setShowExtraInfo(!showExtraInfo)}
+                                                className="w-full px-5 py-3 flex items-center justify-between text-slate-400 hover:bg-white/5 transition-colors"
+                                            >
+                                                <span className="text-sm font-medium flex items-center gap-2">
+                                                    <Car className="w-4 h-4" />
+                                                    Informações detalhadas
+                                                </span>
+                                                {showExtraInfo ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                                            </button>
+                                            {showExtraInfo && (
+                                                <div className="px-5 pb-5 animate-in slide-in-from-top-2 duration-200">
+                                                    {renderExtraInfo()}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Expandable FIPE List */}
+                                    {vehicleData.data.fipe?.dados && vehicleData.data.fipe.dados.length > 1 && (
+                                        <div className="border-t border-white/5">
+                                            <button
+                                                onClick={() => setShowFipeInfo(!showFipeInfo)}
+                                                className="w-full px-5 py-3 flex items-center justify-between text-slate-400 hover:bg-white/5 transition-colors"
+                                            >
+                                                <span className="text-sm font-medium flex items-center gap-2">
+                                                    <DollarSign className="w-4 h-4" />
+                                                    Todas referências FIPE ({vehicleData.data.fipe.dados.length})
+                                                </span>
+                                                {showFipeInfo ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                                            </button>
+                                            {showFipeInfo && (
+                                                <div className="px-5 pb-5 animate-in slide-in-from-top-2 duration-200">
+                                                    {renderFipeInfo()}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {step >= 1 && (
                             <div className="text-[10px] text-slate-500 text-center pb-24 px-4 leading-relaxed opacity-60 animate-in fade-in duration-500">
-                                Datas conforme tabela oficial SC. Consulte débitos completos para valores exatos.
+                                Datas conforme tabela oficial SC. Consulte débitos completos via WhatsApp.
                             </div>
                         )}
                     </div>
@@ -410,8 +616,8 @@ const VehicleConsultationPage: React.FC = () => {
 
             </main>
 
-            {/* STAGE 3: CTA - FIXED ABOVE TAB BAR */}
-            {step >= 3 && (
+            {/* CTA - FIXED ABOVE TAB BAR */}
+            {step >= 1 && (
                 <div
                     className={cn(
                         "fixed left-0 w-full z-40 p-4 transition-all duration-500 ease-in-out",
@@ -431,11 +637,10 @@ const VehicleConsultationPage: React.FC = () => {
                         >
                             <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
 
-                            {/* Icon acts as main trigger on minimized */}
                             <Icon icon="mdi:whatsapp" width={isCtaMinimized ? "20" : "24"} height={isCtaMinimized ? "20" : "24"} className="text-white relative z-10 transition-all" />
 
                             <span className="relative z-10 whitespace-nowrap">
-                                {status === "error" ? "Não achou? Falar com Titico" : "Consultar débitos"}
+                                Consultar débitos
                             </span>
 
                             {!isCtaMinimized && (
@@ -443,18 +648,16 @@ const VehicleConsultationPage: React.FC = () => {
                             )}
                         </button>
 
-                        {status !== "error" && (
-                            <div className={cn(
-                                "flex items-center justify-center gap-2 text-[10px] text-slate-400 font-medium opacity-80 transition-all duration-300 overflow-hidden",
-                                isCtaMinimized ? "h-0 opacity-0" : "h-auto opacity-100"
-                            )}>
-                                <span className="flex items-center gap-1"><Check className="w-3 h-3 text-green-500" /> Resposta rápida</span>
-                                <span className="w-1 h-1 rounded-full bg-slate-600"></span>
-                                <span>Evita multa</span>
-                                <span className="w-1 h-1 rounded-full bg-slate-600"></span>
-                                <span>Sem enrolação</span>
-                            </div>
-                        )}
+                        <div className={cn(
+                            "flex items-center justify-center gap-2 text-[10px] text-slate-400 font-medium opacity-80 transition-all duration-300 overflow-hidden",
+                            isCtaMinimized ? "h-0 opacity-0" : "h-auto opacity-100"
+                        )}>
+                            <span className="flex items-center gap-1"><Check className="w-3 h-3 text-green-500" /> Resposta rápida</span>
+                            <span className="w-1 h-1 rounded-full bg-slate-600"></span>
+                            <span>Evita multa</span>
+                            <span className="w-1 h-1 rounded-full bg-slate-600"></span>
+                            <span>Sem enrolação</span>
+                        </div>
                     </div>
                 </div>
             )}
