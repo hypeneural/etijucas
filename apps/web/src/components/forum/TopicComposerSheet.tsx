@@ -55,7 +55,7 @@ export interface NewTopicData {
     titulo: string;
     texto: string;
     categoria: TopicCategory;
-    bairroId: string;
+    bairroId?: string;
     isAnon: boolean;
     fotoUrl?: string;
 }
@@ -106,9 +106,7 @@ export function TopicComposerSheet({
         if (!texto.trim()) {
             newErrors.texto = 'Conte mais detalhes sobre o assunto';
         }
-        if (!bairroId) {
-            newErrors.bairroId = 'Selecione o bairro';
-        }
+        // bairroId é opcional - não validamos mais
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -140,7 +138,7 @@ export function TopicComposerSheet({
                 titulo: titulo.trim(),
                 texto: texto.trim(),
                 categoria,
-                bairroId,
+                bairroId: bairroId && bairroId !== 'none' ? bairroId : undefined,
                 isAnon,
                 fotoUrl, // Now it's a URL from API, not base64!
             });
@@ -391,6 +389,9 @@ export function TopicComposerSheet({
                                 <SelectValue placeholder="Selecione o bairro" />
                             </SelectTrigger>
                             <SelectContent>
+                                <SelectItem value="none" className="text-muted-foreground italic">
+                                    Não quero informar bairro
+                                </SelectItem>
                                 {isLoadingBairros ? (
                                     <SelectItem value="loading" disabled>Carregando...</SelectItem>
                                 ) : (

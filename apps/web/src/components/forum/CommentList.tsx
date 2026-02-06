@@ -344,7 +344,7 @@ function CommentThread({ comment, index, depth, onLike, onReply }: CommentThread
                                                     type="text"
                                                     value={replyText}
                                                     onChange={(e) => setReplyText(e.target.value)}
-                                                    placeholder={`Responder ${comment.isAnon ? 'Anônimo' : comment.autorNome}...`}
+                                                    placeholder={`Responder ${getAuthorName()}...`}
                                                     className="w-full px-3 py-2 text-sm rounded-lg bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary"
                                                     onKeyDown={(e) => {
                                                         if (e.key === 'Enter' && !e.shiftKey) {

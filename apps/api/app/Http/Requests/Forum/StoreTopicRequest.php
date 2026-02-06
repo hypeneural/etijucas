@@ -35,7 +35,7 @@ class StoreTopicRequest extends FormRequest
                 Rule::in(TopicCategory::values()),
             ],
             'bairroId' => [
-                'required',
+                'nullable',
                 'uuid',
                 Rule::exists('bairros', 'id'),
             ],
