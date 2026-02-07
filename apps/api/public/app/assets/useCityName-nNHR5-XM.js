@@ -1,1 +1,0 @@
-import{d as t,D as e}from"./index-DlKr5CkX.js";function s(){const a=t(n=>n.city);return{name:a?.name??e.name,fullName:a?.fullName??e.fullName,uf:a?.uf??e.uf,slug:a?.slug??null}}function l(){const a=t(u=>u.brand),n=t(u=>u.city);return a?.appName??`e${n?.name??e.name}`}export{s as a,l as u};

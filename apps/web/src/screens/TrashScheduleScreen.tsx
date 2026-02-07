@@ -26,6 +26,7 @@ import {
     CADENCE_LABELS,
 } from '@/types/trash.types';
 import { cn } from '@/lib/utils';
+import { useCityName } from '@/hooks/useCityName';
 
 // Day chips for filtering
 const DAYS: { key: 'TODAY' | Weekday; label: string }[] = [
@@ -665,6 +666,7 @@ export default function TrashScheduleScreen() {
     const [showInfo, setShowInfo] = useState(false);
     const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
     const [selectedBairroId, setSelectedBairroId] = useState('');
+    const { fullName: cityFullName } = useCityName();
 
     // Handle bairro select
     const handleBairroSelect = (id: string) => {
@@ -697,7 +699,7 @@ export default function TrashScheduleScreen() {
                             </motion.div>
                             <div>
                                 <h1 className="text-xl font-bold">Coleta de Lixo</h1>
-                                <p className="text-white/70 text-xs">Tijucas/SC</p>
+                                <p className="text-white/70 text-xs">{cityFullName}</p>
                             </div>
                         </div>
 

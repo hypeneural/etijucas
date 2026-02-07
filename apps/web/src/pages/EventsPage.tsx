@@ -26,6 +26,7 @@ import { useEventFilters } from '@/hooks/useEventFilters';
 import { useAppStore } from '@/store/useAppStore';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { useCityName } from '@/hooks/useCityName';
 import {
   formatDayHeader,
   formatDateLong,
@@ -83,6 +84,7 @@ export default function EventsPage({ scrollRef }: EventsPageProps) {
   const [heroIndex, setHeroIndex] = useState(0);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const searchRef = useRef<HTMLInputElement | null>(null);
+  const { name: cityName } = useCityName();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -519,7 +521,7 @@ export default function EventsPage({ scrollRef }: EventsPageProps) {
             <div className="rounded-2xl border bg-card p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Tijucas</p>
+                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{cityName}</p>
                   <h3 className="text-lg font-semibold capitalize">
                     {format(monthStart, 'MMMM yyyy', { locale: ptBR })}
                   </h3>
