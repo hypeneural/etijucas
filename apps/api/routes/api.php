@@ -201,13 +201,13 @@ Route::prefix('v1')->group(function () {
     // =====================================================
     // Votes / Vereadores Public Routes
     // =====================================================
-    Route::prefix('vereadores')->group(function () {
+    Route::prefix('vereadores')->middleware('module:council')->group(function () {
         Route::get('/', [\App\Domains\Votes\Http\Controllers\VereadorController::class, 'index']);
         Route::get('/{slug}', [\App\Domains\Votes\Http\Controllers\VereadorController::class, 'show']);
         Route::get('/{slug}/votacoes', [\App\Domains\Votes\Http\Controllers\VereadorController::class, 'votacoes']);
     });
 
-    Route::prefix('votacoes')->group(function () {
+    Route::prefix('votacoes')->middleware('module:voting')->group(function () {
         Route::get('/', [\App\Domains\Votes\Http\Controllers\VotacaoController::class, 'index']);
         Route::get('/stats', [\App\Domains\Votes\Http\Controllers\VotacaoController::class, 'stats']);
         Route::get('/anos', [\App\Domains\Votes\Http\Controllers\VotacaoController::class, 'anos']);
@@ -269,7 +269,7 @@ Route::prefix('v1')->group(function () {
         // =====================================================
         // Forum Authenticated Routes
         // =====================================================
-        Route::prefix('forum')->middleware('throttle:forum')->group(function () {
+        Route::prefix('forum')->middleware(['throttle:forum', 'module:forum'])->group(function () {
             // Topics CRUD
             Route::post('topics', [\App\Http\Controllers\Api\Forum\TopicController::class, 'store']);
             Route::put('topics/{topic}', [\App\Http\Controllers\Api\Forum\TopicController::class, 'update']);
@@ -324,7 +324,7 @@ Route::prefix('v1')->group(function () {
         // =====================================================
         // Tourism Authenticated Routes
         // =====================================================
-        Route::prefix('tourism')->group(function () {
+        Route::prefix('tourism')->middleware('module:tourism')->group(function () {
             Route::post('spots/{id}/like', [\App\Domains\Tourism\Http\Controllers\TourismSpotController::class, 'toggleLike']);
             Route::post('spots/{id}/save', [\App\Domains\Tourism\Http\Controllers\TourismSpotController::class, 'toggleSave']);
             Route::post('spots/{spotId}/reviews', [\App\Domains\Tourism\Http\Controllers\TourismReviewController::class, 'store']);
@@ -334,7 +334,7 @@ Route::prefix('v1')->group(function () {
         // =====================================================
         // Citizen Reports Authenticated Routes
         // =====================================================
-        Route::prefix('reports')->middleware('throttle:5,1')->group(function () {
+        Route::prefix('reports')->middleware(['throttle:5,1', 'module:reports'])->group(function () {
             // Create report (with rate limiting)
             Route::post('/', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'store']);
 
