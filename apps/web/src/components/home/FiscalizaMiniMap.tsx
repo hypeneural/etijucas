@@ -9,7 +9,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, ExternalLink } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import { cn } from '@/lib/utils';
 import { hapticFeedback } from '@/hooks/useHaptics';
 
@@ -37,7 +37,7 @@ const statusColors: Record<string, string> = {
 const TIJUCAS_CENTER = { lat: -27.2419, lng: -48.6306 };
 
 export function FiscalizaMiniMap({ pins = [], className }: FiscalizaMiniMapProps) {
-    const navigate = useNavigate();
+    const navigate = useTenantNavigate();
     const visiblePins = pins.slice(0, 3);
 
     const handleClick = () => {

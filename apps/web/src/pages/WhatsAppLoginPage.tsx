@@ -12,7 +12,8 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
+import { useSearchParams, useLocation } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     MessageCircle,
@@ -36,7 +37,7 @@ import { cn } from '@/lib/utils';
 type Step = 'phone' | 'otp' | 'success';
 
 export default function WhatsAppLoginPage() {
-    const navigate = useNavigate();
+    const navigate = useTenantNavigate();
     const location = useLocation();
     const [searchParams] = useSearchParams();
     const setAuth = useAuthStore((state) => state.setAuth);

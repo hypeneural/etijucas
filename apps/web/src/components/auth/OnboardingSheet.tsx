@@ -25,6 +25,7 @@ import {
 import { DraggableSheet } from '@/components/ui/DraggableSheet';
 import { authService } from '@/services/auth.service';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useAppName, useCityName } from '@/hooks/useCityName';
 import type { Bairro } from '@/types/api.types';
 
 interface OnboardingSheetProps {
@@ -41,6 +42,9 @@ export function OnboardingSheet({
     bairros,
 }: OnboardingSheetProps) {
     const { updateUser } = useAuthStore();
+    const appName = useAppName();
+    const { name: cityName } = useCityName();
+
     const [currentStep, setCurrentStep] = useState<Step>('name');
     const [nome, setNome] = useState('');
     const [selectedBairroId, setSelectedBairroId] = useState<string | undefined>();
@@ -157,7 +161,7 @@ export function OnboardingSheet({
         <DraggableSheet
             isOpen={isOpen}
             onClose={() => { }} // Prevent closing during onboarding
-            title="Bem-vindo ao eTijucas!"
+            title={`Bem-vindo ao ${appName}!`}
             snapPoints={[0.6, 0.9]}
             initialSnap={0}
         >
@@ -168,10 +172,10 @@ export function OnboardingSheet({
                         <div
                             key={step}
                             className={`h-1 flex-1 rounded-full transition-colors ${step === currentStep
-                                    ? 'bg-primary'
-                                    : index < ['name', 'bairro', 'terms'].indexOf(currentStep)
-                                        ? 'bg-primary/50'
-                                        : 'bg-muted'
+                                ? 'bg-primary'
+                                : index < ['name', 'bairro', 'terms'].indexOf(currentStep)
+                                    ? 'bg-primary/50'
+                                    : 'bg-muted'
                                 }`}
                         />
                     ))}
@@ -232,7 +236,7 @@ export function OnboardingSheet({
                                     <MapPin className="w-6 h-6 text-primary" />
                                 </div>
                                 <div>
-                                    <h4 className="text-lg font-semibold">Qual seu bairro? (opcional)</h4>
+                                    <h4 className="text-lg font-semibold">Qual seu bairro em {cityName}? (opcional)</h4>
                                     <p className="text-sm text-muted-foreground">
                                         Para mostrar notícias e eventos perto de você
                                     </p>
@@ -260,8 +264,8 @@ export function OnboardingSheet({
                                         key={bairro.id}
                                         onClick={() => setSelectedBairroId(bairro.id)}
                                         className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all ${selectedBairroId === bairro.id
-                                                ? 'bg-primary text-primary-foreground'
-                                                : 'hover:bg-muted'
+                                            ? 'bg-primary text-primary-foreground'
+                                            : 'hover:bg-muted'
                                             }`}
                                     >
                                         <span>{bairro.nome}</span>
@@ -298,7 +302,7 @@ export function OnboardingSheet({
 
                             <div className="p-4 rounded-xl bg-muted/50 border border-border">
                                 <p className="text-sm text-muted-foreground leading-relaxed">
-                                    Ao usar o eTijucas, você concorda em respeitar outros usuários,
+                                    Ao usar o {appName}, você concorda em respeitar outros usuários,
                                     não publicar conteúdo ofensivo e usar o app de forma responsável.
                                     Seus dados são protegidos conforme nossa política de privacidade.
                                 </p>
@@ -336,8 +340,8 @@ export function OnboardingSheet({
                     onClick={handleNext}
                     disabled={!canProceed || isLoading}
                     className={`w-full mt-6 py-4 rounded-2xl font-semibold text-lg flex items-center justify-center gap-2 transition-all ${canProceed
-                            ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                            : 'bg-muted text-muted-foreground cursor-not-allowed'
+                        ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                        : 'bg-muted text-muted-foreground cursor-not-allowed'
                         }`}
                     whileTap={canProceed ? { scale: 0.98 } : undefined}
                 >

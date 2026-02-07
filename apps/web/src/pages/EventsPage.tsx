@@ -1,5 +1,5 @@
 ﻿import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Bell,
@@ -78,7 +78,7 @@ export default function EventsPage({ scrollRef }: EventsPageProps) {
   } = useEventFilters();
   const { setActiveTab } = useAppStore();
   const { toast } = useToast();
-  const navigate = useNavigate();
+  const navigate = useTenantNavigate();
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
   const [isFilterOpen, setFilterOpen] = useState(false);
   const [heroIndex, setHeroIndex] = useState(0);

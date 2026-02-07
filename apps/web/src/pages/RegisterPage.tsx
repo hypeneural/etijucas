@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import {
@@ -41,7 +42,7 @@ const STEPS: { id: RegisterStep; icon: typeof Phone; label: string }[] = [
 ];
 
 export default function RegisterPage() {
-    const navigate = useNavigate();
+    const navigate = useTenantNavigate();
     const location = useLocation();
     const setAuth = useAuthStore((state) => state.setAuth);
 

@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Loader2,
@@ -24,7 +25,7 @@ import { PASSWORD_REGEX, mapAuthError } from '@/lib/auth-utils';
 type Step = 'phone' | 'otp' | 'password' | 'done';
 
 export default function ForgotPasswordPage() {
-    const navigate = useNavigate();
+    const navigate = useTenantNavigate();
 
     // Steps
     const [currentStep, setCurrentStep] = useState<Step>('phone');

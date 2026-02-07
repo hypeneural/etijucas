@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import { LogIn, UserPlus, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -15,7 +15,7 @@ export function LoginRequired({
     message = 'Você precisa estar logado para acessar esta funcionalidade.',
     returnUrl,
 }: LoginRequiredProps) {
-    const navigate = useNavigate();
+    const navigate = useTenantNavigate();
 
     const handleLogin = () => {
         // Store return URL for after login

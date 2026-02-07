@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import { Calendar, ThumbsUp, ThumbsDown, ChevronRight, CheckCircle, XCircle, Clock, MessageCircle, Heart } from 'lucide-react';
 import { VoteHistoryItem, VoteStatus, VOTE_STATUS_CONFIG } from '@/types/votes';
 import { cn } from '@/lib/utils';
@@ -64,7 +64,7 @@ function StatusIcon({ status }: { status: VoteStatus }) {
 }
 
 export function VoteListCard({ vote, index = 0 }: VoteListCardProps) {
-    const navigate = useNavigate();
+    const navigate = useTenantNavigate();
     const { isAuthenticated } = useAuthStore();
     const statusConfig = VOTE_STATUS_CONFIG[vote.status];
 

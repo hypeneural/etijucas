@@ -156,15 +156,19 @@ export const authService = {
 
     /**
      * Step 3: Register new user (after OTP verification)
-     * Includes city_slug to associate user with Tijucas/SC
+     * Includes city_slug from current tenant context
      */
     async register(data: RegisterDTO): Promise<AuthResponse> {
+        // Import tenant store dynamically to avoid circular deps
+        const { useTenantStore } = await import('../store/useTenantStore');
+        const currentCitySlug = useTenantStore.getState().city?.slug || 'tijucas-sc';
+
         // Map confirmPassword to password_confirmation for Laravel
-        // Add city_slug for multi-tenancy (fixed to Tijucas/SC for now)
+        // Use city_slug from tenant context (or fallback)
         const payload = {
             ...data,
             password_confirmation: data.confirmPassword,
-            city_slug: 'tijucas-sc', // Fixed city for now
+            city_slug: data.citySlug || currentCitySlug,
         };
 
         const response = await apiClient.post<AuthResponse>(

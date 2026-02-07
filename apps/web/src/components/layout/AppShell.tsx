@@ -1,6 +1,7 @@
 import React, { Suspense, useState, useRef, useCallback, useLayoutEffect, useEffect, lazy } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import { useQuery } from '@tanstack/react-query';
 import { BottomTabBar, TabId } from './BottomTabBar';
 import { useAppStore } from '@/store/useAppStore';
@@ -55,7 +56,7 @@ const skeletonVariants: Record<TabId, 'home' | 'list' | 'detail' | 'grid'> = {
 
 export default function AppShell() {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
+  const navigate = useTenantNavigate();
   const { activeTab, setActiveTab, scrollPositions, setScrollPosition } = useAppStore();
   const { isAuthenticated, user, updateUser, needsOnboarding } = useAuthStore();
   const [direction, setDirection] = useState(0);

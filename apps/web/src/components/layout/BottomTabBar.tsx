@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Home, AlertTriangle, Megaphone, Calendar, MoreHorizontal } from 'lucide-react';
+import { Home, AlertTriangle, Megaphone, Calendar, MoreHorizontal, MapPin } from 'lucide-react';
+import { useCityName } from '@/hooks/useCityName';
 
 export type TabId = 'home' | 'reportar' | 'forum' | 'agenda' | 'mais';
 
@@ -24,10 +25,21 @@ interface BottomTabBarProps {
 }
 
 export function BottomTabBar({ activeTab, onTabChange }: BottomTabBarProps) {
+  const { name: cityName, uf } = useCityName();
+
   return (
     <div className="fixed bottom-0 left-1/2 z-50 w-full max-w-[420px] -translate-x-1/2 pb-safe-bottom">
       <nav className="glass mx-3 mb-2 rounded-2xl shadow-elevated">
-        <div className="flex items-center justify-around h-16 px-2">
+        {/* City Badge - Always visible */}
+        <div className="flex items-center justify-center gap-1 pt-1.5 pb-0.5">
+          <MapPin className="w-3 h-3 text-primary" />
+          <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">
+            {cityName}/{uf}
+          </span>
+        </div>
+
+        {/* Tab Bar */}
+        <div className="flex items-center justify-around h-14 px-2">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             const Icon = tab.icon;
@@ -36,7 +48,7 @@ export function BottomTabBar({ activeTab, onTabChange }: BottomTabBarProps) {
               <motion.button
                 key={tab.id}
                 onClick={() => onTabChange(tab.id)}
-                className="relative flex flex-col items-center justify-center w-16 h-14 rounded-xl"
+                className="relative flex flex-col items-center justify-center w-16 h-12 rounded-xl"
                 whileTap={{ scale: 0.9 }}
                 transition={{ type: 'spring', stiffness: 400, damping: 17 }}
               >
@@ -53,7 +65,7 @@ export function BottomTabBar({ activeTab, onTabChange }: BottomTabBarProps) {
                   />
                 </motion.div>
                 <span
-                  className={`text-[10px] font-medium mt-1 transition-colors duration-200 ${isActive ? 'text-primary' : 'text-muted-foreground'
+                  className={`text-[10px] font-medium mt-0.5 transition-colors duration-200 ${isActive ? 'text-primary' : 'text-muted-foreground'
                     }`}
                 >
                   {tab.label}
@@ -73,3 +85,4 @@ export function BottomTabBar({ activeTab, onTabChange }: BottomTabBarProps) {
     </div>
   );
 }
+

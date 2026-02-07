@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     ArrowLeft,
@@ -36,7 +36,7 @@ const statusConfig: Record<string, { icon: React.ComponentType<{ className?: str
 };
 
 function ReportCard({ report }: { report: CitizenReport }) {
-    const navigate = useNavigate();
+    const navigate = useTenantNavigate();
     const status = statusConfig[report.status] || statusConfig.recebido;
     const StatusIcon = status.icon;
 
@@ -121,7 +121,7 @@ function ReportCard({ report }: { report: CitizenReport }) {
 }
 
 export default function MyReportsPage() {
-    const navigate = useNavigate();
+    const navigate = useTenantNavigate();
     const { isAuthenticated } = useAuthStore();
 
     // Auth gate - require login to view reports

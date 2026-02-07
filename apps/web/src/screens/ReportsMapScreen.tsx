@@ -10,7 +10,7 @@
  */
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
@@ -423,7 +423,7 @@ function ReportPreviewContent({
 // ============================================
 
 export default function ReportsMapScreen() {
-    const navigate = useNavigate();
+    const navigate = useTenantNavigate();
 
     // Map state
     const [bounds, setBounds] = useState<MapBounds | null>(null);

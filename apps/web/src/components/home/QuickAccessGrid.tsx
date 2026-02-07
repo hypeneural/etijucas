@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import { motion } from 'framer-motion';
 import { Calendar, MapPin, Church, Phone, FileText, Trash2 } from 'lucide-react';
 
@@ -25,7 +25,7 @@ interface QuickAccessGridProps {
 }
 
 export default function QuickAccessGrid({ onNavigate }: QuickAccessGridProps) {
-  const navigate = useNavigate();
+  const navigate = useTenantNavigate();
 
   const containerVariants = {
     hidden: { opacity: 0 },

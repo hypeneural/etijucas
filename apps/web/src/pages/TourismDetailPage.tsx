@@ -2,7 +2,8 @@
 // Mobile-first, offline-first, native-first
 
 import React, { useState, useMemo, useRef, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft,
@@ -447,7 +448,7 @@ function WriteReviewSheet({
 
 export default function TourismDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+  const navigate = useTenantNavigate();
   const [showGallery, setShowGallery] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const headerRef = useRef<HTMLDivElement>(null);

@@ -2,7 +2,8 @@
 // Mobile-first, offline-first, native-first
 
 import { useState, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     ArrowLeft,
@@ -292,7 +293,7 @@ function LoadingSkeleton() {
 
 export default function ReportDetailPage() {
     const { id } = useParams<{ id: string }>();
-    const navigate = useNavigate();
+    const navigate = useTenantNavigate();
     const [galleryOpen, setGalleryOpen] = useState(false);
     const [galleryIndex, setGalleryIndex] = useState(0);
 

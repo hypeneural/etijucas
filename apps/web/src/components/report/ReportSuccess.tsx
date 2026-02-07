@@ -1,5 +1,5 @@
 import { useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import {
@@ -25,7 +25,7 @@ interface ReportSuccessProps {
 
 export function ReportSuccess({ protocolNumber, onClose }: ReportSuccessProps) {
     const { toast } = useToast();
-    const navigate = useNavigate();
+    const navigate = useTenantNavigate();
 
     // Fire confetti on mount
     const fireConfetti = useCallback(() => {

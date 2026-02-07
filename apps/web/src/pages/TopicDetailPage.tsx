@@ -4,7 +4,8 @@
 // ======================================================
 
 import { useState, useCallback } from 'react';
-import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useParams, useSearchParams, Link } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Share2, MapPin, Heart, MoreHorizontal, Loader2, LogIn, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -69,7 +70,7 @@ function TopicSkeleton() {
 
 // Not found state
 function TopicNotFound() {
-    const navigate = useNavigate();
+    const navigate = useTenantNavigate();
 
     return (
         <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -92,7 +93,7 @@ function TopicNotFound() {
 export default function TopicDetailPage() {
     const { id } = useParams<{ id: string }>();
     const [searchParams] = useSearchParams();
-    const navigate = useNavigate();
+    const navigate = useTenantNavigate();
     const { toast } = useToast();
 
     // Auth state

@@ -3,7 +3,8 @@
  * Used when non-authenticated users try to perform auth-required actions
  */
 
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import { motion } from 'framer-motion';
 import { LogIn, UserPlus, X, MessageCircle, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -22,7 +23,7 @@ interface LoginPromptSheetProps {
 }
 
 export function LoginPromptSheet({ open, onClose, action = 'general' }: LoginPromptSheetProps) {
-    const navigate = useNavigate();
+    const navigate = useTenantNavigate();
     const location = useLocation();
     const returnTo = encodeURIComponent(location.pathname + location.search);
 

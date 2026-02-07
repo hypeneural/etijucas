@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -40,7 +40,7 @@ const slideVariants = {
 };
 
 export default function ReportWizardPage() {
-    const navigate = useNavigate();
+    const navigate = useTenantNavigate();
     const { isAuthenticated } = useAuthStore();
 
     // Auth gate - require login to create reports

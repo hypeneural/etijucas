@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import { motion } from 'framer-motion';
 import { Calendar, Clock, AlertCircle, MapPin } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
@@ -15,7 +15,7 @@ interface TodayBentoGridProps {
 }
 
 export default function TodayBentoGrid({ onNavigate }: TodayBentoGridProps) {
-  const navigate = useNavigate();
+  const navigate = useTenantNavigate();
   const { selectedBairro } = useAppStore();
 
   // Use offline-first events hook

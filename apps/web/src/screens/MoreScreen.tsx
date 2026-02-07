@@ -1,5 +1,5 @@
 import React, { useState, lazy, Suspense } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -54,7 +54,7 @@ interface MoreScreenProps {
 }
 
 export default function MoreScreen({ scrollRef }: MoreScreenProps) {
-  const navigate = useNavigate();
+  const navigate = useTenantNavigate();
   const [view, setView] = useState<ScreenView>('menu');
   const { selectedBairro, reports } = useAppStore();
   const { user, isAuthenticated, logout } = useAuthStore();

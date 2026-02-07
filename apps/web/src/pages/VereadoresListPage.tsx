@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Search, Users, Calendar, Filter, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -30,7 +30,7 @@ import type { VereadorList, Partido } from '@/types/votes';
 type ActiveTab = 'votacoes' | 'vereadores';
 
 export default function VereadoresListPage() {
-    const navigate = useNavigate();
+    const navigate = useTenantNavigate();
     const { activeTab: appTab, setActiveTab } = useAppStore();
 
     // Tab state

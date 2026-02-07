@@ -3,7 +3,7 @@
 // ======================================================
 
 import React, { useMemo, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import {
   Heart,
@@ -45,7 +45,7 @@ interface ForumPreviewProps {
 }
 
 export default function ForumPreview({ onNavigate }: ForumPreviewProps) {
-  const navigate = useNavigate();
+  const navigate = useTenantNavigate();
   const { selectedBairro } = useAppStore();
   const { isAuthenticated } = useAuthStore();
   const { toast } = useToast();

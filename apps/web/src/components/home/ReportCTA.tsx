@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import {
   Camera,
   AlertTriangle,
@@ -109,7 +109,7 @@ interface ReportCTAProps {
 }
 
 export default function ReportCTA({ onNavigate }: ReportCTAProps) {
-  const navigate = useNavigate();
+  const navigate = useTenantNavigate();
 
   // Fetch stats for KPIs
   const { data: stats } = useQuery({

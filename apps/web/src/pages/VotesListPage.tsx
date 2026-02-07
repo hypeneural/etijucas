@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Search, Users, Calendar, Filter, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -36,7 +37,7 @@ type ActiveTab = 'votacoes' | 'vereadores';
 type StatusFilter = 'all' | VoteStatus;
 
 export default function VotesListPage() {
-    const navigate = useNavigate();
+    const navigate = useTenantNavigate();
     const [searchParams] = useSearchParams();
     const { activeTab: appTab, setActiveTab } = useAppStore();
 

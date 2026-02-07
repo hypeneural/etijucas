@@ -2,7 +2,7 @@
 // Mobile-first, offline-first, native-first
 
 import React, { useState, useMemo, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
@@ -408,7 +408,7 @@ interface TourismScreenProps {
 }
 
 export default function TourismScreen({ scrollRef }: TourismScreenProps) {
-  const navigate = useNavigate();
+  const navigate = useTenantNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<TourismCategory | 'todos'>('todos');
   const [filters, setFilters] = useState<TourismFilters>({});

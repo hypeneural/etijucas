@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     ArrowLeft,
@@ -41,7 +42,7 @@ import { VOTE_CONFIG } from '@/types/votes';
 
 export default function VereadorDetailPage() {
     const { slug } = useParams<{ slug: string }>();
-    const navigate = useNavigate();
+    const navigate = useTenantNavigate();
     const { toast } = useToast();
     const { activeTab, setActiveTab } = useAppStore();
 

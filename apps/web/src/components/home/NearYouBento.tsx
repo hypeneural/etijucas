@@ -11,7 +11,7 @@
  */
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import { motion } from 'framer-motion';
 import { MapPin, AlertTriangle, Calendar, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -67,7 +67,7 @@ function NearYouSkeleton() {
 }
 
 export function NearYouBento({ bairroName, items, isLoading, className }: NearYouBentoProps) {
-    const navigate = useNavigate();
+    const navigate = useTenantNavigate();
 
     if (isLoading) {
         return <NearYouSkeleton />;

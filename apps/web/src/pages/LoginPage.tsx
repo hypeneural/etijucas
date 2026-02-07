@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import { motion } from 'framer-motion';
 import {
     LogIn,
@@ -23,7 +24,7 @@ import { Label } from '@/components/ui/label';
 import { useAppName, useCityName } from '@/hooks/useCityName';
 
 export default function LoginPage() {
-    const navigate = useNavigate();
+    const navigate = useTenantNavigate();
     const setAuth = useAuthStore((state) => state.setAuth);
     const appName = useAppName();
     const { name: cityName } = useCityName();

@@ -133,6 +133,7 @@ export interface RegisterDTO {
     email?: string;
     bairroId?: string;
     address?: AddressDTO;
+    citySlug?: string;     // City slug for multi-tenancy (optional, uses tenant context if not provided)
 }
 
 // ======================================================

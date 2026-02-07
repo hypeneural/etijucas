@@ -1,5 +1,6 @@
 ﻿import { useMemo, useState, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import { motion, AnimatePresence, useScroll, useTransform, useMotionValueEvent } from 'framer-motion';
 import {
   ArrowLeft,
@@ -57,7 +58,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 export default function EventDetailsPage() {
   const { eventId } = useParams();
-  const navigate = useNavigate();
+  const navigate = useTenantNavigate();
   const { allEvents, toggleFavorite, isFavorite } = useEventFilters();
   const { toast } = useToast();
   const [expanded, setExpanded] = useState(false);

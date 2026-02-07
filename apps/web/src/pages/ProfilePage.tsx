@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     ArrowLeft,
@@ -39,7 +39,7 @@ import type { Address } from '@/types/auth.types';
 type EditSection = 'profile' | 'address' | 'password' | 'notifications' | null;
 
 export default function ProfilePage() {
-    const navigate = useNavigate();
+    const navigate = useTenantNavigate();
     const { user, updateUser, logout, isAuthenticated } = useAuthStore();
 
     // Form state

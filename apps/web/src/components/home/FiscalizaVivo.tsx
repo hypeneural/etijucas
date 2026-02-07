@@ -7,7 +7,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import {
     AlertTriangle,
     CheckCircle2,
@@ -91,7 +91,7 @@ function FiscalizaSkeleton({ className }: { className?: string }) {
 }
 
 export function FiscalizaVivo({ data, isLoading, hasError, className }: FiscalizaVivoProps) {
-    const navigate = useNavigate();
+    const navigate = useTenantNavigate();
     const haptic = useHaptic();
     const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
     const [showMap, setShowMap] = useState(false);

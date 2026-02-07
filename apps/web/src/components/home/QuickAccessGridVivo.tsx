@@ -10,7 +10,7 @@
  */
 
 import React, { useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Calendar,
@@ -93,7 +93,7 @@ const itemColors: Record<string, string> = {
 };
 
 export function QuickAccessGridVivo({ data, className }: QuickAccessGridVivoProps) {
-    const navigate = useNavigate();
+    const navigate = useTenantNavigate();
     const haptic = useHaptic();
     const isModuleEnabled = useTenantStore((state) => state.isModuleEnabled);
     const { buildRoute } = useCityRoute();

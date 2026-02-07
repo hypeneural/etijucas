@@ -4,7 +4,7 @@
  */
 
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import { Icon } from '@iconify/react';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -43,7 +43,7 @@ function getHeroPhrase(
 }
 
 export function WeatherHomeCard() {
-    const navigate = useNavigate();
+    const navigate = useTenantNavigate();
     const { data, isLoading, error } = useWeatherHome({ hours: 6 });
 
     const handleCardClick = () => {

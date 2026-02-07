@@ -5,7 +5,7 @@
  * Provides a friendly message and navigation back to home.
  */
 
-import { useNavigate } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import { motion } from 'framer-motion';
 import { Lock, Home, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -17,7 +17,7 @@ interface ModuleUnavailableProps {
 }
 
 export function ModuleUnavailable({ moduleName, moduleSlug }: ModuleUnavailableProps) {
-    const navigate = useNavigate();
+    const navigate = useTenantNavigate();
     const cityName = useTenantStore((s) => s.city?.name || 'sua cidade');
 
     return (

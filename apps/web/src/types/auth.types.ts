@@ -116,6 +116,7 @@ export interface RegisterDTO {
     email?: string;
     bairroId?: string;     // Canonical bairro reference
     address?: Address;
+    citySlug?: string;     // City slug for multi-tenancy (optional, uses tenant context if not provided)
 }
 
 // Login DTO

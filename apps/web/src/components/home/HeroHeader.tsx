@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Bell, ChevronDown, User } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -23,7 +23,7 @@ export default function HeroHeader({
   hasActiveAlert = false,
   streakDays = 0,
 }: HeroHeaderProps) {
-  const navigate = useNavigate();
+  const navigate = useTenantNavigate();
   const { selectedBairro, setSelectedBairro } = useAppStore();
   const { user, isAuthenticated } = useAuthStore();
   const [bairroSheetOpen, setBairroSheetOpen] = useState(false);

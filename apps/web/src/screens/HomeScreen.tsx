@@ -25,7 +25,7 @@ import { TabId } from '@/components/layout/BottomTabBar';
 import { useToast } from '@/hooks/use-toast';
 import { hapticFeedback } from '@/hooks/useHaptics';
 
-import { useNavigate } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import { EventListItem } from '@/types/events.api';
 import { AggregatorEventItem } from '@/types/home.types';
 import confetti from 'canvas-confetti';
@@ -91,8 +91,8 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
   console.log('[HomeScreen] DEBUG: Hook 2 - useRef startYRef');
   const startYRef = useRef(0);
 
-  console.log('[HomeScreen] DEBUG: Hook 3 - useNavigate');
-  const navigate = useNavigate();
+  console.log('[HomeScreen] DEBUG: Hook 3 - useTenantNavigate');
+  const navigate = useTenantNavigate();
 
   console.log('[HomeScreen] DEBUG: Hook 4 - useAppStore');
   const { isRefreshing, setIsRefreshing, selectedBairro } = useAppStore();

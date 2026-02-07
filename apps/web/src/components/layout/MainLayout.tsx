@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import { useQuery } from '@tanstack/react-query';
 import { BottomTabBar, TabId } from './BottomTabBar';
 import { useAppStore } from '@/store/useAppStore';
@@ -9,7 +10,7 @@ import { bairroService } from '@/services/bairro.service';
 
 export default function MainLayout() {
     const location = useLocation();
-    const navigate = useNavigate();
+    const navigate = useTenantNavigate();
     const { setActiveTab } = useAppStore();
     const { isAuthenticated, user, needsOnboarding } = useAuthStore();
     const [showOnboarding, setShowOnboarding] = useState(false);

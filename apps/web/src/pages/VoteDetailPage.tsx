@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Share2, CheckCircle, Calendar, XCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -48,7 +49,7 @@ function adaptVotoToCouncilor(voto: VotoRegistro) {
 
 export default function VoteDetailPage() {
     const { id } = useParams<{ id: string }>();
-    const navigate = useNavigate();
+    const navigate = useTenantNavigate();
     const { toast } = useToast();
     const { activeTab, setActiveTab } = useAppStore();
 

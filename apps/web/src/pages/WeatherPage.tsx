@@ -6,7 +6,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import { Icon } from '@iconify/react';
 import { ArrowLeft, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -41,7 +41,7 @@ function storeMode(mode: ViewMode) {
 }
 
 export default function WeatherPage() {
-    const navigate = useNavigate();
+    const navigate = useTenantNavigate();
     const [activeTab, setActiveTab] = useState('hoje');
     const [viewMode, setViewMode] = useState<ViewMode>(getStoredMode);
 

@@ -29,7 +29,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { useNavigate } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import { usePublicReports, useReportsStats } from '@/hooks/useMyReports';
 import type { ReportStatus, ReportCategory } from '@/types/report';
 import { cn } from '@/lib/utils';
@@ -51,7 +51,7 @@ interface ReportScreenProps {
 }
 
 export default function ReportScreen({ scrollRef }: ReportScreenProps) {
-  const navigate = useNavigate();
+  const navigate = useTenantNavigate();
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const { name: cityName } = useCityName();

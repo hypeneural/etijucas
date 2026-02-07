@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import {
     MessageCircle,
     Heart,
@@ -79,7 +79,7 @@ function ForumSkeleton({ className }: { className?: string }) {
 }
 
 export function BocaNoTromboneVivo({ data, isLoading, hasError, className }: BocaNoTromboneVivoProps) {
-    const navigate = useNavigate();
+    const navigate = useTenantNavigate();
     const haptic = useHaptic();
 
     const handleClick = () => {

@@ -3,7 +3,7 @@
 // ======================================================
 
 import { useState, useMemo, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     ArrowLeft,
@@ -55,7 +55,7 @@ function useDebounce<T>(value: T, delay: number): T {
 }
 
 export default function UsefulPhonesScreen() {
-    const navigate = useNavigate();
+    const navigate = useTenantNavigate();
     const { favoritePhones = [], toggleFavoritePhone, setActiveTab } = useAppStore();
 
     // State

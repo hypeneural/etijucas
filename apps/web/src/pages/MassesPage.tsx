@@ -1,5 +1,5 @@
 ﻿import { useMemo, useState, type ChangeEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Filter, Heart, Search, MapPin, CalendarClock, Sparkles, Church } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
@@ -23,7 +23,7 @@ const WEEKDAYS_SHORT = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 const HERO_IMAGE = '/igreja-hero.svg';
 
 export default function MassesPage() {
-    const navigate = useNavigate();
+    const navigate = useTenantNavigate();
     const [isFilterOpen, setFilterOpen] = useState(false);
     const { setActiveTab } = useAppStore();
 

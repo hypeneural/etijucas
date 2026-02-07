@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useTenantNavigate } from '@/hooks';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
 import { MapPin, Star, ChevronRight, Camera, Heart, Sparkles } from 'lucide-react';
 import { useOfflineTourism } from '@/hooks/useOfflineTourism';
@@ -41,7 +41,7 @@ export default function TourismHighlights({ onNavigate, data: externalData }: To
   console.log('[TourismHighlights] DEBUG: Starting render');
 
   console.log('[TourismHighlights] DEBUG: Hook 1 - useNavigate');
-  const navigate = useNavigate();
+  const navigate = useTenantNavigate();
 
   console.log('[TourismHighlights] DEBUG: Hook 2 - useOfflineTourism');
   const { featuredSpots: hookSpots, isLoading: hookLoading, likeSpot } = useOfflineTourism();
