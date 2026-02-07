@@ -242,6 +242,45 @@ const App = () => {
 
             </Route>
 
+            {/* City-prefixed routes: /:uf/:cidade/* */}
+            <Route path="/:uf/:cidade" element={<MainLayout />}>
+              <Route index element={<HomeScreen />} />
+              <Route path="mais" element={<MoreScreen />} />
+              <Route path="perfil" element={<ProfilePage />} />
+
+              {/* Feature routes with city prefix */}
+              <Route path="agenda" element={<AgendaScreen />} />
+              <Route path="agenda/:eventId" element={<EventDetailsPage />} />
+
+              <Route path="forum" element={<ForumScreen />} />
+              <Route path="topico/:id" element={<TopicDetailPage />} />
+
+              <Route path="denuncias" element={<ReportScreen />} />
+              <Route path="denuncias/mapa" element={<ReportsMapScreen />} />
+              <Route path="denuncia/nova" element={<ReportWizardPage />} />
+              <Route path="denuncia/:id" element={<ReportDetailPage />} />
+              <Route path="minhas-denuncias" element={<MyReportsPage />} />
+
+              <Route path="coleta-lixo" element={<TrashScheduleScreen />} />
+
+              <Route path="votacoes" element={<VotesListPage />} />
+              <Route path="votacoes/:id" element={<VoteDetailPage />} />
+
+              <Route path="vereadores" element={<VereadoresListPage />} />
+              <Route path="vereadores/:slug" element={<VereadorDetailPage />} />
+
+              <Route path="missas" element={<MassesPage />} />
+
+              <Route path="telefones" element={<UsefulPhonesScreen />} />
+
+              <Route path="pontos-turisticos" element={<TourismScreen />} />
+              <Route path="ponto-turistico/:id" element={<TourismDetailPage />} />
+
+              <Route path="previsao" element={<WeatherPage />} />
+
+              <Route path="veiculos" element={<VehicleConsultationPage />} />
+            </Route>
+
             {/* Catch-all - redirect to home */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

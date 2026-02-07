@@ -3,9 +3,13 @@
  * 
  * Version of QuickAccessGrid that displays live badges from the
  * home aggregator API, showing real-time counts and highlights.
+ * 
+ * Features:
+ * - Filters items based on enabled modules for current city
+ * - Uses city-prefixed routes when in multi-city mode
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -23,6 +27,8 @@ import {
 import { cn } from '@/lib/utils';
 import { QuickAccessItem, QuickAccessPayload } from '@/types/home.types';
 import { useHaptic } from '@/hooks/useHaptic';
+import { useTenantStore } from '@/store/useTenantStore';
+import { useCityRoute } from '@/hooks/useCityRoute';
 
 interface QuickAccessGridVivoProps {
     data?: QuickAccessPayload;
@@ -48,6 +54,18 @@ const badgeColors: Record<string, string> = {
     green: 'bg-emerald-500/20 text-emerald-600',
     orange: 'bg-orange-500/20 text-orange-600',
     red: 'bg-red-500/20 text-red-600',
+};
+
+// Map item IDs to module slugs for filtering
+const itemToModuleMap: Record<string, string> = {
+    'eventos': 'events',
+    'turismo': 'turismo',
+    'missas': 'missas',
+    'telefones': 'telefones',
+    'coleta': 'coleta-lixo',
+    'fiscaliza': 'denuncias',
+    'tempo': 'tempo',
+    'forum': 'forum',
 };
 
 // Default items (fallback when no API data)
@@ -77,8 +95,21 @@ const itemColors: Record<string, string> = {
 export function QuickAccessGridVivo({ data, className }: QuickAccessGridVivoProps) {
     const navigate = useNavigate();
     const haptic = useHaptic();
+    const isModuleEnabled = useTenantStore((state) => state.isModuleEnabled);
+    const { buildRoute } = useCityRoute();
 
-    const items = data?.items || defaultItems;
+    // Filter items based on enabled modules
+    const items = useMemo(() => {
+        const sourceItems = data?.items || defaultItems;
+
+        return sourceItems.filter(item => {
+            const moduleSlug = itemToModuleMap[item.id];
+            // If no mapping, show the item (backwards compatibility)
+            if (!moduleSlug) return true;
+            // Only show if module is enabled for current city
+            return isModuleEnabled(moduleSlug);
+        });
+    }, [data?.items, isModuleEnabled]);
 
     const containerVariants = {
         hidden: { opacity: 0 },
@@ -105,7 +136,8 @@ export function QuickAccessGridVivo({ data, className }: QuickAccessGridVivoProp
 
     const handleClick = (item: QuickAccessItem) => {
         haptic.light();
-        navigate(item.route);
+        // Use city-prefixed route
+        navigate(buildRoute(item.route));
     };
 
     return (
