@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Api\Events;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Events\EventCategoryResource;
 use App\Models\EventCategory;
+use App\Support\TenantCache;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 
 class EventCategoryController extends Controller
 {
@@ -18,7 +18,7 @@ class EventCategoryController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $categories = Cache::remember('events:categories', 300, function () {
+        $categories = TenantCache::remember('events:categories', 300, function () {
             return EventCategory::query()
                 ->active()
                 ->ordered()

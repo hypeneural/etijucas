@@ -93,11 +93,19 @@ class CityModulesSeeder extends Seeder
      * Enable specific modules for a city.
      * 
      * @param City $city
-     * @param array $moduleSlugs Array of module slugs to enable
+     * @param array $moduleIdentifiers Array of module keys/slugs to enable
      */
-    public static function enableModulesForCity(City $city, array $moduleSlugs): int
+    public static function enableModulesForCity(City $city, array $moduleIdentifiers): int
     {
-        $modules = Module::whereIn('slug', $moduleSlugs)->get();
+        $normalizedKeys = array_map(
+            static fn(string $identifier) => Module::normalizeKey($identifier),
+            $moduleIdentifiers
+        );
+
+        $modules = Module::query()
+            ->whereIn('module_key', $normalizedKeys)
+            ->orWhereIn('slug', $moduleIdentifiers)
+            ->get();
         $enabled = 0;
 
         foreach ($modules as $module) {

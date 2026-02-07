@@ -15,6 +15,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RolesAndPermissionsSeeder::class,
             CitiesSeeder::class,        // Cities must be seeded before bairros
+            ModulesSeeder::class,       // Canonical modules catalog
+            CityModulesSeeder::class,   // Tenant module activation defaults
             BairrosSeeder::class,       // Bairros with city_id
             BairroAliasesSeeder::class, // Aliases for bairro names
             AdminUserSeeder::class,

@@ -33,11 +33,27 @@ class TenantCache
     }
 
     /**
+     * Get a tenant-prefixed key for an explicit city id.
+     */
+    public static function keyForCity(string $cityId, string $key): string
+    {
+        return "city:{$cityId}:{$key}";
+    }
+
+    /**
      * Get an item from the cache, or execute callback and store the result.
      */
     public static function remember(string $key, int $ttl, \Closure $callback): mixed
     {
         return Cache::remember(self::key($key), $ttl, $callback);
+    }
+
+    /**
+     * Get an item from cache for an explicit city, or execute callback and store the result.
+     */
+    public static function rememberForCity(string $cityId, string $key, int $ttl, \Closure $callback): mixed
+    {
+        return Cache::remember(self::keyForCity($cityId, $key), $ttl, $callback);
     }
 
     /**
@@ -62,6 +78,14 @@ class TenantCache
     public static function forget(string $key): bool
     {
         return Cache::forget(self::key($key));
+    }
+
+    /**
+     * Remove an item from cache for an explicit city.
+     */
+    public static function forgetForCity(string $cityId, string $key): bool
+    {
+        return Cache::forget(self::keyForCity($cityId, $key));
     }
 
     /**

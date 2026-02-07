@@ -39,6 +39,7 @@ class EventResource extends BaseResource
     use HasMediaLibraryTrait;
 
     protected static ?string $model = Event::class;
+    protected static bool $tenantScoped = true;
 
     protected static ?string $navigationGroup = 'Conte?do';
 

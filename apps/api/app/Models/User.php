@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Domain\Moderation\Enums\RestrictionScope;
 use App\Domain\Moderation\Enums\RestrictionType;
 use App\Models\UserRestriction;
+use App\Support\Tenant;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasAvatar;
 use Filament\Models\Contracts\HasName;
@@ -351,9 +352,18 @@ class User extends Authenticatable implements HasMedia, FilamentUser, HasName, H
 
     public function hasActiveRestriction(RestrictionType $type, ?RestrictionScope $scope = null): bool
     {
+        $cityId = Tenant::cityId();
+
         return $this->activeRestrictions()
             ->where('type', $type)
             ->when($scope !== null, fn($query) => $query->where('scope', $scope))
+            ->when(
+                is_string($cityId) && $cityId !== '',
+                fn($query) => $query->where(function ($cityQuery) use ($cityId) {
+                    $cityQuery->whereNull('scope_city_id')
+                        ->orWhere('scope_city_id', $cityId);
+                })
+            )
             ->exists();
     }
 

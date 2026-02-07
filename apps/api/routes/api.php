@@ -24,11 +24,16 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('v1')->group(function () {
 
     // =====================================================
-    // Tenant Bootstrap Routes (must be before auth)
+    // Global Routes (do not require tenant context)
     // =====================================================
-    Route::get('config', [\App\Http\Controllers\Api\V1\ConfigController::class, 'bootstrap']);
     Route::get('cities', [\App\Http\Controllers\Api\V1\ConfigController::class, 'cities']);
     Route::get('cities/detect', [\App\Http\Controllers\Api\V1\ConfigController::class, 'detect']);
+
+    Route::middleware('require-tenant')->group(function () {
+        // =====================================================
+        // Tenant Bootstrap Routes (must be before auth)
+        // =====================================================
+        Route::get('config', [\App\Http\Controllers\Api\V1\ConfigController::class, 'bootstrap']);
 
     // =====================================================
     // Public Routes
@@ -103,7 +108,7 @@ Route::prefix('v1')->group(function () {
     // =====================================================
     // Trash Collection Schedules (module-gated)
     // =====================================================
-    Route::prefix('trash')->middleware('module:coleta-lixo')->group(function () {
+    Route::prefix('trash')->middleware('module:trash')->group(function () {
         Route::get('/', [\App\Http\Controllers\Api\V1\TrashScheduleController::class, 'index']);
         Route::get('today', [\App\Http\Controllers\Api\V1\TrashScheduleController::class, 'today']);
     });
@@ -111,7 +116,7 @@ Route::prefix('v1')->group(function () {
     // =====================================================
     // Mass Schedules (module-gated)
     // =====================================================
-    Route::prefix('masses')->middleware('module:missas')->group(function () {
+    Route::prefix('masses')->middleware('module:masses')->group(function () {
         Route::get('/', [\App\Http\Controllers\Api\V1\MassScheduleController::class, 'index']);
         Route::get('today', [\App\Http\Controllers\Api\V1\MassScheduleController::class, 'today']);
         Route::get('churches', [\App\Http\Controllers\Api\V1\MassScheduleController::class, 'byChurch']);
@@ -121,7 +126,7 @@ Route::prefix('v1')->group(function () {
     // Modules API (frontend discovers which modules are active)
     // =====================================================
     Route::get('modules', [\App\Http\Controllers\Api\ModuleController::class, 'index']);
-    Route::get('modules/{slug}/status', [\App\Http\Controllers\Api\ModuleController::class, 'status']);
+    Route::get('modules/{identifier}/status', [\App\Http\Controllers\Api\ModuleController::class, 'status']);
 
     // =====================================================
     // Forum Public Routes (no auth required, with optional auth)
@@ -169,7 +174,7 @@ Route::prefix('v1')->group(function () {
     // =====================================================
     // Tourism Public Routes
     // =====================================================
-    Route::prefix('tourism')->middleware('module:turismo')->group(function () {
+    Route::prefix('tourism')->middleware('module:tourism')->group(function () {
         Route::get('spots', [\App\Domains\Tourism\Http\Controllers\TourismSpotController::class, 'index'])->name('tourism.index');
         Route::get('spots/{id}', [\App\Domains\Tourism\Http\Controllers\TourismSpotController::class, 'show'])->name('tourism.show');
         Route::get('spots/{spotId}/reviews', [\App\Domains\Tourism\Http\Controllers\TourismReviewController::class, 'index']);
@@ -182,7 +187,7 @@ Route::prefix('v1')->group(function () {
     Route::get('report-categories', [\App\Domains\Reports\Http\Controllers\ReportCategoryController::class, 'index'])
         ->middleware('cache.headers:static');
 
-    Route::prefix('reports')->middleware('module:denuncias')->group(function () {
+    Route::prefix('reports')->middleware('module:reports')->group(function () {
         Route::get('/', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'index']);
         Route::get('/stats', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'stats']);
         Route::get('/map', [\App\Domains\Reports\Http\Controllers\ReportMapController::class, 'index']);
@@ -201,13 +206,13 @@ Route::prefix('v1')->group(function () {
     // =====================================================
     // Votes / Vereadores Public Routes
     // =====================================================
-    Route::prefix('vereadores')->middleware('module:vereadores')->group(function () {
+    Route::prefix('vereadores')->middleware('module:council')->group(function () {
         Route::get('/', [\App\Domains\Votes\Http\Controllers\VereadorController::class, 'index']);
         Route::get('/{slug}', [\App\Domains\Votes\Http\Controllers\VereadorController::class, 'show']);
         Route::get('/{slug}/votacoes', [\App\Domains\Votes\Http\Controllers\VereadorController::class, 'votacoes']);
     });
 
-    Route::prefix('votacoes')->middleware('module:votacoes')->group(function () {
+    Route::prefix('votacoes')->middleware('module:voting')->group(function () {
         Route::get('/', [\App\Domains\Votes\Http\Controllers\VotacaoController::class, 'index']);
         Route::get('/stats', [\App\Domains\Votes\Http\Controllers\VotacaoController::class, 'stats']);
         Route::get('/anos', [\App\Domains\Votes\Http\Controllers\VotacaoController::class, 'anos']);
@@ -382,6 +387,8 @@ Route::prefix('v1')->group(function () {
     // =====================================================
     Route::prefix('plates')->middleware('throttle:10,1')->group(function () {
         Route::post('recognize', [\App\Http\Controllers\Api\PlateOcrController::class, 'recognize']);
+    });
+
     });
 
     // =====================================================

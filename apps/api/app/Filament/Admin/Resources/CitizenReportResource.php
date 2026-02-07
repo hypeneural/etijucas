@@ -14,6 +14,7 @@ use App\Filament\Admin\Resources\CitizenReportResource\RelationManagers\MediaRel
 use App\Filament\Admin\Resources\CitizenReportResource\RelationManagers\StatusHistoryRelationManager;
 use App\Filament\Admin\Resources\Concerns\HasMediaLibraryTrait;
 use App\Models\User;
+use App\Support\Tenant;
 use Filament\Forms;
 use Filament\Forms\Components\Actions;
 use Filament\Forms\Components\Actions\Action as FormAction;
@@ -35,6 +36,7 @@ class CitizenReportResource extends BaseResource
     use HasMediaLibraryTrait;
 
     protected static ?string $model = CitizenReport::class;
+    protected static bool $tenantScoped = true;
 
     protected static ?string $navigationGroup = 'Modera??o';
 
@@ -96,10 +98,7 @@ class CitizenReportResource extends BaseResource
                             ->dehydrated(false),
                         Select::make('assigned_to')
                             ->label('Respons?vel')
-                            ->options(fn() => User::role(['admin', 'moderator'])
-                                ->orderBy('nome')
-                                ->pluck('nome', 'id')
-                                ->toArray())
+                            ->options(fn() => static::assigneeOptions())
                             ->searchable()
                             ->preload()
                             ->disabled()
@@ -303,10 +302,7 @@ class CitizenReportResource extends BaseResource
                     ->preload(),
                 SelectFilter::make('assigned_to')
                     ->label('Respons?vel')
-                    ->options(fn() => User::role(['admin', 'moderator'])
-                        ->orderBy('nome')
-                        ->pluck('nome', 'id')
-                        ->toArray()),
+                    ->options(fn() => static::assigneeOptions()),
                 Tables\Filters\Filter::make('sem_responsavel')
                     ->label('Sem responsavel')
                     ->query(fn(Builder $query): Builder => $query->whereNull('assigned_to')),
@@ -346,10 +342,7 @@ class CitizenReportResource extends BaseResource
                     ->form([
                         Select::make('assigned_to')
                             ->label('Respons?vel')
-                            ->options(fn() => User::role(['admin', 'moderator'])
-                                ->orderBy('nome')
-                                ->pluck('nome', 'id')
-                                ->toArray())
+                            ->options(fn() => static::assigneeOptions())
                             ->searchable()
                             ->required(),
                         Textarea::make('note')
@@ -357,7 +350,19 @@ class CitizenReportResource extends BaseResource
                             ->rows(3),
                     ])
                     ->action(function (CitizenReport $record, array $data): void {
-                        $assignee = User::find($data['assigned_to']);
+                        $cityId = Tenant::cityId();
+                        $assignee = User::query()
+                            ->where('id', $data['assigned_to'])
+                            ->when(
+                                is_string($cityId) && $cityId !== '',
+                                fn($query) => $query->where('city_id', $cityId)
+                            )
+                            ->first();
+
+                        if (!$assignee) {
+                            return;
+                        }
+
                         app(AssignReportAction::class)->execute(
                             $record,
                             $assignee,
@@ -413,5 +418,20 @@ class CitizenReportResource extends BaseResource
     public static function canCreate(): bool
     {
         return false;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private static function assigneeOptions(): array
+    {
+        $query = User::role(['admin', 'moderator'])->orderBy('nome');
+        $cityId = Tenant::cityId();
+
+        if (is_string($cityId) && $cityId !== '') {
+            $query->where('city_id', $cityId);
+        }
+
+        return $query->pluck('nome', 'id')->toArray();
     }
 }

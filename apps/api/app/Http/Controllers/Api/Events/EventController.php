@@ -7,9 +7,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Events\EventCollection;
 use App\Http\Resources\Events\EventResource;
 use App\Models\Event;
+use App\Support\TenantCache;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 
 class EventController extends Controller
 {
@@ -28,7 +28,7 @@ class EventController extends Controller
         // Anonymous users: cache for performance
         $cacheKey = 'events:list:' . md5($request->fullUrl());
 
-        $events = Cache::remember($cacheKey, 60, function () use ($request) {
+        $events = TenantCache::remember($cacheKey, 60, function () use ($request) {
             return $this->fetchEvents($request);
         });
 
@@ -251,8 +251,8 @@ class EventController extends Controller
         // Cache for 2 minutes for anonymous users
         $cacheKey = $userId ? null : 'events:home-featured';
 
-        if ($cacheKey && Cache::has($cacheKey)) {
-            return response()->json(Cache::get($cacheKey));
+        if ($cacheKey && TenantCache::has($cacheKey)) {
+            return response()->json(TenantCache::get($cacheKey));
         }
 
         $baseQuery = fn() => Event::query()
@@ -318,7 +318,7 @@ class EventController extends Controller
         ];
 
         if ($cacheKey) {
-            Cache::put($cacheKey, $response, 120);
+            TenantCache::put($cacheKey, $response, 120);
         }
 
         return response()->json($response);
@@ -341,8 +341,8 @@ class EventController extends Controller
 
         $cacheKey = "events:calendar:{$year}:{$month}";
 
-        if (!$request->user() && Cache::has($cacheKey)) {
-            return response()->json(Cache::get($cacheKey));
+        if (!$request->user() && TenantCache::has($cacheKey)) {
+            return response()->json(TenantCache::get($cacheKey));
         }
 
         $startOfMonth = now()->setYear($year)->setMonth($month)->startOfMonth();
@@ -390,7 +390,7 @@ class EventController extends Controller
         ];
 
         if (!$request->user()) {
-            Cache::put($cacheKey, $response, 300);
+            TenantCache::put($cacheKey, $response, 300);
         }
 
         return response()->json($response);
@@ -620,4 +620,3 @@ class EventController extends Controller
         }
     }
 }
-

@@ -21,6 +21,7 @@ use Illuminate\Support\Str;
 class VenueResource extends BaseResource
 {
     protected static ?string $model = Venue::class;
+    protected static bool $tenantScoped = true;
 
     protected static ?string $navigationGroup = 'Conteudo';
 

@@ -22,6 +22,7 @@ use Filament\Tables\Filters\SelectFilter;
 class PhoneResource extends BaseResource
 {
     protected static ?string $model = Phone::class;
+    protected static bool $tenantScoped = true;
 
     protected static ?string $navigationGroup = 'Conte?do';
 

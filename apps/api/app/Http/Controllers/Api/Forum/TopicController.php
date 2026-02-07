@@ -10,7 +10,7 @@ use App\Http\Requests\Forum\UpdateTopicRequest;
 use App\Http\Resources\TopicCollection;
 use App\Http\Resources\TopicResource;
 use App\Models\Topic;
-use App\Support\Tenant;
+use App\Support\TenantCache;
 use App\Traits\ValidatesTenant;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -39,7 +39,7 @@ class TopicController extends Controller
         // Note: cache key depends on full URL (filters, pagination, sorting)
         $cacheKey = 'forum:topics:public:' . md5($request->fullUrl());
 
-        $topics = \Illuminate\Support\Facades\Cache::remember($cacheKey, 60, function () use ($request) {
+        $topics = TenantCache::remember($cacheKey, 60, function () use ($request) {
             return $this->fetchTopics($request);
         });
 

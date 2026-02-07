@@ -208,35 +208,35 @@ const App = () => {
               <Route path="/boca-no-trombone" element={<Navigate to="/forum" replace />} />
               <Route path="/topico/:id" element={<ModuleRoute module="forum"><TopicDetailPage /></ModuleRoute>} />
 
-              <Route path="/denuncias" element={<ModuleRoute module="denuncias"><ReportScreen /></ModuleRoute>} />
-              <Route path="/denuncias/mapa" element={<ModuleRoute module="denuncias"><ReportsMapScreen /></ModuleRoute>} />
-              <Route path="/denuncia/nova" element={<ModuleRoute module="denuncias"><ReportWizardPage /></ModuleRoute>} />
-              <Route path="/denuncia/:id" element={<ModuleRoute module="denuncias"><ReportDetailPage /></ModuleRoute>} />
-              <Route path="/minhas-denuncias" element={<ModuleRoute module="denuncias"><MyReportsPage /></ModuleRoute>} />
+              <Route path="/denuncias" element={<ModuleRoute module="reports"><ReportScreen /></ModuleRoute>} />
+              <Route path="/denuncias/mapa" element={<ModuleRoute module="reports"><ReportsMapScreen /></ModuleRoute>} />
+              <Route path="/denuncia/nova" element={<ModuleRoute module="reports"><ReportWizardPage /></ModuleRoute>} />
+              <Route path="/denuncia/:id" element={<ModuleRoute module="reports"><ReportDetailPage /></ModuleRoute>} />
+              <Route path="/minhas-denuncias" element={<ModuleRoute module="reports"><MyReportsPage /></ModuleRoute>} />
 
-              <Route path="/coleta-lixo" element={<ModuleRoute module="coleta-lixo"><TrashScheduleScreen /></ModuleRoute>} />
+              <Route path="/coleta-lixo" element={<ModuleRoute module="trash"><TrashScheduleScreen /></ModuleRoute>} />
               <Route path="/coleta" element={<Navigate to="/coleta-lixo" replace />} />
 
-              <Route path="/votacoes" element={<ModuleRoute module="votacoes"><VotesListPage /></ModuleRoute>} />
-              <Route path="/votacoes/:id" element={<ModuleRoute module="votacoes"><VoteDetailPage /></ModuleRoute>} />
+              <Route path="/votacoes" element={<ModuleRoute module="voting"><VotesListPage /></ModuleRoute>} />
+              <Route path="/votacoes/:id" element={<ModuleRoute module="voting"><VoteDetailPage /></ModuleRoute>} />
 
-              <Route path="/vereadores" element={<ModuleRoute module="votacoes"><VereadoresListPage /></ModuleRoute>} />
-              <Route path="/vereadores/:slug" element={<ModuleRoute module="votacoes"><VereadorDetailPage /></ModuleRoute>} />
+              <Route path="/vereadores" element={<ModuleRoute module="council"><VereadoresListPage /></ModuleRoute>} />
+              <Route path="/vereadores/:slug" element={<ModuleRoute module="council"><VereadorDetailPage /></ModuleRoute>} />
 
-              <Route path="/missas" element={<ModuleRoute module="missas"><MassesPage /></ModuleRoute>} />
+              <Route path="/missas" element={<ModuleRoute module="masses"><MassesPage /></ModuleRoute>} />
 
-              <Route path="/telefones" element={<ModuleRoute module="telefones"><UsefulPhonesScreen /></ModuleRoute>} />
+              <Route path="/telefones" element={<ModuleRoute module="phones"><UsefulPhonesScreen /></ModuleRoute>} />
               <Route path="/telefones-uteis" element={<Navigate to="/telefones" replace />} />
 
-              <Route path="/pontos-turisticos" element={<ModuleRoute module="turismo"><TourismScreen /></ModuleRoute>} />
-              <Route path="/ponto-turistico/:id" element={<ModuleRoute module="turismo"><TourismDetailPage /></ModuleRoute>} />
+              <Route path="/pontos-turisticos" element={<ModuleRoute module="tourism"><TourismScreen /></ModuleRoute>} />
+              <Route path="/ponto-turistico/:id" element={<ModuleRoute module="tourism"><TourismDetailPage /></ModuleRoute>} />
               <Route path="/turismo" element={<Navigate to="/pontos-turisticos" replace />} />
 
-              <Route path="/previsao" element={<ModuleRoute module="tempo"><WeatherPage /></ModuleRoute>} />
+              <Route path="/previsao" element={<ModuleRoute module="weather"><WeatherPage /></ModuleRoute>} />
               <Route path="/tempo" element={<Navigate to="/previsao" replace />} />
 
               {/* Vehicle Consultation */}
-              <Route path="/veiculos" element={<ModuleRoute module="veiculos"><VehicleConsultationPage /></ModuleRoute>} />
+              <Route path="/veiculos" element={<ModuleRoute module="vehicles"><VehicleConsultationPage /></ModuleRoute>} />
               <Route path="/consulta-veiculo" element={<Navigate to="/veiculos" replace />} />
 
             </Route>
@@ -254,30 +254,30 @@ const App = () => {
               <Route path="forum" element={<ModuleRoute module="forum"><ForumScreen /></ModuleRoute>} />
               <Route path="topico/:id" element={<ModuleRoute module="forum"><TopicDetailPage /></ModuleRoute>} />
 
-              <Route path="denuncias" element={<ModuleRoute module="denuncias"><ReportScreen /></ModuleRoute>} />
-              <Route path="denuncias/mapa" element={<ModuleRoute module="denuncias"><ReportsMapScreen /></ModuleRoute>} />
-              <Route path="denuncia/nova" element={<ModuleRoute module="denuncias"><ReportWizardPage /></ModuleRoute>} />
-              <Route path="denuncia/:id" element={<ModuleRoute module="denuncias"><ReportDetailPage /></ModuleRoute>} />
-              <Route path="minhas-denuncias" element={<ModuleRoute module="denuncias"><MyReportsPage /></ModuleRoute>} />
+              <Route path="denuncias" element={<ModuleRoute module="reports"><ReportScreen /></ModuleRoute>} />
+              <Route path="denuncias/mapa" element={<ModuleRoute module="reports"><ReportsMapScreen /></ModuleRoute>} />
+              <Route path="denuncia/nova" element={<ModuleRoute module="reports"><ReportWizardPage /></ModuleRoute>} />
+              <Route path="denuncia/:id" element={<ModuleRoute module="reports"><ReportDetailPage /></ModuleRoute>} />
+              <Route path="minhas-denuncias" element={<ModuleRoute module="reports"><MyReportsPage /></ModuleRoute>} />
 
-              <Route path="coleta-lixo" element={<ModuleRoute module="coleta-lixo"><TrashScheduleScreen /></ModuleRoute>} />
+              <Route path="coleta-lixo" element={<ModuleRoute module="trash"><TrashScheduleScreen /></ModuleRoute>} />
 
-              <Route path="votacoes" element={<ModuleRoute module="votacoes"><VotesListPage /></ModuleRoute>} />
-              <Route path="votacoes/:id" element={<ModuleRoute module="votacoes"><VoteDetailPage /></ModuleRoute>} />
+              <Route path="votacoes" element={<ModuleRoute module="voting"><VotesListPage /></ModuleRoute>} />
+              <Route path="votacoes/:id" element={<ModuleRoute module="voting"><VoteDetailPage /></ModuleRoute>} />
 
-              <Route path="vereadores" element={<ModuleRoute module="votacoes"><VereadoresListPage /></ModuleRoute>} />
-              <Route path="vereadores/:slug" element={<ModuleRoute module="votacoes"><VereadorDetailPage /></ModuleRoute>} />
+              <Route path="vereadores" element={<ModuleRoute module="council"><VereadoresListPage /></ModuleRoute>} />
+              <Route path="vereadores/:slug" element={<ModuleRoute module="council"><VereadorDetailPage /></ModuleRoute>} />
 
-              <Route path="missas" element={<ModuleRoute module="missas"><MassesPage /></ModuleRoute>} />
+              <Route path="missas" element={<ModuleRoute module="masses"><MassesPage /></ModuleRoute>} />
 
-              <Route path="telefones" element={<ModuleRoute module="telefones"><UsefulPhonesScreen /></ModuleRoute>} />
+              <Route path="telefones" element={<ModuleRoute module="phones"><UsefulPhonesScreen /></ModuleRoute>} />
 
-              <Route path="pontos-turisticos" element={<ModuleRoute module="turismo"><TourismScreen /></ModuleRoute>} />
-              <Route path="ponto-turistico/:id" element={<ModuleRoute module="turismo"><TourismDetailPage /></ModuleRoute>} />
+              <Route path="pontos-turisticos" element={<ModuleRoute module="tourism"><TourismScreen /></ModuleRoute>} />
+              <Route path="ponto-turistico/:id" element={<ModuleRoute module="tourism"><TourismDetailPage /></ModuleRoute>} />
 
-              <Route path="previsao" element={<ModuleRoute module="tempo"><WeatherPage /></ModuleRoute>} />
+              <Route path="previsao" element={<ModuleRoute module="weather"><WeatherPage /></ModuleRoute>} />
 
-              <Route path="veiculos" element={<ModuleRoute module="veiculos"><VehicleConsultationPage /></ModuleRoute>} />
+              <Route path="veiculos" element={<ModuleRoute module="vehicles"><VehicleConsultationPage /></ModuleRoute>} />
             </Route>
 
             {/* Catch-all - redirect to home */}

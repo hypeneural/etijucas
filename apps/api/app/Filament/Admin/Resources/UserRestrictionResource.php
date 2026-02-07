@@ -8,6 +8,7 @@ use App\Domain\Moderation\Enums\RestrictionScope;
 use App\Domain\Moderation\Enums\RestrictionType;
 use App\Filament\Admin\Resources\UserRestrictionResource\Pages;
 use App\Models\UserRestriction;
+use App\Support\Tenant;
 use Filament\Forms;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\KeyValue;
@@ -24,6 +25,8 @@ use Illuminate\Database\Eloquent\Builder;
 class UserRestrictionResource extends BaseResource
 {
     protected static ?string $model = UserRestriction::class;
+    protected static bool $tenantScoped = true;
+    protected static array $tenantRelationScopes = ['user'];
 
     protected static ?string $navigationGroup = 'Moderacao';
 
@@ -33,14 +36,26 @@ class UserRestrictionResource extends BaseResource
 
     protected static ?string $navigationLabel = 'Restricoes';
 
-    protected static array $defaultEagerLoad = ['user'];
+    protected static array $defaultEagerLoad = ['user', 'scopeCity'];
 
     public static function form(Forms\Form $form): Forms\Form
     {
         return $form
             ->schema([
                 Select::make('user_id')
-                    ->relationship('user', 'nome')
+                    ->relationship(
+                        'user',
+                        'nome',
+                        modifyQueryUsing: function (Builder $query): Builder {
+                            $cityId = Tenant::cityId();
+
+                            if (is_string($cityId) && $cityId !== '') {
+                                $query->where('city_id', $cityId);
+                            }
+
+                            return $query;
+                        }
+                    )
                     ->searchable()
                     ->preload()
                     ->required(),
@@ -87,6 +102,9 @@ class UserRestrictionResource extends BaseResource
                 TextColumn::make('scope')
                     ->label('Escopo')
                     ->formatStateUsing(fn($state) => $state?->label() ?? $state)
+                    ->toggleable(),
+                TextColumn::make('scopeCity.name')
+                    ->label('Cidade escopo')
                     ->toggleable(),
                 TextColumn::make('reason')
                     ->label('Motivo')

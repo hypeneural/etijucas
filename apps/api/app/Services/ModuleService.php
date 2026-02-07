@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\CityModule;
 use App\Models\Module;
 use App\Support\Tenant;
 use Illuminate\Support\Facades\Cache;
@@ -17,68 +16,27 @@ class ModuleService
 {
     /**
      * Check if a module is enabled for the current tenant.
+     * Accepts canonical module keys and legacy aliases/slugs.
      */
-    public static function isEnabled(string $slug): bool
+    public static function isEnabled(string $identifier): bool
     {
-        $cityId = Tenant::cityId();
-        if (!$cityId) {
-            return false;
-        }
-
-        $cacheKey = "city:{$cityId}:module:{$slug}:enabled";
-
-        return Cache::remember($cacheKey, 300, function () use ($slug, $cityId) {
-            $module = Module::findBySlug($slug);
-            if (!$module) {
-                return false;
-            }
-
-            $cityModule = CityModule::where('city_id', $cityId)
-                ->where('module_id', $module->id)
-                ->first();
-
-            // Core modules: enabled by default (unless explicitly disabled)
-            if ($module->is_core) {
-                return $cityModule?->enabled ?? true;
-            }
-
-            // Optional modules: disabled by default (unless explicitly enabled)
-            return $cityModule?->enabled ?? false;
-        });
+        return ModuleResolver::isEnabled($identifier);
     }
 
     /**
      * Get settings for a module in the current tenant.
      */
-    public static function getSettings(string $slug): array
+    public static function getSettings(string $identifier): array
     {
-        $cityId = Tenant::cityId();
-        if (!$cityId) {
-            return [];
-        }
-
-        $cacheKey = "city:{$cityId}:module:{$slug}:settings";
-
-        return Cache::remember($cacheKey, 300, function () use ($slug, $cityId) {
-            $module = Module::findBySlug($slug);
-            if (!$module) {
-                return [];
-            }
-
-            $cityModule = CityModule::where('city_id', $cityId)
-                ->where('module_id', $module->id)
-                ->first();
-
-            return $cityModule?->settings ?? [];
-        });
+        return ModuleResolver::settings($identifier);
     }
 
     /**
      * Get a specific setting value.
      */
-    public static function getSetting(string $slug, string $key, mixed $default = null): mixed
+    public static function getSetting(string $identifier, string $key, mixed $default = null): mixed
     {
-        $settings = self::getSettings($slug);
+        $settings = self::getSettings($identifier);
         return data_get($settings, $key, $default);
     }
 
@@ -87,38 +45,7 @@ class ModuleService
      */
     public static function getEnabledModules(): array
     {
-        $cityId = Tenant::cityId();
-        if (!$cityId) {
-            return [];
-        }
-
-        $cacheKey = "city:{$cityId}:modules:enabled";
-
-        return Cache::remember($cacheKey, 300, function () use ($cityId) {
-            $modules = Module::ordered()->get();
-            $cityModules = CityModule::where('city_id', $cityId)->get()->keyBy('module_id');
-
-            $enabled = [];
-
-            foreach ($modules as $module) {
-                $cityModule = $cityModules->get($module->id);
-
-                $isEnabled = $module->is_core
-                    ? ($cityModule?->enabled ?? true)
-                    : ($cityModule?->enabled ?? false);
-
-                if ($isEnabled) {
-                    $enabled[] = [
-                        'slug' => $module->slug,
-                        'name' => $module->name,
-                        'icon' => $module->icon,
-                        'settings' => $cityModule?->settings ?? [],
-                    ];
-                }
-            }
-
-            return $enabled;
-        });
+        return ModuleResolver::enabledModules();
     }
 
     /**
@@ -131,11 +58,18 @@ class ModuleService
             return;
         }
 
-        $modules = Module::pluck('slug');
+        ModuleResolver::clearCache($cityId);
 
-        foreach ($modules as $slug) {
-            Cache::forget("city:{$cityId}:module:{$slug}:enabled");
-            Cache::forget("city:{$cityId}:module:{$slug}:settings");
+        $modules = Module::select(['slug', 'module_key'])->get();
+
+        foreach ($modules as $module) {
+            if (!empty($module->module_key)) {
+                Cache::forget("city:{$cityId}:module:{$module->module_key}:enabled");
+                Cache::forget("city:{$cityId}:module:{$module->module_key}:settings");
+            }
+
+            Cache::forget("city:{$cityId}:module:{$module->slug}:enabled");
+            Cache::forget("city:{$cityId}:module:{$module->slug}:settings");
         }
 
         Cache::forget("city:{$cityId}:modules:enabled");

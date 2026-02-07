@@ -5,6 +5,8 @@ namespace App\Support;
 use App\Models\Bairro;
 use App\Models\City;
 use App\Models\CityModule;
+use App\Models\Module;
+use App\Services\ModuleResolver;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -59,45 +61,19 @@ class Tenant
 
     /**
      * Check if a module is enabled for the current tenant.
+     * Accepts canonical module keys and legacy aliases/slugs.
      */
-    public static function moduleEnabled(string $slug): bool
+    public static function moduleEnabled(string $identifier): bool
     {
-        if (!self::isSet()) {
-            return false;
-        }
-
-        $ttl = config('tenancy.cache.module_status_ttl', 900);
-
-        return Cache::remember(
-            "tenant:" . self::cityId() . ":module:{$slug}:enabled",
-            $ttl,
-            fn() => CityModule::query()
-                ->where('city_id', self::cityId())
-                ->whereHas('module', fn($q) => $q->where('slug', $slug))
-                ->where('enabled', true)
-                ->exists()
-        );
+        return ModuleResolver::isEnabled($identifier, self::cityId());
     }
 
     /**
      * Get settings for a specific module.
      */
-    public static function moduleSettings(string $slug): array
+    public static function moduleSettings(string $identifier): array
     {
-        if (!self::isSet()) {
-            return [];
-        }
-
-        $ttl = config('tenancy.cache.module_status_ttl', 900);
-
-        return Cache::remember(
-            "tenant:" . self::cityId() . ":module:{$slug}:settings",
-            $ttl,
-            fn() => CityModule::query()
-                ->where('city_id', self::cityId())
-                ->whereHas('module', fn($q) => $q->where('slug', $slug))
-                ->first()?->settings ?? []
-        );
+        return ModuleResolver::settings($identifier, self::cityId());
     }
 
     /**
@@ -105,28 +81,7 @@ class Tenant
      */
     public static function enabledModules(): array
     {
-        if (!self::isSet()) {
-            return [];
-        }
-
-        $ttl = config('tenancy.cache.module_status_ttl', 900);
-
-        return Cache::remember(
-            "tenant:" . self::cityId() . ":modules:list",
-            $ttl,
-            fn() => CityModule::query()
-                ->where('city_id', self::cityId())
-                ->where('enabled', true)
-                ->with('module:id,slug,name,icon,description')
-                ->get()
-                ->map(fn($cm) => [
-                    'slug' => $cm->module->slug,
-                    'name' => $cm->module->name,
-                    'icon' => $cm->module->icon,
-                    'description' => $cm->module->description,
-                ])
-                ->toArray()
-        );
+        return ModuleResolver::enabledModules(self::cityId());
     }
 
     /**
@@ -208,6 +163,8 @@ class Tenant
 
         $cityId = self::cityId();
 
+        ModuleResolver::clearCache($cityId);
+
         Cache::forget("tenant:{$cityId}:modules:list");
 
         // Clear individual module caches
@@ -216,6 +173,10 @@ class Tenant
             ->get();
 
         foreach ($modules as $cm) {
+            if (!empty($cm->module->module_key)) {
+                Cache::forget("tenant:{$cityId}:module:{$cm->module->module_key}:enabled");
+                Cache::forget("tenant:{$cityId}:module:{$cm->module->module_key}:settings");
+            }
             Cache::forget("tenant:{$cityId}:module:{$cm->module->slug}:enabled");
             Cache::forget("tenant:{$cityId}:module:{$cm->module->slug}:settings");
         }

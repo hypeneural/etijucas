@@ -6,9 +6,10 @@ namespace App\Filament\Admin\Widgets;
 
 use App\Domains\Reports\Enums\ReportStatus;
 use App\Domains\Reports\Models\CitizenReport;
+use App\Support\Tenant;
+use App\Support\TenantCache;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
-use Illuminate\Support\Facades\Cache;
 
 class ReportsOverviewStats extends BaseWidget
 {
@@ -19,20 +20,35 @@ class ReportsOverviewStats extends BaseWidget
 
     protected function getStats(): array
     {
-        $metrics = Cache::remember('reports_overview_stats', now()->addSeconds(60), function (): array {
-            return [
-                'total' => CitizenReport::query()->count(),
-                'pending' => CitizenReport::query()
-                    ->whereIn('status', [ReportStatus::Recebido->value, ReportStatus::EmAnalise->value])
-                    ->count(),
-                'resolved' => CitizenReport::query()
-                    ->where('status', ReportStatus::Resolvido->value)
-                    ->count(),
-                'rejected' => CitizenReport::query()
-                    ->where('status', ReportStatus::Rejeitado->value)
-                    ->count(),
+        $cityId = $this->tenantCityId();
+        if ($cityId === null) {
+            $metrics = [
+                'total' => 0,
+                'pending' => 0,
+                'resolved' => 0,
+                'rejected' => 0,
             ];
-        });
+        } else {
+            $metrics = TenantCache::remember('reports_overview_stats', 60, function () use ($cityId): array {
+                return [
+                    'total' => CitizenReport::query()
+                        ->where('city_id', $cityId)
+                        ->count(),
+                    'pending' => CitizenReport::query()
+                        ->where('city_id', $cityId)
+                        ->whereIn('status', [ReportStatus::Recebido->value, ReportStatus::EmAnalise->value])
+                        ->count(),
+                    'resolved' => CitizenReport::query()
+                        ->where('city_id', $cityId)
+                        ->where('status', ReportStatus::Resolvido->value)
+                        ->count(),
+                    'rejected' => CitizenReport::query()
+                        ->where('city_id', $cityId)
+                        ->where('status', ReportStatus::Rejeitado->value)
+                        ->count(),
+                ];
+            });
+        }
 
         return [
             Stat::make('Total', $metrics['total'])->color('gray'),
@@ -40,5 +56,12 @@ class ReportsOverviewStats extends BaseWidget
             Stat::make('Resolvidos', $metrics['resolved'])->color('success'),
             Stat::make('Rejeitados', $metrics['rejected'])->color('danger'),
         ];
+    }
+
+    private function tenantCityId(): ?string
+    {
+        $cityId = Tenant::cityId();
+
+        return is_string($cityId) && $cityId !== '' ? $cityId : null;
     }
 }

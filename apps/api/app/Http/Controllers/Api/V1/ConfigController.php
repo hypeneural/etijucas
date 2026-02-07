@@ -56,7 +56,8 @@ class ConfigController extends Controller
                     'version' => config('app.version', '1.0.0'),
                 ],
             ])
-            ->header('Cache-Control', 'public, max-age=300, stale-while-revalidate=60');
+            ->header('Cache-Control', 'public, max-age=300, stale-while-revalidate=60')
+            ->header('Vary', 'Host, X-City');
     }
 
     /**

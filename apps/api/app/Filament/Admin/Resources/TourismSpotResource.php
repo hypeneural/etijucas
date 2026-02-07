@@ -28,6 +28,8 @@ class TourismSpotResource extends BaseResource
     use HasMediaLibraryTrait;
 
     protected static ?string $model = TourismSpot::class;
+    protected static bool $tenantScoped = true;
+    protected static array $tenantRelationScopes = ['bairro'];
 
     protected static ?string $navigationGroup = 'Conte?do';
 

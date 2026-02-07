@@ -21,6 +21,7 @@ use Illuminate\Support\Str;
 class BairroResource extends BaseResource
 {
     protected static ?string $model = Bairro::class;
+    protected static bool $tenantScoped = true;
 
     protected static ?string $navigationGroup = 'Conte?do';
 

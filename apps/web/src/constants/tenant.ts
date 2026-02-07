@@ -1,13 +1,11 @@
 /**
  * Tenant Constants
- * 
- * Configurações centralizadas para multi-tenancy.
- * Por enquanto, Tijucas/SC é a cidade fixa.
- * No futuro, será resolvido dinamicamente.
+ *
+ * Centralized multi-tenancy defaults.
  */
 
 // ============================================
-// Default City (Fixo: Tijucas/SC)
+// Default City
 // ============================================
 
 export const DEFAULT_CITY = {
@@ -23,44 +21,46 @@ export const DEFAULT_CITY_NAME = DEFAULT_CITY.name;
 export const DEFAULT_CITY_UF = DEFAULT_CITY.uf;
 
 // ============================================
-// Modules - Todos ativos para Tijucas
+// Modules (canonical keys)
 // ============================================
 
 export const ALL_MODULES = [
     { slug: 'forum', name: 'Boca no Trombone', icon: 'MessageSquare' },
     { slug: 'events', name: 'Agenda de Eventos', icon: 'Calendar' },
-    { slug: 'coleta-lixo', name: 'Coleta de Lixo', icon: 'Trash2' },
-    { slug: 'missas', name: 'Horários de Missas', icon: 'Church' },
-    { slug: 'telefones', name: 'Telefones Úteis', icon: 'Phone' },
-    { slug: 'turismo', name: 'Pontos Turísticos', icon: 'MapPin' },
-    { slug: 'denuncias', name: 'Fiscaliza Cidadão', icon: 'AlertTriangle' },
-    { slug: 'votacoes', name: 'Votações', icon: 'Vote' },
-    { slug: 'veiculos', name: 'Consulta Veículos', icon: 'Car' },
+    { slug: 'trash', name: 'Coleta de Lixo', icon: 'Trash2' },
+    { slug: 'masses', name: 'Horarios de Missas', icon: 'Church' },
+    { slug: 'phones', name: 'Telefones Uteis', icon: 'Phone' },
+    { slug: 'tourism', name: 'Pontos Turisticos', icon: 'MapPin' },
+    { slug: 'reports', name: 'Fiscaliza Cidadao', icon: 'AlertTriangle' },
+    { slug: 'voting', name: 'Votacoes', icon: 'Vote' },
+    { slug: 'council', name: 'Vereadores', icon: 'Building' },
+    { slug: 'vehicles', name: 'Consulta Veiculos', icon: 'Car' },
+    { slug: 'weather', name: 'Previsao do Tempo', icon: 'CloudSun' },
 ] as const;
 
-export const TIJUCAS_MODULES = ALL_MODULES.map(m => m.slug);
+export const TIJUCAS_MODULES = ALL_MODULES.map((m) => m.slug);
 
 /**
- * Default modules for cities OTHER than Tijucas
- * Only forum, denuncias, and tempo are enabled by default
+ * Default modules for cities other than Tijucas.
  */
-export const DEFAULT_CITY_MODULES = ['forum', 'denuncias', 'tempo'] as const;
+export const DEFAULT_CITY_MODULES = ['forum', 'reports', 'weather'] as const;
 
 // ============================================
 // Module Route Mapping
 // ============================================
 
 export const MODULE_ROUTES: Record<string, string[]> = {
-    'forum': ['/forum', '/topico'],
-    'events': ['/agenda', '/evento'],
-    'coleta-lixo': ['/coleta-lixo', '/coleta'],
-    'missas': ['/missas'],
-    'telefones': ['/telefones', '/telefones-uteis'],
-    'turismo': ['/pontos-turisticos', '/ponto-turistico', '/turismo'],
-    'denuncias': ['/denuncias', '/denuncia', '/minhas-denuncias'],
-    'votacoes': ['/votacoes', '/vereadores'],
-    'veiculos': ['/veiculos', '/consulta-veiculo'],
-    'tempo': ['/tempo', '/previsao'],
+    forum: ['/forum', '/topico'],
+    events: ['/agenda', '/evento'],
+    trash: ['/coleta-lixo', '/coleta'],
+    masses: ['/missas'],
+    phones: ['/telefones', '/telefones-uteis'],
+    tourism: ['/pontos-turisticos', '/ponto-turistico', '/turismo'],
+    reports: ['/denuncias', '/denuncia', '/minhas-denuncias'],
+    voting: ['/votacoes'],
+    council: ['/vereadores'],
+    vehicles: ['/veiculos', '/consulta-veiculo'],
+    weather: ['/tempo', '/previsao'],
 };
 
 // ============================================
@@ -68,4 +68,3 @@ export const MODULE_ROUTES: Record<string, string[]> = {
 // ============================================
 
 export type ModuleSlug = typeof ALL_MODULES[number]['slug'];
-

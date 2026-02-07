@@ -11,8 +11,10 @@ use App\Filament\Admin\Resources\UserResource\RelationManagers\ActivityLogsRelat
 use App\Filament\Admin\Resources\UserResource\RelationManagers\UserRestrictionsRelationManager;
 use App\Models\User;
 use App\Models\UserRestriction;
+use App\Support\Tenant;
 use Filament\Forms;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
@@ -32,6 +34,7 @@ use Illuminate\Support\Collection;
 class UserResource extends BaseResource
 {
     protected static ?string $model = User::class;
+    protected static bool $tenantScoped = true;
 
     protected static ?string $navigationGroup = 'Acesso & Usu?rios';
 
@@ -54,6 +57,8 @@ class UserResource extends BaseResource
                 Section::make('Dados b?sicos')
                     ->columns(2)
                     ->schema([
+                        Hidden::make('city_id')
+                            ->default(fn() => Tenant::cityId()),
                         TextInput::make('nome')
                             ->label('Nome')
                             ->required()
@@ -188,10 +193,15 @@ class UserResource extends BaseResource
                             ->nullable(),
                     ])
                     ->action(function (User $record, array $data): void {
+                        $scopeCityId = $data['scope'] === RestrictionScope::Global->value
+                            ? null
+                            : $record->city_id;
+
                         UserRestriction::create([
                             'user_id' => $record->id,
                             'type' => $data['type'],
                             'scope' => $data['scope'],
+                            'scope_city_id' => $scopeCityId,
                             'reason' => $data['reason'],
                             'created_by' => auth()->id(),
                             'starts_at' => $data['starts_at'] ?? now(),

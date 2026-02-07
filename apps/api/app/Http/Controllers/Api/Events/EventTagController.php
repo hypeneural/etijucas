@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Api\Events;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Events\TagResource;
 use App\Models\Tag;
+use App\Support\TenantCache;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 
 class EventTagController extends Controller
 {
@@ -18,7 +18,7 @@ class EventTagController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $tags = Cache::remember('events:tags', 300, function () {
+        $tags = TenantCache::remember('events:tags', 300, function () {
             return Tag::query()
                 ->orderBy('usage_count', 'desc')
                 ->limit(50)
@@ -38,7 +38,7 @@ class EventTagController extends Controller
      */
     public function trending(Request $request): JsonResponse
     {
-        $tags = Cache::remember('events:tags:trending', 300, function () {
+        $tags = TenantCache::remember('events:tags:trending', 300, function () {
             return Tag::query()
                 ->trending(30)
                 ->limit(10)

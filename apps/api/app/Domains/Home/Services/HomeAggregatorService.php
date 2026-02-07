@@ -14,7 +14,8 @@ use App\Models\TopicLike;
 use App\Domains\Reports\Models\CitizenReport;
 use App\Domains\Tourism\Models\TourismSpot;
 use App\Models\User;
-use Illuminate\Support\Facades\Cache;
+use App\Support\Tenant;
+use App\Support\TenantCache;
 use Illuminate\Support\Carbon;
 
 /**
@@ -48,7 +49,7 @@ class HomeAggregatorService
     {
         $cacheKey = "home:aggregate:{$bairroId}:" . implode(',', $include) . ":v{$version}";
 
-        return Cache::remember($cacheKey, self::CACHE_TTL_HOME, function () use ($bairroId, $include, $version) {
+        return TenantCache::remember($cacheKey, self::CACHE_TTL_HOME, function () use ($bairroId, $include, $version) {
             $blocks = [];
             $errors = [];
             $priority = 1;
@@ -140,7 +141,7 @@ class HomeAggregatorService
     {
         $cacheKey = "boletim:today:{$bairroId}";
 
-        return Cache::remember($cacheKey, self::CACHE_TTL_BOLETIM, function () use ($bairroId) {
+        return TenantCache::remember($cacheKey, self::CACHE_TTL_BOLETIM, function () use ($bairroId) {
             $today = Carbon::today();
 
             // Weather phrase
@@ -219,10 +220,20 @@ class HomeAggregatorService
      */
     public function getUserStats(): array
     {
-        return Cache::remember('home:user_stats', self::CACHE_TTL_STATS, function () {
-            $total = User::count();
-            $verified = User::where('phone_verified', true)->count();
-            $newToday = User::whereDate('created_at', Carbon::today())->count();
+        return TenantCache::remember('home:user_stats', self::CACHE_TTL_STATS, function () {
+            $cityId = $this->tenantCityId();
+
+            $total = User::query()
+                ->when($cityId, fn($query, $id) => $query->where('city_id', $id))
+                ->count();
+            $verified = User::query()
+                ->when($cityId, fn($query, $id) => $query->where('city_id', $id))
+                ->where('phone_verified', true)
+                ->count();
+            $newToday = User::query()
+                ->when($cityId, fn($query, $id) => $query->where('city_id', $id))
+                ->whereDate('created_at', Carbon::today())
+                ->count();
 
             // Calculate dynamic goal
             $goal = $this->calcGoal($total);
@@ -419,10 +430,17 @@ class HomeAggregatorService
     {
         $today = Carbon::today();
         $weekAgo = $today->copy()->subDays(7);
+        $cityId = $this->tenantCityId();
 
-        $comentariosHoje = \App\Models\Comment::whereDate('created_at', $today)->count();
+        $comentariosHoje = Comment::whereDate('created_at', $today)->count();
 
-        $curtidasSemana = \App\Models\TopicLike::where('created_at', '>=', $weekAgo)->count();
+        $curtidasSemana = TopicLike::query()
+            ->where('created_at', '>=', $weekAgo)
+            ->when(
+                $cityId,
+                fn($query, $id) => $query->whereHas('topic', fn($topicQuery) => $topicQuery->where('city_id', $id))
+            )
+            ->count();
 
         $topTopico = Topic::withCount(['comments', 'likes'])
             ->where('created_at', '>=', $weekAgo)
@@ -558,7 +576,14 @@ class HomeAggregatorService
 
     private function getTourismBlock(int $priority): array
     {
-        $spots = TourismSpot::where('is_destaque', true)
+        $cityId = $this->tenantCityId();
+
+        $spots = TourismSpot::query()
+            ->where('is_destaque', true)
+            ->when(
+                $cityId,
+                fn($query, $id) => $query->whereHas('bairro', fn($bairroQuery) => $bairroQuery->where('city_id', $id))
+            )
             ->orderByDesc('rating_avg')
             ->limit(6)
             ->get(['id', 'titulo', 'slug', 'desc_curta', 'categoria', 'image_url', 'rating_avg'])
@@ -601,5 +626,12 @@ class HomeAggregatorService
             2, 4 => 'reciclável', // Tue, Thu
             default => null,
         };
+    }
+
+    private function tenantCityId(): ?string
+    {
+        $cityId = Tenant::cityId();
+
+        return is_string($cityId) && $cityId !== '' ? $cityId : null;
     }
 }

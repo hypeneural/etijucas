@@ -1,0 +1,42 @@
+{
+  "bomViolations": [
+    "ADMIN_PAINEL_TITULOS_E_MENU.md",
+    "APP_ANALISE_E_PATROCINIO.md",
+    "BAIRROS_ENDERECOS_CEP_ANALISE.md",
+    "HOME_MELHORIAS.md",
+    "apps/api/docs/admin-structure.md",
+    "apps/api/docs/moderation-model.md",
+    "apps/web/ANALISE_PWA_MOBILE_NATIVE_FIRST_2026-01-27.md",
+    "apps/web/ANALISE_PWA_MOBILE_NATIVE_FIRST_2026-01-28.md",
+    "apps/web/ANALISE_PWA_MOBILE_NATIVE_FIRST_2026-01-28_REVISAO.md",
+    "apps/web/src/components/events/EventCard.tsx",
+    "apps/web/src/components/events/FiltersSheet.tsx",
+    "apps/web/src/data/events.mock.json",
+    "apps/web/src/hooks/useEventFilters.ts",
+    "apps/web/src/pages/EventDetailsPage.tsx",
+    "apps/web/src/pages/EventsPage.tsx",
+    "apps/web/src/pages/MassesPage.tsx",
+    "apps/web/src/screens/AgendaScreen.tsx",
+    "apps/web/src/types/events.ts",
+    "apps/web/src/utils/date.ts",
+    "votacoes.md"
+  ],
+  "directCacheViolations": [
+    "apps/api/app/Domains/Geocoding/Http/Controllers/GeocodeController.php:108",
+    "apps/api/app/Domains/Geocoding/Http/Controllers/GeocodeController.php:36",
+    "apps/api/app/Domains/Home/Services/HomeAggregatorService.php:143",
+    "apps/api/app/Domains/Home/Services/HomeAggregatorService.php:222",
+    "apps/api/app/Domains/Home/Services/HomeAggregatorService.php:51",
+    "apps/api/app/Http/Controllers/Api/Events/EventCategoryController.php:21",
+    "apps/api/app/Http/Controllers/Api/Events/EventController.php:254",
+    "apps/api/app/Http/Controllers/Api/Events/EventController.php:255",
+    "apps/api/app/Http/Controllers/Api/Events/EventController.php:31",
+    "apps/api/app/Http/Controllers/Api/Events/EventController.php:321",
+    "apps/api/app/Http/Controllers/Api/Events/EventController.php:344",
+    "apps/api/app/Http/Controllers/Api/Events/EventController.php:345",
+    "apps/api/app/Http/Controllers/Api/Events/EventController.php:393",
+    "apps/api/app/Http/Controllers/Api/Events/EventTagController.php:21",
+    "apps/api/app/Http/Controllers/Api/Events/EventTagController.php:41",
+    "apps/api/app/Http/Controllers/Api/Forum/TopicController.php:42"
+  ]
+}

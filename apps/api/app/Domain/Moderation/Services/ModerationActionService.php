@@ -8,6 +8,7 @@ use App\Domain\Forum\Enums\ReportStatus as ForumReportStatus;
 use App\Domain\Forum\Enums\TopicStatus;
 use App\Domain\Moderation\Enums\FlagAction;
 use App\Domain\Moderation\Enums\FlagStatus;
+use App\Domain\Moderation\Enums\RestrictionScope;
 use App\Models\CommentReport;
 use App\Models\ContentFlag;
 use App\Models\TopicReport;
@@ -44,10 +45,17 @@ class ModerationActionService
         $restriction = null;
 
         if ($action === FlagAction::RestrictUser) {
+            $targetUser = User::query()->find($data['user_id']);
+            $scope = $data['restriction_scope'];
+            $scopeCityId = $scope === RestrictionScope::Global->value
+                ? null
+                : $targetUser?->city_id;
+
             $restriction = UserRestriction::create([
                 'user_id' => $data['user_id'],
                 'type' => $data['restriction_type'],
-                'scope' => $data['restriction_scope'],
+                'scope' => $scope,
+                'scope_city_id' => $scopeCityId,
                 'reason' => $data['restriction_reason'] ?? 'Aplicada via moderacao',
                 'created_by' => $actor->id,
                 'starts_at' => now(),

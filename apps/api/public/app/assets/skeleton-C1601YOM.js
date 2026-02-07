@@ -1,0 +1,1 @@
+import{j as m}from"./vendor-app-L90565EI.js";import{c as o}from"./index-Df2jNpcx.js";function n({className:e,...t}){return m.jsx("div",{className:o("animate-pulse rounded-md bg-muted",e),...t})}export{n as S};

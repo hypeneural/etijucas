@@ -42,16 +42,16 @@ class ModuleController extends Controller
     /**
      * Check if a specific module is enabled.
      * 
-     * GET /api/v1/modules/{slug}/status
+     * GET /api/v1/modules/{identifier}/status
      */
-    public function status(string $slug): JsonResponse
+    public function status(string $identifier): JsonResponse
     {
-        $isEnabled = ModuleService::isEnabled($slug);
-        $settings = $isEnabled ? ModuleService::getSettings($slug) : [];
+        $isEnabled = ModuleService::isEnabled($identifier);
+        $settings = $isEnabled ? ModuleService::getSettings($identifier) : [];
 
         return response()->json([
             'data' => [
-                'slug' => $slug,
+                'identifier' => $identifier,
                 'enabled' => $isEnabled,
                 'settings' => $settings,
             ],

@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'cache.headers' => \App\Http\Middleware\CacheHeaders::class,
             'idempotent' => \App\Http\Middleware\IdempotencyKey::class,
             'tenant' => \App\Http\Middleware\TenantContext::class,
+            'require-tenant' => \App\Http\Middleware\RequireTenant::class,
             'module' => \App\Http\Middleware\ModuleEnabled::class,
         ]);
 

@@ -32,6 +32,7 @@ use Illuminate\Support\Str;
 class CommentResource extends BaseResource
 {
     protected static ?string $model = Comment::class;
+    protected static bool $tenantScoped = true;
 
     protected static ?string $navigationGroup = 'Forum';
 

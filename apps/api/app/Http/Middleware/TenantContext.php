@@ -49,7 +49,7 @@ class TenantContext
             ], 400);
         }
 
-        $city = $this->resolveTenant($request, $host);
+        ['city' => $city, 'source' => $resolutionSource] = $this->resolveTenant($request, $host);
 
         if (!$city) {
             if (config('tenancy.strict_mode', false)) {
@@ -62,6 +62,7 @@ class TenantContext
 
             // Fallback to default city
             $city = City::whereSlug(config('tenancy.default_city_slug', 'tijucas-sc'))->first();
+            $resolutionSource = $city ? 'fallback' : null;
         }
 
         if (!$city || !$city->active) {
@@ -78,6 +79,8 @@ class TenantContext
         // Also set on request for controllers
         $request->attributes->set('tenant_city_id', $city->id);
         $request->attributes->set('tenant_city', $city);
+        $request->attributes->set('tenant_resolution_source', $resolutionSource);
+        app()->instance('tenant.resolution_source', $resolutionSource);
 
         return $next($request);
     }
@@ -124,12 +127,15 @@ class TenantContext
     /**
      * Resolve tenant city from request.
      */
-    private function resolveTenant(Request $request, string $host): ?City
+    private function resolveTenant(Request $request, string $host): array
     {
         // 1. Resolve by domain (database-driven, cached)
         $city = $this->resolveByDomain($host);
         if ($city) {
-            return $city;
+            return [
+                'city' => $city,
+                'source' => 'domain',
+            ];
         }
 
         // 2. Header X-City (when allowed, for dev/mobile)
@@ -139,7 +145,10 @@ class TenantContext
                 $slug = strtolower(trim($headerSlug));
                 $city = City::whereSlug($slug)->where('active', true)->first();
                 if ($city) {
-                    return $city;
+                    return [
+                        'city' => $city,
+                        'source' => 'header',
+                    ];
                 }
             }
         }
@@ -147,11 +156,17 @@ class TenantContext
         // 3. Path /uf/cidade (e.g., /sc/tijucas)
         $pathSlug = $this->resolveByPath($request->getPathInfo());
         if ($pathSlug) {
-            return City::whereSlug($pathSlug)->where('active', true)->first();
+            return [
+                'city' => City::whereSlug($pathSlug)->where('active', true)->first(),
+                'source' => 'path',
+            ];
         }
 
         // 4. Return null - caller will use fallback
-        return null;
+        return [
+            'city' => null,
+            'source' => null,
+        ];
     }
 
     /**

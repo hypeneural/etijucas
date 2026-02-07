@@ -34,6 +34,7 @@ class TopicResource extends BaseResource
     use HasMediaLibraryTrait;
 
     protected static ?string $model = Topic::class;
+    protected static bool $tenantScoped = true;
 
     protected static ?string $navigationGroup = 'Forum';
 

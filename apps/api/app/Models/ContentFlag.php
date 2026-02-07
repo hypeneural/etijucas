@@ -8,6 +8,7 @@ use App\Domain\Moderation\Enums\FlagAction;
 use App\Domain\Moderation\Enums\FlagContentType;
 use App\Domain\Moderation\Enums\FlagReason;
 use App\Domain\Moderation\Enums\FlagStatus;
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -17,6 +18,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
 class ContentFlag extends Model
 {
     use HasUuids;
+    use BelongsToTenant;
     use LogsActivity;
 
     protected $keyType = 'string';
@@ -35,6 +37,7 @@ class ContentFlag extends Model
      * @var list<string>
      */
     protected $fillable = [
+        'city_id',
         'content_type',
         'content_id',
         'reported_by',
@@ -70,6 +73,11 @@ class ContentFlag extends Model
     public function handledBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'handled_by');
+    }
+
+    public function city(): BelongsTo
+    {
+        return $this->belongsTo(City::class);
     }
 
     public function markReviewing(User $actor): void

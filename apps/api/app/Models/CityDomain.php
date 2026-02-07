@@ -52,7 +52,7 @@ class CityDomain extends Model
      */
     public static function findCityByDomain(string $domain): ?City
     {
-        $domainMap = Cache::remember('city_domains:all', 3600, function () {
+        $domainMap = Cache::remember('city_domains:map', 3600, function () {
             return self::with('city')
                 ->get()
                 ->pluck('city', 'domain')
@@ -67,7 +67,7 @@ class CityDomain extends Model
      */
     public static function clearCache(): void
     {
-        Cache::forget('city_domains:all');
+        Cache::forget('city_domains:map');
     }
 
     // -----------------------------------------

@@ -35,7 +35,7 @@ class EnableAllModulesForTijucasSeeder extends Seeder
                 $id => [
                     'enabled' => true,
                     'version' => 1,
-                    'settings' => json_encode([]),
+                    'settings' => [],
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]

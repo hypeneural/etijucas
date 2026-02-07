@@ -14,6 +14,7 @@ use App\Domain\Moderation\Enums\RestrictionType;
 use App\Filament\Admin\Resources\ContentFlagResource\Pages;
 use App\Models\ContentFlag;
 use App\Models\User;
+use App\Support\Tenant;
 use Filament\Forms;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
@@ -23,6 +24,9 @@ use Filament\Tables;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class ContentFlagResource extends BaseResource
 {
@@ -40,6 +44,64 @@ class ContentFlagResource extends BaseResource
     protected static ?string $pluralModelLabel = 'Den?ncias de Conte?do';
 
     protected static array $defaultEagerLoad = ['reportedBy', 'handledBy'];
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        $cityId = Tenant::cityId();
+
+        if (!is_string($cityId) || $cityId === '') {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query->where(function (Builder $tenantQuery) use ($cityId): void {
+            $tenantQuery
+                ->where(function (Builder $topicQuery) use ($cityId): void {
+                    $topicQuery
+                        ->where('content_flags.content_type', FlagContentType::Topic->value)
+                        ->whereExists(function ($existsQuery) use ($cityId): void {
+                            $existsQuery
+                                ->select(DB::raw('1'))
+                                ->from('topics')
+                                ->whereColumn('topics.id', 'content_flags.content_id')
+                                ->where('topics.city_id', $cityId);
+                        });
+                })
+                ->orWhere(function (Builder $commentQuery) use ($cityId): void {
+                    $commentQuery
+                        ->where('content_flags.content_type', FlagContentType::Comment->value)
+                        ->whereExists(function ($existsQuery) use ($cityId): void {
+                            $existsQuery
+                                ->select(DB::raw('1'))
+                                ->from('comments')
+                                ->whereColumn('comments.id', 'content_flags.content_id')
+                                ->where('comments.city_id', $cityId);
+                        });
+                })
+                ->orWhere(function (Builder $reportQuery) use ($cityId): void {
+                    $reportQuery
+                        ->where('content_flags.content_type', FlagContentType::Report->value)
+                        ->whereExists(function ($existsQuery) use ($cityId): void {
+                            $existsQuery
+                                ->select(DB::raw('1'))
+                                ->from('citizen_reports')
+                                ->whereColumn('citizen_reports.id', 'content_flags.content_id')
+                                ->where('citizen_reports.city_id', $cityId);
+                        });
+                })
+                ->orWhere(function (Builder $userQuery) use ($cityId): void {
+                    $userQuery
+                        ->where('content_flags.content_type', FlagContentType::User->value)
+                        ->whereExists(function ($existsQuery) use ($cityId): void {
+                            $existsQuery
+                                ->select(DB::raw('1'))
+                                ->from('users')
+                                ->whereColumn('users.id', 'content_flags.content_id')
+                                ->where('users.city_id', $cityId);
+                        });
+                });
+        });
+    }
 
     public static function form(Forms\Form $form): Forms\Form
     {
@@ -180,10 +242,19 @@ class ContentFlagResource extends BaseResource
                             ->label('Usu?rio alvo')
                             ->searchable()
                             ->getSearchResultsUsing(function (string $search): array {
+                                $tenantCityId = Tenant::cityId();
+
                                 return User::query()
-                                    ->where('nome', 'like', "%{$search}%")
-                                    ->orWhere('email', 'like', "%{$search}%")
-                                    ->orWhere('phone', 'like', "%{$search}%")
+                                    ->when(
+                                        is_string($tenantCityId) && $tenantCityId !== '',
+                                        fn(Builder $query) => $query->where('city_id', $tenantCityId)
+                                    )
+                                    ->where(function (Builder $query) use ($search): void {
+                                        $query
+                                            ->where('nome', 'like', "%{$search}%")
+                                            ->orWhere('email', 'like', "%{$search}%")
+                                            ->orWhere('phone', 'like', "%{$search}%");
+                                    })
                                     ->limit(20)
                                     ->pluck('nome', 'id')
                                     ->toArray();
@@ -217,6 +288,24 @@ class ContentFlagResource extends BaseResource
                             ->visible(fn (Get $get) => $get('action') === FlagAction::RestrictUser->value),
                     ])
                     ->action(function (ContentFlag $record, array $data): void {
+                        $tenantCityId = Tenant::cityId();
+                        if (
+                            isset($data['user_id']) &&
+                            is_string($tenantCityId) &&
+                            $tenantCityId !== ''
+                        ) {
+                            $validUser = User::query()
+                                ->where('id', $data['user_id'])
+                                ->where('city_id', $tenantCityId)
+                                ->exists();
+
+                            if (!$validUser) {
+                                throw ValidationException::withMessages([
+                                    'user_id' => 'Usuario fora do tenant selecionado.',
+                                ]);
+                            }
+                        }
+
                         app(ModerationActionService::class)
                             ->takeFlagAction($record, auth()->user(), $data);
                     })

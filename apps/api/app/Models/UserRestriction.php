@@ -31,6 +31,7 @@ class UserRestriction extends Model
         'user_id',
         'type',
         'scope',
+        'scope_city_id',
         'reason',
         'created_by',
         'starts_at',
@@ -68,6 +69,11 @@ class UserRestriction extends Model
     public function revokedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'revoked_by');
+    }
+
+    public function scopeCity(): BelongsTo
+    {
+        return $this->belongsTo(City::class, 'scope_city_id');
     }
 
     public function scopeActive($query)
@@ -129,6 +135,7 @@ class UserRestriction extends Model
                 'user_id',
                 'type',
                 'scope',
+                'scope_city_id',
                 'reason',
                 'created_by',
                 'starts_at',

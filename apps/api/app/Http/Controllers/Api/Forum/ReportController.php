@@ -36,6 +36,7 @@ class ReportController extends Controller
         $validated = $request->validated();
 
         TopicReport::create([
+            'city_id' => $topic->city_id,
             'topic_id' => $topic->id,
             'user_id' => $user->id,
             'motivo' => $validated['motivo'],
@@ -71,6 +72,7 @@ class ReportController extends Controller
         $validated = $request->validated();
 
         CommentReport::create([
+            'city_id' => $comment->city_id,
             'comment_id' => $comment->id,
             'user_id' => $user->id,
             'motivo' => $validated['motivo'],

@@ -31,8 +31,11 @@ interface CityBrand {
 }
 
 interface Module {
+    key?: string;
     slug: string;
     name: string;
+    namePtbr?: string;
+    routeSlugPtbr?: string;
     icon: string;
     description?: string;
 }
@@ -146,8 +149,15 @@ export const useTenantStore = create<TenantState>()(
             /**
              * Check if a module is enabled for current tenant
              */
-            isModuleEnabled: (slug: string): boolean => {
-                return get().modules.some(m => m.slug === slug);
+            isModuleEnabled: (identifier: string): boolean => {
+                const normalized = identifier.toLowerCase();
+
+                return get().modules.some((m) => {
+                    const moduleKey = (m.key || m.slug || '').toLowerCase();
+                    const moduleSlug = (m.slug || '').toLowerCase();
+
+                    return moduleKey === normalized || moduleSlug === normalized;
+                });
             },
 
             /**
@@ -185,7 +195,11 @@ export const getCitySlugForSdk = (): string | null => {
  * Check if current tenant has a specific module enabled
  */
 export const isModuleEnabled = (slug: string): boolean => {
-    return useTenantStore.getState().modules.some(m => m.slug === slug);
+    const normalized = slug.toLowerCase();
+    return useTenantStore
+        .getState()
+        .modules
+        .some((m) => (m.key || m.slug || '').toLowerCase() === normalized || (m.slug || '').toLowerCase() === normalized);
 };
 
 // ============================================

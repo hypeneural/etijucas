@@ -9,6 +9,7 @@ use App\Domain\Forum\Enums\ReportStatus;
 use App\Domain\Moderation\Services\ModerationActionService;
 use App\Filament\Admin\Resources\TopicReportResource\Pages;
 use App\Models\TopicReport;
+use App\Support\Tenant;
 use Filament\Forms;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
@@ -22,6 +23,8 @@ use Filament\Tables\Filters\SelectFilter;
 class TopicReportResource extends BaseResource
 {
     protected static ?string $model = TopicReport::class;
+    protected static bool $tenantScoped = true;
+    protected static array $tenantRelationScopes = ['topic'];
 
     protected static ?string $navigationGroup = 'Forum';
 
@@ -175,7 +178,17 @@ class TopicReportResource extends BaseResource
 
     public static function getNavigationBadge(): ?string
     {
-        return (string) static::getModel()::where('status', ReportStatus::Pending)->count() ?: null;
+        $cityId = Tenant::cityId();
+        if (!is_string($cityId) || $cityId === '') {
+            return null;
+        }
+
+        $pendingCount = static::getModel()::query()
+            ->where('status', ReportStatus::Pending)
+            ->whereHas('topic', fn($query) => $query->where('city_id', $cityId))
+            ->count();
+
+        return $pendingCount > 0 ? (string) $pendingCount : null;
     }
 
     public static function getNavigationBadgeColor(): ?string

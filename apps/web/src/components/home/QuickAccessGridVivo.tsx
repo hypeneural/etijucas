@@ -59,12 +59,12 @@ const badgeColors: Record<string, string> = {
 // Map item IDs to module slugs for filtering
 const itemToModuleMap: Record<string, string> = {
     'eventos': 'events',
-    'turismo': 'turismo',
-    'missas': 'missas',
-    'telefones': 'telefones',
-    'coleta': 'coleta-lixo',
-    'fiscaliza': 'denuncias',
-    'tempo': 'tempo',
+    'turismo': 'tourism',
+    'missas': 'masses',
+    'telefones': 'phones',
+    'coleta': 'trash',
+    'fiscaliza': 'reports',
+    'tempo': 'weather',
     'forum': 'forum',
 };
 
