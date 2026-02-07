@@ -65,6 +65,7 @@ return [
     |
     */
     'observability' => [
+        'enable_mismatch_alerts' => filter_var(env('TENANCY_MISMATCH_ALERTS_ENABLED', true), FILTER_VALIDATE_BOOL),
         'tenant_mismatch_window_seconds' => (int) env('TENANCY_MISMATCH_WINDOW', 300),
         'tenant_mismatch_alert_threshold' => (int) env('TENANCY_MISMATCH_THRESHOLD', 5),
     ],
