@@ -3,8 +3,8 @@
 
 import type { CepLookupResponse, BairroOption } from '@/types/auth.types';
 
-// Base API URL for backend
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+// Base API URL for backend (already includes /v1)
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
 /**
  * Validates CEP format (8 digits)
@@ -51,7 +51,7 @@ export const cepService = {
         }
 
         try {
-            const response = await fetch(`${API_BASE_URL}/v1/cep/${cleanedCEP}`);
+            const response = await fetch(`${API_BASE_URL}/cep/${cleanedCEP}`);
             const data: CepLookupResponse = await response.json();
             return data;
         } catch {
@@ -68,7 +68,7 @@ export const cepService = {
      */
     async getBairros(): Promise<BairroOption[]> {
         try {
-            const response = await fetch(`${API_BASE_URL}/v1/bairros`);
+            const response = await fetch(`${API_BASE_URL}/bairros`);
             const data = await response.json();
             return data.data || [];
         } catch {
