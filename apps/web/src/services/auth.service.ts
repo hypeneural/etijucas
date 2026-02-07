@@ -156,12 +156,15 @@ export const authService = {
 
     /**
      * Step 3: Register new user (after OTP verification)
+     * Includes city_slug to associate user with Tijucas/SC
      */
     async register(data: RegisterDTO): Promise<AuthResponse> {
         // Map confirmPassword to password_confirmation for Laravel
+        // Add city_slug for multi-tenancy (fixed to Tijucas/SC for now)
         const payload = {
             ...data,
             password_confirmation: data.confirmPassword,
+            city_slug: 'tijucas-sc', // Fixed city for now
         };
 
         const response = await apiClient.post<AuthResponse>(

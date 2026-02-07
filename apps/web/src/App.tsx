@@ -1,4 +1,4 @@
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,6 +9,12 @@ import { OfflineIndicator } from "./components/ui/OfflineIndicator";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { idbPersister } from "./lib/queryPersister";
 import { PersistGate } from "./components/providers/PersistGate";
+
+// Tenant Management
+import { useTenantStore } from "./store/useTenantStore";
+import { DEFAULT_CITY_SLUG } from "./constants/tenant";
+import { ModuleGate } from "./components/ModuleGate";
+import ModuleUnavailable from "./components/ModuleUnavailable";
 
 // ======================================================
 // Lazy-loaded pages for smaller initial bundle
@@ -104,15 +110,60 @@ function AppProviders({ children }: { children: React.ReactNode }) {
       persistOptions={persistOptions}
     >
       <PersistGate>
-        <TooltipProvider>
-          <OfflineIndicator />
-          <Toaster />
-          <Sonner />
-          {children}
-        </TooltipProvider>
+        <TenantBootstrap>
+          <TooltipProvider>
+            <OfflineIndicator />
+            <Toaster />
+            <Sonner />
+            {children}
+          </TooltipProvider>
+        </TenantBootstrap>
       </PersistGate>
     </PersistQueryClientProvider>
   );
+}
+
+/**
+ * TenantBootstrap - Initializes tenant context on app load
+ * Bootstraps city config from API (currently fixed to Tijucas/SC)
+ */
+function TenantBootstrap({ children }: { children: React.ReactNode }) {
+  const { bootstrap, isBootstrapped, isLoading, error } = useTenantStore();
+
+  useEffect(() => {
+    if (!isBootstrapped && !isLoading) {
+      console.log('[TenantBootstrap] Bootstrapping city:', DEFAULT_CITY_SLUG);
+      bootstrap(DEFAULT_CITY_SLUG);
+    }
+  }, [bootstrap, isBootstrapped, isLoading]);
+
+  // Show loading only on first load (not on subsequent renders)
+  if (!isBootstrapped && isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-background gap-4">
+        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        <p className="text-sm text-muted-foreground">Carregando...</p>
+      </div>
+    );
+  }
+
+  // Show error if bootstrap completely failed (network down, etc)
+  if (!isBootstrapped && error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-background p-6 text-center gap-4">
+        <p className="text-destructive font-medium">Erro ao carregar configuração</p>
+        <p className="text-sm text-muted-foreground">{error}</p>
+        <button
+          onClick={() => bootstrap(DEFAULT_CITY_SLUG)}
+          className="px-4 py-2 bg-primary text-primary-foreground rounded-lg"
+        >
+          Tentar novamente
+        </button>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
 }
 
 const App = () => {
