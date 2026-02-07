@@ -37,6 +37,7 @@ import type {
 export interface ClientConfig {
     baseUrl: string;
     getToken?: () => string | null;
+    getCitySlug?: () => string | null;
     onTokenExpired?: () => void;
     onError?: (error: ApiClientError) => void;
     timeout?: number;
@@ -126,6 +127,7 @@ export interface TopicFilters {
 export class ApiClient {
     private baseUrl: string;
     private getToken: () => string | null;
+    private getCitySlug: () => string | null;
     private onTokenExpired?: () => void;
     private onError?: (error: ApiClientError) => void;
     private timeout: number;
@@ -134,6 +136,7 @@ export class ApiClient {
     constructor(config: ClientConfig) {
         this.baseUrl = config.baseUrl.replace(/\/$/, '');
         this.getToken = config.getToken || (() => null);
+        this.getCitySlug = config.getCitySlug || (() => null);
         this.onTokenExpired = config.onTokenExpired;
         this.onError = config.onError;
         this.timeout = config.timeout ?? DEFAULT_CONFIG.timeout;
@@ -167,12 +170,17 @@ export class ApiClient {
             if (qs) url += `?${qs}`;
         }
 
-        // Build headers
+        // Build headers with tenant context
         const token = this.getToken();
+        const citySlug = this.getCitySlug();
+        const requestId = crypto.randomUUID();
+
         const headers: Record<string, string> = {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
             ...(token && { Authorization: `Bearer ${token}` }),
+            ...(citySlug && { 'X-City': citySlug }),
+            'X-Request-Id': requestId,
             ...(idempotencyKey && { 'X-Idempotency-Key': idempotencyKey }),
             ...(fetchOptions.headers as Record<string, string>),
         };

@@ -124,5 +124,37 @@ class AppServiceProvider extends ServiceProvider
                 ? Limit::perMinute(60)->by($request->user()->id)  // Authenticated: 60/min
                 : Limit::perMinute(20)->by($request->ip());        // Anonymous: 20/min
         });
+
+        // API rate limiter - tenant-aware
+        RateLimiter::for('api', function (Request $request) {
+            $tenantKey = $request->attributes->get('tenant_city_id', 'global');
+
+            if ($request->user()) {
+                // Authenticated: 120 requests/min per user per tenant
+                return Limit::perMinute(120)
+                    ->by("{$tenantKey}:{$request->user()->id}");
+            }
+
+            // Anonymous: 30 requests/min per IP per tenant
+            return Limit::perMinute(30)
+                ->by("{$tenantKey}:{$request->ip()}");
+        });
+
+        // Tenant-level rate limiter (for expensive operations)
+        RateLimiter::for('tenant', function (Request $request) {
+            $tenantKey = $request->attributes->get('tenant_city_id', 'global');
+
+            // 1000 requests/min per tenant (all users combined)
+            return Limit::perMinute(1000)->by($tenantKey);
+        });
+
+        // Auth rate limiter (login attempts)
+        RateLimiter::for('auth', function (Request $request) {
+            $tenantKey = $request->attributes->get('tenant_city_id', 'global');
+
+            // 5 attempts per minute per IP per tenant
+            return Limit::perMinute(5)
+                ->by("{$tenantKey}:{$request->ip()}");
+        });
     }
 }

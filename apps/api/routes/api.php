@@ -24,6 +24,13 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('v1')->group(function () {
 
     // =====================================================
+    // Tenant Bootstrap Routes (must be before auth)
+    // =====================================================
+    Route::get('config', [\App\Http\Controllers\Api\V1\ConfigController::class, 'bootstrap']);
+    Route::get('cities', [\App\Http\Controllers\Api\V1\ConfigController::class, 'cities']);
+    Route::get('cities/detect', [\App\Http\Controllers\Api\V1\ConfigController::class, 'detect']);
+
+    // =====================================================
     // Public Routes
     // =====================================================
 
@@ -91,6 +98,23 @@ Route::prefix('v1')->group(function () {
         Route::get('marine', [\App\Domains\Weather\Http\Controllers\WeatherController::class, 'marine']);
         Route::get('insights', [\App\Domains\Weather\Http\Controllers\WeatherController::class, 'insights']);
         Route::get('preset/{type}', [\App\Domains\Weather\Http\Controllers\WeatherController::class, 'preset']);
+    });
+
+    // =====================================================
+    // Trash Collection Schedules (module-gated)
+    // =====================================================
+    Route::prefix('trash')->middleware('module:coleta-lixo')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\V1\TrashScheduleController::class, 'index']);
+        Route::get('today', [\App\Http\Controllers\Api\V1\TrashScheduleController::class, 'today']);
+    });
+
+    // =====================================================
+    // Mass Schedules (module-gated)
+    // =====================================================
+    Route::prefix('masses')->middleware('module:missas')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\V1\MassScheduleController::class, 'index']);
+        Route::get('today', [\App\Http\Controllers\Api\V1\MassScheduleController::class, 'today']);
+        Route::get('churches', [\App\Http\Controllers\Api\V1\MassScheduleController::class, 'byChurch']);
     });
 
     // =====================================================

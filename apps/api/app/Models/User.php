@@ -53,6 +53,7 @@ class User extends Authenticatable implements HasMedia, FilamentUser, HasName, H
      * @var list<string>
      */
     protected $fillable = [
+        'city_id',
         'phone',
         'email',
         'password',
@@ -105,6 +106,14 @@ class User extends Authenticatable implements HasMedia, FilamentUser, HasName, H
     public function bairro(): BelongsTo
     {
         return $this->belongsTo(Bairro::class);
+    }
+
+    /**
+     * Get the city that the user belongs to.
+     */
+    public function city(): BelongsTo
+    {
+        return $this->belongsTo(City::class);
     }
 
     /**

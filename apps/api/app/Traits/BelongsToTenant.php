@@ -30,6 +30,19 @@ trait BelongsToTenant
             }
         });
 
+        // INVARIANTE #4: bairro_id deve pertencer ao mesmo city_id
+        static::saving(function ($model) {
+            if ($model->bairro_id && $model->city_id) {
+                $bairro = \App\Models\Bairro::find($model->bairro_id);
+
+                if ($bairro && $bairro->city_id !== $model->city_id) {
+                    throw new \DomainException(
+                        "Bairro {$model->bairro_id} não pertence à cidade {$model->city_id}"
+                    );
+                }
+            }
+        });
+
         // GLOBAL SCOPE: toda query é filtrada pelo tenant
         static::addGlobalScope('tenant', function (Builder $builder) {
             // Só aplica se tiver tenant definido
