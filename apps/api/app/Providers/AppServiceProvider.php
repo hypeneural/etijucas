@@ -120,9 +120,11 @@ class AppServiceProvider extends ServiceProvider
     {
         // Forum rate limiter - differentiated by auth status
         RateLimiter::for('forum', function (Request $request) {
+            $tenantKey = $request->attributes->get('tenant_city_id', 'global');
+
             return $request->user()
-                ? Limit::perMinute(60)->by($request->user()->id)  // Authenticated: 60/min
-                : Limit::perMinute(20)->by($request->ip());        // Anonymous: 20/min
+                ? Limit::perMinute(60)->by("{$tenantKey}:forum:user:{$request->user()->id}") // Authenticated: 60/min per tenant
+                : Limit::perMinute(20)->by("{$tenantKey}:forum:ip:{$request->ip()}");        // Anonymous: 20/min per tenant
         });
 
         // API rate limiter - tenant-aware
