@@ -104,7 +104,7 @@ class FullBrazilianCitiesSeeder extends Seeder
                     'lon' => $cityData['longitude'] ?? null,
                     'ddd' => isset($cityData['ddd']) ? (string) $cityData['ddd'] : null,
                     'timezone' => $cityData['fuso_horario'] ?? 'America/Sao_Paulo',
-                    'active' => ($cityData['codigo_ibge'] == 4218007), // Only Tijucas is active
+                    'active' => ($cityData['codigo_ibge'] == 4218004), // Only Tijucas is active (ibge: 4218004)
                     'is_capital' => (bool) ($cityData['capital'] ?? false),
                     'siafi_id' => $cityData['siafi_id'] ?? null,
                     'created_at' => now(),
@@ -124,7 +124,7 @@ class FullBrazilianCitiesSeeder extends Seeder
         }
 
         // Set Tijucas as active with 'active' status
-        City::where('ibge_code', 4218007)->update([
+        City::where('ibge_code', 4218004)->update([
             'active' => true,
             'status' => 'active',
         ]);
