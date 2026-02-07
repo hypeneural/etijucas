@@ -315,6 +315,28 @@ class User extends Authenticatable implements HasMedia, FilamentUser, HasName, H
     }
 
     /**
+     * Scope a query to filter by current tenant city.
+     * 
+     * ⚠️ Throws exception if no tenant is set - prevents accidental data leaks.
+     * For queries without tenant context, use ->where('city_id', $id) explicitly.
+     * 
+     * @throws \RuntimeException When no tenant context is available
+     */
+    public function scopeForCurrentTenant($query)
+    {
+        $cityId = \App\Support\Tenant::cityId();
+
+        if (!$cityId) {
+            throw new \RuntimeException(
+                'User::forCurrentTenant() called without tenant context. ' .
+                'Use ->where("city_id", $id) explicitly for queries outside tenant context.'
+            );
+        }
+
+        return $query->where('city_id', $cityId);
+    }
+
+    /**
      * Determine if the user can access the Filament panel.
      */
     public function canAccessPanel(Panel $panel): bool

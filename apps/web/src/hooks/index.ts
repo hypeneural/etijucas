@@ -29,6 +29,13 @@ export * from './useInstallPrompt';
 export * from './useOnlineSync';
 
 // ============================================
+// TENANT / MULTI-CITY HOOKS
+// ============================================
+export * from './useCityRoute';
+export * from './useTenantNavigate';
+
+
+// ============================================
 // LEGACY QUERIES - DEPRECATED
 // ============================================
 // These hooks do NOT support offline. Use the offline-first versions above.
