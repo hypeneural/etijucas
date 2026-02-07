@@ -85,8 +85,9 @@ export const useTenantStore = create<TenantState>()(
                 set({ isLoading: true, error: null });
 
                 try {
-                    const baseUrl = import.meta.env.VITE_API_URL || '/api';
-                    const response = await fetch(`${baseUrl}/v1/config`, {
+                    // VITE_API_URL already includes /v1 (e.g., /api/v1)
+                    const baseUrl = import.meta.env.VITE_API_URL || '/api/v1';
+                    const response = await fetch(`${baseUrl}/config`, {
                         headers: {
                             'X-City': citySlug,
                             'Accept': 'application/json',
