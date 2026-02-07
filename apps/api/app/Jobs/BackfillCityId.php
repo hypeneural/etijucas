@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Jobs\Contracts\GlobalQueueJob;
 use App\Models\City;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -18,7 +19,7 @@ use Illuminate\Support\Facades\Log;
  * 1. bairro_id -> bairros.city_id (when available)
  * 2. Fallback to Tijucas (when bairro is null)
  */
-class BackfillCityId implements ShouldQueue
+class BackfillCityId implements ShouldQueue, GlobalQueueJob
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 

@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class ModerationQueueItem extends Model
 {
-    protected $table = 'moderation_queue';
+    protected $table = 'moderation_queue_items';
 
     protected $guarded = [];
 

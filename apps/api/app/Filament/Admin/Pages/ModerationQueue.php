@@ -60,6 +60,7 @@ class ModerationQueue extends Page implements HasTable
             ->select([
                 'content_flags.id as id',
                 DB::raw("'flag' as kind"),
+                'content_flags.city_id as city_id',
                 'content_flags.status as status',
                 'content_flags.reason as title',
                 'content_flags.message as description',
@@ -69,58 +70,21 @@ class ModerationQueue extends Page implements HasTable
                 FlagStatus::Open->value,
                 FlagStatus::Reviewing->value,
             ])
-            ->where(function ($query) use ($cityId): void {
-                $query
-                    ->where(function ($q) use ($cityId): void {
-                        $q->where('content_flags.content_type', 'topic')
-                            ->whereExists(function ($subQuery) use ($cityId): void {
-                                $subQuery->select(DB::raw('1'))
-                                    ->from('topics')
-                                    ->whereColumn('topics.id', 'content_flags.content_id')
-                                    ->where('topics.city_id', $cityId);
-                            });
-                    })
-                    ->orWhere(function ($q) use ($cityId): void {
-                        $q->where('content_flags.content_type', 'comment')
-                            ->whereExists(function ($subQuery) use ($cityId): void {
-                                $subQuery->select(DB::raw('1'))
-                                    ->from('comments')
-                                    ->whereColumn('comments.id', 'content_flags.content_id')
-                                    ->where('comments.city_id', $cityId);
-                            });
-                    })
-                    ->orWhere(function ($q) use ($cityId): void {
-                        $q->where('content_flags.content_type', 'report')
-                            ->whereExists(function ($subQuery) use ($cityId): void {
-                                $subQuery->select(DB::raw('1'))
-                                    ->from('citizen_reports')
-                                    ->whereColumn('citizen_reports.id', 'content_flags.content_id')
-                                    ->where('citizen_reports.city_id', $cityId);
-                            });
-                    })
-                    ->orWhere(function ($q) use ($cityId): void {
-                        $q->where('content_flags.content_type', 'user')
-                            ->whereExists(function ($subQuery) use ($cityId): void {
-                                $subQuery->select(DB::raw('1'))
-                                    ->from('users')
-                                    ->whereColumn('users.id', 'content_flags.content_id')
-                                    ->where('users.city_id', $cityId);
-                            });
-                    });
-            });
+            ->where('content_flags.city_id', $cityId);
 
         $topicReports = DB::table('topic_reports')
             ->leftJoin('topics', 'topic_reports.topic_id', '=', 'topics.id')
             ->select([
                 'topic_reports.id as id',
                 DB::raw("'topic_report' as kind"),
+                'topic_reports.city_id as city_id',
                 'topic_reports.status as status',
                 'topics.titulo as title',
                 'topic_reports.descricao as description',
                 'topic_reports.created_at as created_at',
             ])
             ->where('topic_reports.status', ForumReportStatus::Pending->value)
-            ->where('topics.city_id', $cityId);
+            ->where('topic_reports.city_id', $cityId);
 
         $commentReports = DB::table('comment_reports')
             ->leftJoin('comments', 'comment_reports.comment_id', '=', 'comments.id')
@@ -128,18 +92,20 @@ class ModerationQueue extends Page implements HasTable
             ->select([
                 'comment_reports.id as id',
                 DB::raw("'comment_report' as kind"),
+                'comment_reports.city_id as city_id',
                 'comment_reports.status as status',
                 'topics.titulo as title',
                 'comment_reports.descricao as description',
                 'comment_reports.created_at as created_at',
             ])
             ->where('comment_reports.status', ForumReportStatus::Pending->value)
-            ->where('comments.city_id', $cityId);
+            ->where('comment_reports.city_id', $cityId);
 
         $citizenReports = DB::table('citizen_reports')
             ->select([
                 'citizen_reports.id as id',
                 DB::raw("'citizen_report' as kind"),
+                'citizen_reports.city_id as city_id',
                 'citizen_reports.status as status',
                 'citizen_reports.title as title',
                 'citizen_reports.description as description',
@@ -157,7 +123,7 @@ class ModerationQueue extends Page implements HasTable
             ->unionAll($citizenReports);
 
         return ModerationQueueItem::query()
-            ->fromSub($union, 'moderation_queue')
+            ->fromSub($union, 'moderation_queue_items')
             ->orderBy('created_at', 'desc');
     }
 

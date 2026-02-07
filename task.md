@@ -15,7 +15,7 @@ Codificacao obrigatoria: UTF-8 sem BOM
 - [x] Nao criar rota tenant-required sem `RequireTenant`.
 - [x] Nao criar Resource Filament tenant-aware sem escopo por cidade.
 - [x] Todo PR com testes minimos + plano de rollback.
-- [ ] Todo PR com changelog tecnico curto (impacto, risco, rollback).
+- [x] Todo PR com changelog tecnico curto (impacto, risco, rollback).
 
 ---
 
@@ -42,11 +42,11 @@ Codificacao obrigatoria: UTF-8 sem BOM
 Objetivo: travar erros estruturais antes de mexer no core.
 
 Escopo tecnico:
-- [ ] Criar checklist de PR tenancy no repositorio.
+- [x] Criar checklist de PR tenancy no repositorio.
 - [x] Adicionar etapa CI para validar ausencia de BOM em arquivos texto alterados.
 - [x] Adicionar regra CI para bloquear `Cache::remember` direto em pastas tenant-aware.
 - [x] Adicionar regra CI para detectar rota tenant-required sem middleware de tenant.
-- [ ] Publicar padrao oficial de chaves de cache tenant-aware.
+- [x] Publicar padrao oficial de chaves de cache tenant-aware.
 
 Testes:
 - [x] Teste da pipeline com fixture contendo BOM deve falhar.
@@ -81,8 +81,8 @@ Arquivos alvo iniciais:
 
 Testes:
 - [x] Teste de modulo legado com alias (compatibilidade).
-- [ ] Teste de modulo canonico em rota protegida.
-- [ ] Teste de payload de `/api/v1/config` com `module_key`.
+- [x] Teste de modulo canonico em rota protegida.
+- [x] Teste de payload de `/api/v1/config` com `module_key`.
 
 Rollback:
 - [ ] Migration `down` restaura colunas e mapa anterior.
@@ -116,7 +116,7 @@ Arquivos alvo iniciais:
 Testes:
 - [x] Cenarios com/sem registro em pivot.
 - [x] Cenarios `is_core` true/false.
-- [ ] Contrato: `/config` e middleware devem concordar.
+- [x] Contrato: `/config` e middleware devem concordar.
 
 Rollback:
 - [ ] Reativar implementacao anterior com feature flag de compatibilidade.
@@ -171,14 +171,14 @@ Arquivos alvo iniciais:
 - [x] Resources de moderacao/conteudo no Filament
 
 Testes:
-- [ ] Moderador cidade A nao ve cidade B.
-- [ ] Super admin alterna tenant e dados acompanham contexto.
+- [x] Moderador cidade A nao ve cidade B.
+- [x] Super admin alterna tenant e dados acompanham contexto.
 
 Rollback:
 - [ ] Desativar switcher e voltar para modo anterior com filtro manual temporario.
 
 Criterio de aceite:
-- [ ] Sem leitura/escrita cross-city no painel.
+- [x] Sem leitura/escrita cross-city no painel.
 
 ---
 
@@ -202,14 +202,14 @@ Arquivos alvo iniciais:
 - [x] `apps/api/app/Models/CityDomain.php`
 
 Testes:
-- [ ] Cidade A e B com mesma URL nao compartilham resposta.
-- [ ] Alteracao de modulo invalida cache da cidade correta.
+- [x] Cidade A e B com mesma URL nao compartilham resposta.
+- [x] Alteracao de modulo invalida cache da cidade correta.
 
 Rollback:
 - [ ] Fallback temporario para cache disabled em endpoints criticos.
 
 Criterio de aceite:
-- [ ] Nenhuma chave tenant-aware sem `city_id`.
+- [x] Nenhuma chave tenant-aware sem `city_id`.
 
 ---
 
@@ -228,15 +228,15 @@ Escopo tecnico:
 - [x] Criar rollback por `rollout_id`.
 
 Testes:
-- [ ] Rollout para todas cidades ativas.
-- [ ] Rollout com excecoes.
-- [ ] Rollback restaura estado anterior.
+- [x] Rollout para todas cidades ativas.
+- [x] Rollout com excecoes.
+- [x] Rollback restaura estado anterior.
 
 Rollback:
 - [ ] Desativar tela/comando mantendo apenas estado atual de `city_modules`.
 
 Criterio de aceite:
-- [ ] Ativacao/desativacao em massa operavel sem SQL manual.
+- [x] Ativacao/desativacao em massa operavel sem SQL manual.
 
 ---
 
@@ -248,7 +248,7 @@ Escopo tecnico:
 - [x] Adicionar `city_id` em `content_flags`.
 - [x] Adicionar `city_id` em `topic_reports`.
 - [x] Adicionar `city_id` em `comment_reports`.
-- [ ] Adicionar `city_id` em `moderation_queue_items`.
+- [x] Adicionar `city_id` em `moderation_queue_items`.
 - [x] Adicionar `scope_city_id` em `user_restrictions` (nullable para global).
 - [x] Criar backfill com joins por origem de conteudo.
 - [x] Tornar colunas `NOT NULL` apos backfill (exceto `scope_city_id`).
@@ -279,15 +279,15 @@ Escopo tecnico:
 - [x] Garantir compatibilidade com restricao global.
 
 Testes:
-- [ ] Restricao local bloqueia so na cidade alvo.
-- [ ] Restricao global bloqueia todas.
-- [ ] Restricao de modulo nao afeta modulo diferente.
+- [x] Restricao local bloqueia so na cidade alvo.
+- [x] Restricao global bloqueia todas.
+- [x] Restricao de modulo nao afeta modulo diferente.
 
 Rollback:
 - [ ] Voltar para comportamento global temporario com flag.
 
 Criterio de aceite:
-- [ ] Restricao respeita modulo e cidade em todos os endpoints cobertos.
+- [x] Restricao respeita modulo e cidade em todos os endpoints cobertos.
 
 ---
 
@@ -296,21 +296,21 @@ Criterio de aceite:
 Objetivo: garantir que jobs executem no tenant correto.
 
 Escopo tecnico:
-- [ ] Definir contrato de payload de job (`city_id`, `module_key`, `trace_id`).
-- [ ] Criar middleware de job para setar tenant antes de `handle()`.
-- [ ] Atualizar jobs criticos (midia, notificacao, agregacao, sync).
-- [ ] Registrar logs com `city_id`.
-- [ ] Avaliar adocao de base Spatie Multitenancy para padrao de fila.
+- [x] Definir contrato de payload de job (`city_id`, `module_key`, `trace_id`).
+- [x] Criar middleware de job para setar tenant antes de `handle()`.
+- [x] Atualizar jobs criticos (midia, notificacao, agregacao, sync).
+- [x] Registrar logs com `city_id`.
+- [x] Avaliar adocao de base Spatie Multitenancy para padrao de fila.
 
 Testes:
-- [ ] Job com cidade A nao afeta cidade B.
-- [ ] Job sem `city_id` falha cedo e loga erro.
-
+- [x] Job com cidade A nao afeta cidade B.
+- [x] Job sem `city_id` falha cedo e loga erro.
+    
 Rollback:
 - [ ] Fallback para execucao sincrona temporaria de jobs criticos.
 
 Criterio de aceite:
-- [ ] 100% dos jobs tenant-aware carregam e aplicam tenant.
+- [x] 100% dos jobs tenant-aware carregam e aplicam tenant.
 
 ---
 
