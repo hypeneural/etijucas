@@ -2,9 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\Module;
 use App\Support\Tenant;
-use Illuminate\Support\Facades\Cache;
 
 /**
  * ModuleService
@@ -59,19 +57,5 @@ class ModuleService
         }
 
         ModuleResolver::clearCache($cityId);
-
-        $modules = Module::select(['slug', 'module_key'])->get();
-
-        foreach ($modules as $module) {
-            if (!empty($module->module_key)) {
-                Cache::forget("city:{$cityId}:module:{$module->module_key}:enabled");
-                Cache::forget("city:{$cityId}:module:{$module->module_key}:settings");
-            }
-
-            Cache::forget("city:{$cityId}:module:{$module->slug}:enabled");
-            Cache::forget("city:{$cityId}:module:{$module->slug}:settings");
-        }
-
-        Cache::forget("city:{$cityId}:modules:enabled");
     }
 }

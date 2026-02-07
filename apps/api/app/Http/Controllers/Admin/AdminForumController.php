@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Domain\Moderation\Enums\RestrictionScope;
+use App\Domain\Moderation\Enums\RestrictionType;
 use App\Domains\Forum\Actions\HideTopicAction;
 use App\Http\Controllers\Controller;
 use App\Models\Topic;
@@ -63,11 +65,17 @@ class AdminForumController extends Controller
         UserRestriction::updateOrCreate(
             [
                 'user_id' => $user->id,
-                'type' => 'forum_suspension',
+                'type' => RestrictionType::MuteForum->value,
+                'scope' => RestrictionScope::Forum->value,
             ],
             [
                 'reason' => $request->input('motivo'),
-                'expires_at' => $expiresAt,
+                'scope_city_id' => $user->city_id,
+                'scope_module_key' => 'forum',
+                'starts_at' => now(),
+                'ends_at' => $expiresAt,
+                'revoked_at' => null,
+                'revoked_by' => null,
                 'created_by' => $request->user()->id,
             ]
         );

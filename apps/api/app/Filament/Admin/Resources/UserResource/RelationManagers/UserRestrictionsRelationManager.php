@@ -109,6 +109,10 @@ class UserRestrictionsRelationManager extends RelationManager
                 CreateAction::make()
                     ->mutateFormDataUsing(function (array $data): array {
                         $data['created_by'] = auth()->id();
+                        $owner = $this->getOwnerRecord();
+                        $data['scope_city_id'] = ($data['scope'] ?? null) === RestrictionScope::Global->value
+                            ? null
+                            : $owner?->city_id;
                         return $data;
                     })
                     ->visible(fn () => auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false),

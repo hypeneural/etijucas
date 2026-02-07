@@ -276,25 +276,33 @@ Route::prefix('v1')->group(function () {
         // =====================================================
         Route::prefix('forum')->middleware(['throttle:forum', 'module:forum'])->group(function () {
             // Topics CRUD
-            Route::post('topics', [\App\Http\Controllers\Api\Forum\TopicController::class, 'store']);
-            Route::put('topics/{topic}', [\App\Http\Controllers\Api\Forum\TopicController::class, 'update']);
-            Route::delete('topics/{topic}', [\App\Http\Controllers\Api\Forum\TopicController::class, 'destroy']);
+            Route::post('topics', [\App\Http\Controllers\Api\Forum\TopicController::class, 'store'])
+                ->middleware('restrict:forum,mute_forum|shadowban_forum|rate_limit_forum');
+            Route::put('topics/{topic}', [\App\Http\Controllers\Api\Forum\TopicController::class, 'update'])
+                ->middleware('restrict:forum,mute_forum|shadowban_forum|rate_limit_forum');
+            Route::delete('topics/{topic}', [\App\Http\Controllers\Api\Forum\TopicController::class, 'destroy'])
+                ->middleware('restrict:forum,mute_forum|shadowban_forum|rate_limit_forum');
 
             // Topic interactions
             Route::post('topics/{topic}/like', [\App\Http\Controllers\Api\Forum\TopicLikeController::class, 'toggle']);
             Route::post('topics/{topic}/save', [\App\Http\Controllers\Api\Forum\SavedTopicController::class, 'toggle']);
-            Route::post('topics/{topic}/report', [\App\Http\Controllers\Api\Forum\ReportController::class, 'reportTopic']);
+            Route::post('topics/{topic}/report', [\App\Http\Controllers\Api\Forum\ReportController::class, 'reportTopic'])
+                ->middleware('restrict:forum,mute_forum|shadowban_forum|rate_limit_forum');
 
             // Comments
-            Route::post('topics/{topic}/comments', [\App\Http\Controllers\Api\Forum\CommentController::class, 'store']);
-            Route::delete('topics/{topic}/comments/{comment}', [\App\Http\Controllers\Api\Forum\CommentController::class, 'destroy']);
+            Route::post('topics/{topic}/comments', [\App\Http\Controllers\Api\Forum\CommentController::class, 'store'])
+                ->middleware('restrict:forum,mute_forum|shadowban_forum|rate_limit_forum');
+            Route::delete('topics/{topic}/comments/{comment}', [\App\Http\Controllers\Api\Forum\CommentController::class, 'destroy'])
+                ->middleware('restrict:forum,mute_forum|shadowban_forum|rate_limit_forum');
 
             // Comment interactions
             Route::post('comments/{comment}/like', [\App\Http\Controllers\Api\Forum\CommentLikeController::class, 'toggle']);
-            Route::post('comments/{comment}/report', [\App\Http\Controllers\Api\Forum\ReportController::class, 'reportComment']);
+            Route::post('comments/{comment}/report', [\App\Http\Controllers\Api\Forum\ReportController::class, 'reportComment'])
+                ->middleware('restrict:forum,mute_forum|shadowban_forum|rate_limit_forum');
 
             // Upload
-            Route::post('upload', [\App\Http\Controllers\Api\Forum\ForumUploadController::class, 'store']);
+            Route::post('upload', [\App\Http\Controllers\Api\Forum\ForumUploadController::class, 'store'])
+                ->middleware('restrict:forum,block_uploads');
 
             // Saved topics
             Route::get('saved', [\App\Http\Controllers\Api\Forum\SavedTopicController::class, 'index']);
@@ -341,7 +349,8 @@ Route::prefix('v1')->group(function () {
         // =====================================================
         Route::prefix('reports')->middleware(['throttle:5,1', 'module:reports'])->group(function () {
             // Create report (with rate limiting)
-            Route::post('/', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'store']);
+            Route::post('/', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'store'])
+                ->middleware('restrict:reports,block_uploads');
 
             // My reports
             Route::get('/me', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'myReports']);
@@ -352,6 +361,7 @@ Route::prefix('v1')->group(function () {
 
             // Add/remove media
             Route::post('/{id}/media', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'addMedia'])
+                ->middleware('restrict:reports,block_uploads')
                 ->whereUuid('id');
             Route::delete('/{id}/media/{mediaId}', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'removeMedia'])
                 ->whereUuid(['id', 'mediaId']);

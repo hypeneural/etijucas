@@ -32,6 +32,7 @@ class UserRestriction extends Model
         'type',
         'scope',
         'scope_city_id',
+        'scope_module_key',
         'reason',
         'created_by',
         'starts_at',
@@ -103,6 +104,20 @@ class UserRestriction extends Model
         return $query->whereNotNull('revoked_at');
     }
 
+    public function scopeForModule($query, string $moduleKey)
+    {
+        $legacyScope = self::legacyScopeForModule($moduleKey);
+
+        return $query->where(function ($scopeQuery) use ($moduleKey, $legacyScope): void {
+            $scopeQuery->where('scope', RestrictionScope::Global)
+                ->orWhere('scope_module_key', $moduleKey);
+
+            if ($legacyScope !== null) {
+                $scopeQuery->orWhere('scope', $legacyScope);
+            }
+        });
+    }
+
     public function isActive(): bool
     {
         if ($this->revoked_at !== null) {
@@ -128,6 +143,49 @@ class UserRestriction extends Model
         ]);
     }
 
+    public static function normalizeScopeModuleKey(mixed $scope, ?string $scopeModuleKey): ?string
+    {
+        $resolvedScope = $scope instanceof RestrictionScope ? $scope : RestrictionScope::tryFrom((string) $scope);
+
+        if ($resolvedScope === RestrictionScope::Global) {
+            return null;
+        }
+
+        if (is_string($scopeModuleKey) && $scopeModuleKey !== '') {
+            return strtolower(trim($scopeModuleKey));
+        }
+
+        return match ($resolvedScope) {
+            RestrictionScope::Forum => 'forum',
+            RestrictionScope::Reports => 'reports',
+            RestrictionScope::Uploads => 'forum',
+            default => null,
+        };
+    }
+
+    public static function legacyScopeForModule(string $moduleKey): ?RestrictionScope
+    {
+        return match ($moduleKey) {
+            'forum' => RestrictionScope::Forum,
+            'reports' => RestrictionScope::Reports,
+            default => null,
+        };
+    }
+
+    protected static function booted(): void
+    {
+        static::saving(function (UserRestriction $restriction): void {
+            $restriction->scope_module_key = self::normalizeScopeModuleKey(
+                $restriction->scope,
+                $restriction->scope_module_key
+            );
+
+            if ($restriction->scope === RestrictionScope::Global) {
+                $restriction->scope_city_id = null;
+            }
+        });
+    }
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
@@ -136,6 +194,7 @@ class UserRestriction extends Model
                 'type',
                 'scope',
                 'scope_city_id',
+                'scope_module_key',
                 'reason',
                 'created_by',
                 'starts_at',

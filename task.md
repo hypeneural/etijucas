@@ -11,9 +11,9 @@ Codificacao obrigatoria: UTF-8 sem BOM
 
 - [ ] Nao criar arquivo com BOM.
 - [ ] Nao usar cache global em dominio tenant-aware.
-- [ ] Nao criar tabela tenant-aware sem `city_id` indexado.
+- [x] Nao criar tabela tenant-aware sem `city_id` indexado.
 - [x] Nao criar rota tenant-required sem `RequireTenant`.
-- [ ] Nao criar Resource Filament tenant-aware sem escopo por cidade.
+- [x] Nao criar Resource Filament tenant-aware sem escopo por cidade.
 - [x] Todo PR com testes minimos + plano de rollback.
 - [ ] Todo PR com changelog tecnico curto (impacto, risco, rollback).
 
@@ -191,14 +191,14 @@ Escopo tecnico:
 - [x] Migrar home/forum/config para `TenantCache`.
 - [x] Migrar caches de eventos (`events:list`, `events:home-featured`, `events:calendar`, `events:categories`, `events:tags`) para `TenantCache`.
 - [x] Garantir `Vary: Host, X-City` em `/api/v1/config`.
-- [ ] Revisar `Cache-Control` de endpoints tenant-aware.
-- [ ] Padronizar invalidacao por chave de namespace.
+- [x] Revisar `Cache-Control` de endpoints tenant-aware.
+- [x] Padronizar invalidacao por chave de namespace.
 - [x] Corrigir inconsistencia de chave em `city_domains`.
 
 Arquivos alvo iniciais:
 - [x] `apps/api/app/Domains/Home/Services/HomeAggregatorService.php`
 - [x] `apps/api/app/Http/Controllers/Api/Forum/TopicController.php`
-- [ ] `apps/api/app/Http/Controllers/Api/V1/ConfigController.php`
+- [x] `apps/api/app/Http/Controllers/Api/V1/ConfigController.php`
 - [x] `apps/api/app/Models/CityDomain.php`
 
 Testes:
@@ -218,14 +218,14 @@ Criterio de aceite:
 Objetivo: sair de operacao manual por SQL.
 
 Escopo tecnico:
-- [ ] Criar `CityResource`.
-- [ ] Criar `CityDomainResource`.
-- [ ] Criar `ModuleResource`.
-- [ ] Criar `CityModuleResource`.
-- [ ] Criar pagina de rollout em massa por modulo.
-- [ ] Criar comando `modules:rollout` com `--dry-run`.
-- [ ] Criar log de auditoria de rollout.
-- [ ] Criar rollback por `rollout_id`.
+- [x] Criar `CityResource`.
+- [x] Criar `CityDomainResource`.
+- [x] Criar `ModuleResource`.
+- [x] Criar `CityModuleResource`.
+- [x] Criar pagina de rollout em massa por modulo.
+- [x] Criar comando `modules:rollout` com `--dry-run`.
+- [x] Criar log de auditoria de rollout.
+- [x] Criar rollback por `rollout_id`.
 
 Testes:
 - [ ] Rollout para todas cidades ativas.
@@ -251,7 +251,7 @@ Escopo tecnico:
 - [ ] Adicionar `city_id` em `moderation_queue_items`.
 - [x] Adicionar `scope_city_id` em `user_restrictions` (nullable para global).
 - [x] Criar backfill com joins por origem de conteudo.
-- [ ] Tornar colunas `NOT NULL` apos backfill (exceto `scope_city_id`).
+- [x] Tornar colunas `NOT NULL` apos backfill (exceto `scope_city_id`).
 - [x] Adicionar indices compostos por fila e status.
 
 Testes:
@@ -272,10 +272,10 @@ Criterio de aceite:
 Objetivo: aplicar bloqueio correto por escopo funcional + geografico.
 
 Escopo tecnico:
-- [ ] Padronizar motor de restricao para ler `scope_module_key`.
+- [x] Padronizar motor de restricao para ler `scope_module_key`.
 - [x] Aplicar `scope_city_id` no runtime.
-- [ ] Integrar checks em forum/reports/uploads.
-- [ ] Mensagem de erro padronizada para bloqueio.
+- [x] Integrar checks em forum/reports/uploads.
+- [x] Mensagem de erro padronizada para bloqueio.
 - [x] Garantir compatibilidade com restricao global.
 
 Testes:

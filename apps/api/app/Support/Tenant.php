@@ -4,10 +4,7 @@ namespace App\Support;
 
 use App\Models\Bairro;
 use App\Models\City;
-use App\Models\CityModule;
-use App\Models\Module;
 use App\Services\ModuleResolver;
-use Illuminate\Support\Facades\Cache;
 
 /**
  * Tenant Helper
@@ -164,21 +161,5 @@ class Tenant
         $cityId = self::cityId();
 
         ModuleResolver::clearCache($cityId);
-
-        Cache::forget("tenant:{$cityId}:modules:list");
-
-        // Clear individual module caches
-        $modules = CityModule::where('city_id', $cityId)
-            ->with('module')
-            ->get();
-
-        foreach ($modules as $cm) {
-            if (!empty($cm->module->module_key)) {
-                Cache::forget("tenant:{$cityId}:module:{$cm->module->module_key}:enabled");
-                Cache::forget("tenant:{$cityId}:module:{$cm->module->module_key}:settings");
-            }
-            Cache::forget("tenant:{$cityId}:module:{$cm->module->slug}:enabled");
-            Cache::forget("tenant:{$cityId}:module:{$cm->module->slug}:settings");
-        }
     }
 }
