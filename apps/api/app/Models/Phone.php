@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Domain\Content\Enums\PhoneCategory;
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\LogOptions;
@@ -12,8 +13,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 class Phone extends Model
 {
-    use HasUuids;
-    use LogsActivity;
+    use HasUuids, LogsActivity, BelongsToTenant;
 
     protected $keyType = 'string';
 

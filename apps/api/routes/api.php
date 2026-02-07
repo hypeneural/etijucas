@@ -94,9 +94,15 @@ Route::prefix('v1')->group(function () {
     });
 
     // =====================================================
+    // Modules API (frontend discovers which modules are active)
+    // =====================================================
+    Route::get('modules', [\App\Http\Controllers\Api\ModuleController::class, 'index']);
+    Route::get('modules/{slug}/status', [\App\Http\Controllers\Api\ModuleController::class, 'status']);
+
+    // =====================================================
     // Forum Public Routes (no auth required, with optional auth)
     // =====================================================
-    Route::prefix('forum')->middleware('throttle:forum')->group(function () {
+    Route::prefix('forum')->middleware(['throttle:forum', 'module:forum'])->group(function () {
         // Public read endpoints - supports optional auth for liked/saved status
         Route::get('topics', [\App\Http\Controllers\Api\Forum\TopicController::class, 'index']);
         Route::get('topics/{topic}', [\App\Http\Controllers\Api\Forum\TopicController::class, 'show']);
@@ -106,7 +112,7 @@ Route::prefix('v1')->group(function () {
     // =====================================================
     // Events Public Routes (no auth required, with optional auth)
     // =====================================================
-    Route::prefix('events')->group(function () {
+    Route::prefix('events')->middleware('module:events')->group(function () {
         // List and filters
         Route::get('/', [\App\Http\Controllers\Api\Events\EventController::class, 'index']);
         Route::get('/upcoming', [\App\Http\Controllers\Api\Events\EventController::class, 'upcoming']);
@@ -139,7 +145,7 @@ Route::prefix('v1')->group(function () {
     // =====================================================
     // Tourism Public Routes
     // =====================================================
-    Route::prefix('tourism')->group(function () {
+    Route::prefix('tourism')->middleware('module:tourism')->group(function () {
         Route::get('spots', [\App\Domains\Tourism\Http\Controllers\TourismSpotController::class, 'index'])->name('tourism.index');
         Route::get('spots/{id}', [\App\Domains\Tourism\Http\Controllers\TourismSpotController::class, 'show'])->name('tourism.show');
         Route::get('spots/{spotId}/reviews', [\App\Domains\Tourism\Http\Controllers\TourismReviewController::class, 'index']);
@@ -152,7 +158,7 @@ Route::prefix('v1')->group(function () {
     Route::get('report-categories', [\App\Domains\Reports\Http\Controllers\ReportCategoryController::class, 'index'])
         ->middleware('cache.headers:static');
 
-    Route::prefix('reports')->group(function () {
+    Route::prefix('reports')->middleware('module:reports')->group(function () {
         Route::get('/', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'index']);
         Route::get('/stats', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'stats']);
         Route::get('/map', [\App\Domains\Reports\Http\Controllers\ReportMapController::class, 'index']);

@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'cache.headers' => \App\Http\Middleware\CacheHeaders::class,
             'idempotent' => \App\Http\Middleware\IdempotencyKey::class,
             'tenant' => \App\Http\Middleware\TenantContext::class,
+            'module' => \App\Http\Middleware\ModuleEnabled::class,
         ]);
 
         // Exclude public API auth routes from CSRF verification

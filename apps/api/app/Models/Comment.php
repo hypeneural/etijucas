@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Comment extends Model
 {
-    use HasFactory, HasUuids, SoftDeletes;
+    use HasFactory, HasUuids, SoftDeletes, BelongsToTenant;
 
     protected $keyType = 'string';
     public $incrementing = false;
@@ -21,6 +22,7 @@ class Comment extends Model
     public const MAX_DEPTH = 2;
 
     protected $fillable = [
+        'city_id',
         'topic_id',
         'user_id',
         'parent_id',

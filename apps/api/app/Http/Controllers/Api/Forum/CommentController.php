@@ -7,11 +7,13 @@ use App\Http\Requests\Forum\StoreCommentRequest;
 use App\Http\Resources\CommentResource;
 use App\Models\Comment;
 use App\Models\Topic;
+use App\Traits\ValidatesTenant;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class CommentController extends Controller
 {
+    use ValidatesTenant;
     /**
      * List comments for a topic with tree structure.
      * 
@@ -84,7 +86,9 @@ class CommentController extends Controller
             }
         }
 
+        // Comment inherits city_id from topic (anti-drift)
         $comment = Comment::create([
+            'city_id' => $topic->city_id,
             'topic_id' => $topic->id,
             'user_id' => $request->user()->id,
             'parent_id' => $parentId,

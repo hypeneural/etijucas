@@ -10,11 +10,14 @@ use App\Http\Requests\Forum\UpdateTopicRequest;
 use App\Http\Resources\TopicCollection;
 use App\Http\Resources\TopicResource;
 use App\Models\Topic;
+use App\Support\Tenant;
+use App\Traits\ValidatesTenant;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class TopicController extends Controller
 {
+    use ValidatesTenant;
     /**
      * List topics with filters and pagination.
      * 
@@ -140,9 +143,16 @@ class TopicController extends Controller
     {
         $validated = $request->validated();
 
+        // Anti-drift: ensure bairro belongs to current tenant
+        $bairroId = $validated['bairroId'] ?? null;
+        if ($bairroId) {
+            $this->ensureBairroInTenant($bairroId);
+        }
+
         $topic = Topic::create([
+            'city_id' => $this->currentCityId(),
             'user_id' => $request->user()->id,
-            'bairro_id' => $validated['bairroId'],
+            'bairro_id' => $bairroId,
             'titulo' => $validated['titulo'],
             'texto' => $validated['texto'],
             'categoria' => $validated['categoria'],

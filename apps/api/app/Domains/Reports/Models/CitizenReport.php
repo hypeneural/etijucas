@@ -6,6 +6,7 @@ use App\Domains\Reports\Enums\LocationQuality;
 use App\Domains\Reports\Enums\ReportStatus;
 use App\Models\Bairro;
 use App\Models\User;
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -17,7 +18,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class CitizenReport extends Model implements HasMedia
 {
-    use HasUuids, SoftDeletes, InteractsWithMedia;
+    use HasUuids, SoftDeletes, InteractsWithMedia, BelongsToTenant;
 
     protected $table = 'citizen_reports';
 

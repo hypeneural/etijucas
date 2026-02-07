@@ -269,6 +269,22 @@ class User extends Authenticatable implements HasMedia, FilamentUser, HasName, H
         return $media ? $media->getUrl() : null;
     }
 
+    /**
+     * Get address as AddressDTO.
+     */
+    public function getAddressDtoAttribute(): ?\App\DataTransferObjects\AddressDTO
+    {
+        return \App\DataTransferObjects\AddressDTO::fromArray($this->address);
+    }
+
+    /**
+     * Set address from AddressDTO.
+     */
+    public function setAddressFromDto(\App\DataTransferObjects\AddressDTO $dto): void
+    {
+        $this->address = $dto->toArray();
+    }
+
     // =====================================================
     // Scopes
     // =====================================================
