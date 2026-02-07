@@ -14,17 +14,20 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->uuid('city_id')->nullable()->after('id');
+        // Only add column if it doesn't exist (may have been added by earlier migration)
+        if (!Schema::hasColumn('users', 'city_id')) {
+            Schema::table('users', function (Blueprint $table) {
+                $table->uuid('city_id')->nullable()->after('id');
 
-            $table->foreign('city_id')
-                ->references('id')
-                ->on('cities')
-                ->onDelete('set null');
+                $table->foreign('city_id')
+                    ->references('id')
+                    ->on('cities')
+                    ->onDelete('set null');
 
-            // Composite index for tenant-scoped queries
-            $table->index(['city_id', 'created_at']);
-        });
+                // Composite index for tenant-scoped queries
+                $table->index(['city_id', 'created_at']);
+            });
+        }
 
         // Backfill: derive city_id from bairro relationship
         DB::statement("

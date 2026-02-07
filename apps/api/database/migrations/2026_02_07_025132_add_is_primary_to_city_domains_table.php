@@ -14,9 +14,12 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::table('city_domains', function (Blueprint $table) {
-            $table->boolean('is_primary')->default(false)->after('domain');
-        });
+        // Only add column if it doesn't exist
+        if (!Schema::hasColumn('city_domains', 'is_primary')) {
+            Schema::table('city_domains', function (Blueprint $table) {
+                $table->boolean('is_primary')->default(false)->after('domain');
+            });
+        }
 
         // Create partial unique index - only one primary per city
         // MariaDB doesn't support partial indexes, so we use a trigger or app-side validation

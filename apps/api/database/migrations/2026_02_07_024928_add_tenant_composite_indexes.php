@@ -13,10 +13,15 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        // Topics: city_id + category + created_at for filtered listings
+        // Topics: city_id + bairro_id + created_at for filtered listings
         Schema::table('topics', function (Blueprint $table) {
-            $table->index(['city_id', 'category', 'created_at'], 'topics_tenant_category_idx');
-            $table->index(['city_id', 'bairro_id', 'created_at'], 'topics_tenant_bairro_idx');
+            // Only create category index if column exists
+            if (Schema::hasColumn('topics', 'category')) {
+                $table->index(['city_id', 'category', 'created_at'], 'topics_tenant_category_idx');
+            }
+            if (Schema::hasColumn('topics', 'bairro_id')) {
+                $table->index(['city_id', 'bairro_id', 'created_at'], 'topics_tenant_bairro_idx');
+            }
         });
 
         // Comments: city_id + created_at for recent comments
