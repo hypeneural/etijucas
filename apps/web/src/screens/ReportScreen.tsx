@@ -37,6 +37,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { BottomTabBar } from '@/components/layout/BottomTabBar';
 import { CategoryIcon } from '@/components/report/CategoryIcon';
+import { useCityName } from '@/hooks/useCityName';
 
 const statusConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
   recebido: { label: 'Recebido', color: 'bg-blue-100 text-blue-700', icon: Clock },
@@ -53,6 +54,7 @@ export default function ReportScreen({ scrollRef }: ReportScreenProps) {
   const navigate = useNavigate();
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const { name: cityName } = useCityName();
 
   // Hooks
   const { stats, isLoading: statsLoading } = useReportsStats();
@@ -82,7 +84,7 @@ export default function ReportScreen({ scrollRef }: ReportScreenProps) {
           <div className="px-4 pt-4 pb-2 flex items-start justify-between">
             <div>
               <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-                Fiscaliza Tijucas
+                Fiscaliza {cityName}
               </h1>
               <p className="text-sm text-muted-foreground">
                 Acompanhe as melhorias na cidade

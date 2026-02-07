@@ -20,10 +20,13 @@ import { authService, cleanPhone, validatePhone } from '@/services/auth.service'
 import { useAuthStore } from '@/store/useAuthStore';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
+import { useAppName, useCityName } from '@/hooks/useCityName';
 
 export default function LoginPage() {
     const navigate = useNavigate();
     const setAuth = useAuthStore((state) => state.setAuth);
+    const appName = useAppName();
+    const { name: cityName } = useCityName();
 
     // Form data
     const [phone, setPhone] = useState('');
@@ -97,7 +100,7 @@ export default function LoginPage() {
                     transition={{ delay: 0.3 }}
                     className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent"
                 >
-                    eTijucas
+                    {appName}
                 </motion.h1>
 
                 <motion.p
@@ -106,7 +109,7 @@ export default function LoginPage() {
                     transition={{ delay: 0.4 }}
                     className="text-muted-foreground mt-1"
                 >
-                    Seu dia a dia em Tijucas
+                    Seu dia a dia em {cityName}
                 </motion.p>
             </motion.div>
 

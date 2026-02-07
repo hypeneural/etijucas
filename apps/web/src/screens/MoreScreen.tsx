@@ -29,6 +29,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { PhoneCategory } from '@/types';
 import { ScreenSkeleton } from '@/components/ui/ScreenSkeleton';
 import { InstallMenuItem } from '@/components/ui/InstallBanner';
+import { useCityName } from '@/hooks/useCityName';
 
 // Lazy load TrashScheduleScreen
 const TrashScheduleScreen = lazy(() => import('@/screens/TrashScheduleScreen'));
@@ -57,6 +58,7 @@ export default function MoreScreen({ scrollRef }: MoreScreenProps) {
   const [view, setView] = useState<ScreenView>('menu');
   const { selectedBairro, reports } = useAppStore();
   const { user, isAuthenticated, logout } = useAuthStore();
+  const { name: cityName } = useCityName();
 
   const menuItems = [
     { id: 'perfil' as const, label: 'Meu Perfil', icon: User, color: 'bg-primary/10 text-primary', isLink: true },
@@ -67,7 +69,7 @@ export default function MoreScreen({ scrollRef }: MoreScreenProps) {
     { id: 'missas' as ScreenView, label: 'Horários das Missas', icon: Church, color: 'bg-primary/10 text-primary' },
     { id: 'telefones' as ScreenView, label: 'Telefones Úteis', icon: Phone, color: 'bg-accent/10 text-accent' },
     { id: 'vereadores' as const, label: 'Vereadores', icon: User, color: 'bg-blue-100 text-blue-600', isLink: true },
-    { id: 'envios' as ScreenView, label: 'Fiscaliza Tijucas', icon: FileText, color: 'bg-purple-100 text-purple-600' },
+    { id: 'envios' as ScreenView, label: `Fiscaliza ${cityName}`, icon: FileText, color: 'bg-purple-100 text-purple-600' },
   ];
 
   const handleLogout = () => {
@@ -76,7 +78,7 @@ export default function MoreScreen({ scrollRef }: MoreScreenProps) {
   };
 
   const getBairroName = (bairroId: string) => {
-    return bairros.find(b => b.id === bairroId)?.nome || 'Tijucas';
+    return bairros.find(b => b.id === bairroId)?.nome || cityName;
   };
 
   const getDayName = (day: number) => {
@@ -333,7 +335,7 @@ export default function MoreScreen({ scrollRef }: MoreScreenProps) {
       <div className="sticky top-0 z-20 bg-background safe-top border-b border-border">
         <div className="px-4 py-4">
           <h1 className="text-xl font-bold text-foreground">Mais</h1>
-          <p className="text-sm text-muted-foreground">Explore Tijucas</p>
+          <p className="text-sm text-muted-foreground">Explore {cityName}</p>
         </div>
       </div>
 

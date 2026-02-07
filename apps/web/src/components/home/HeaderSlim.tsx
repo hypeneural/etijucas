@@ -17,6 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { useBairros } from '@/hooks';
 import { useAppStore } from '@/store/useAppStore';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useAppName } from '@/hooks/useCityName';
 import { WeatherMiniPayload } from '@/types/home.types';
 import { cn } from '@/lib/utils';
 
@@ -44,6 +45,7 @@ export default function HeaderSlim({
     const { user, isAuthenticated } = useAuthStore();
     const [bairroSheetOpen, setBairroSheetOpen] = useState(false);
     const { data: bairros = [] } = useBairros();
+    const appName = useAppName();
 
     const { scrollY } = useScroll({
         container: scrollRef,
@@ -91,7 +93,7 @@ export default function HeaderSlim({
                 {/* Left: Logo + Weather */}
                 <div className="flex items-center gap-3">
                     <h1 className="text-lg font-bold text-primary-foreground">
-                        eTijucas
+                        {appName}
                     </h1>
 
                     {/* Weather inline */}
