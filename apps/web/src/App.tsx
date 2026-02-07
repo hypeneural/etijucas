@@ -125,15 +125,31 @@ function AppProviders({ children }: { children: React.ReactNode }) {
 
 /**
  * TenantBootstrap - Initializes tenant context on app load
- * Bootstraps city config from API (currently fixed to Tijucas/SC)
+ * Resolves city from URL (/uf/cidade) or defaults to Tijucas/SC
  */
 function TenantBootstrap({ children }: { children: React.ReactNode }) {
-  const { bootstrap, isBootstrapped, isLoading, error } = useTenantStore();
+  const { bootstrap, isBootstrapped, isLoading, error, city } = useTenantStore();
+
+  // Resolve city slug from URL or use default
+  const getCitySlugFromLocation = () => {
+    const path = window.location.pathname;
+
+    // Match /uf/cidade pattern (e.g., /sc/tijucas)
+    const match = path.match(/^\/([a-z]{2})\/([a-z0-9-]+)/i);
+    if (match) {
+      const [, uf, cidade] = match;
+      return `${cidade.toLowerCase()}-${uf.toLowerCase()}`; // "tijucas-sc"
+    }
+
+    // Default fallback to Tijucas
+    return DEFAULT_CITY_SLUG;
+  };
 
   useEffect(() => {
     if (!isBootstrapped && !isLoading) {
-      console.log('[TenantBootstrap] Bootstrapping city:', DEFAULT_CITY_SLUG);
-      bootstrap(DEFAULT_CITY_SLUG);
+      const citySlug = getCitySlugFromLocation();
+      console.log('[TenantBootstrap] Bootstrapping city:', citySlug);
+      bootstrap(citySlug);
     }
   }, [bootstrap, isBootstrapped, isLoading]);
 

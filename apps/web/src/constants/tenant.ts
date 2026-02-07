@@ -40,6 +40,12 @@ export const ALL_MODULES = [
 
 export const TIJUCAS_MODULES = ALL_MODULES.map(m => m.slug);
 
+/**
+ * Default modules for cities OTHER than Tijucas
+ * Only forum, denuncias, and tempo are enabled by default
+ */
+export const DEFAULT_CITY_MODULES = ['forum', 'denuncias', 'tempo'] as const;
+
 // ============================================
 // Module Route Mapping
 // ============================================
@@ -54,6 +60,7 @@ export const MODULE_ROUTES: Record<string, string[]> = {
     'denuncias': ['/denuncias', '/denuncia', '/minhas-denuncias'],
     'votacoes': ['/votacoes', '/vereadores'],
     'veiculos': ['/veiculos', '/consulta-veiculo'],
+    'tempo': ['/tempo', '/previsao'],
 };
 
 // ============================================
@@ -61,3 +68,4 @@ export const MODULE_ROUTES: Record<string, string[]> = {
 // ============================================
 
 export type ModuleSlug = typeof ALL_MODULES[number]['slug'];
+
