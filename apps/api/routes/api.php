@@ -150,7 +150,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/search', [\App\Http\Controllers\Api\Events\EventController::class, 'search']);
         Route::get('/date/{date}', [\App\Http\Controllers\Api\Events\EventController::class, 'byDate']);
         Route::get('/month/{year}/{month}', [\App\Http\Controllers\Api\Events\EventController::class, 'byMonth']);
-        Route::get('/category/{slug}', [\App\Http\Controllers\Api\Events\EventController::class, 'byCategory']);
+        Route::get('/category/{slug}', [\App\Http\Controllers\Api\Events\EventCategoryController::class, 'byCategory']);
         Route::get('/bairro/{bairro}', [\App\Http\Controllers\Api\Events\EventController::class, 'byBairro']);
         Route::get('/venue/{venue}', [\App\Http\Controllers\Api\Events\EventController::class, 'byVenue']);
         Route::get('/tag/{slug}', [\App\Http\Controllers\Api\Events\EventController::class, 'byTag']);
@@ -169,7 +169,7 @@ Route::prefix('v1')->group(function () {
     // =====================================================
     // Tourism Public Routes
     // =====================================================
-    Route::prefix('tourism')->middleware('module:tourism')->group(function () {
+    Route::prefix('tourism')->middleware('module:turismo')->group(function () {
         Route::get('spots', [\App\Domains\Tourism\Http\Controllers\TourismSpotController::class, 'index'])->name('tourism.index');
         Route::get('spots/{id}', [\App\Domains\Tourism\Http\Controllers\TourismSpotController::class, 'show'])->name('tourism.show');
         Route::get('spots/{spotId}/reviews', [\App\Domains\Tourism\Http\Controllers\TourismReviewController::class, 'index']);
@@ -182,7 +182,7 @@ Route::prefix('v1')->group(function () {
     Route::get('report-categories', [\App\Domains\Reports\Http\Controllers\ReportCategoryController::class, 'index'])
         ->middleware('cache.headers:static');
 
-    Route::prefix('reports')->middleware('module:reports')->group(function () {
+    Route::prefix('reports')->middleware('module:denuncias')->group(function () {
         Route::get('/', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'index']);
         Route::get('/stats', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'stats']);
         Route::get('/map', [\App\Domains\Reports\Http\Controllers\ReportMapController::class, 'index']);
@@ -201,13 +201,13 @@ Route::prefix('v1')->group(function () {
     // =====================================================
     // Votes / Vereadores Public Routes
     // =====================================================
-    Route::prefix('vereadores')->middleware('module:council')->group(function () {
+    Route::prefix('vereadores')->middleware('module:vereadores')->group(function () {
         Route::get('/', [\App\Domains\Votes\Http\Controllers\VereadorController::class, 'index']);
         Route::get('/{slug}', [\App\Domains\Votes\Http\Controllers\VereadorController::class, 'show']);
         Route::get('/{slug}/votacoes', [\App\Domains\Votes\Http\Controllers\VereadorController::class, 'votacoes']);
     });
 
-    Route::prefix('votacoes')->middleware('module:voting')->group(function () {
+    Route::prefix('votacoes')->middleware('module:votacoes')->group(function () {
         Route::get('/', [\App\Domains\Votes\Http\Controllers\VotacaoController::class, 'index']);
         Route::get('/stats', [\App\Domains\Votes\Http\Controllers\VotacaoController::class, 'stats']);
         Route::get('/anos', [\App\Domains\Votes\Http\Controllers\VotacaoController::class, 'anos']);

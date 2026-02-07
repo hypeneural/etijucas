@@ -18,6 +18,7 @@ class SyncModulesSeeder extends Seeder
             'voting' => 'votacoes',
             'council' => 'vereadores', // Mapping council to vereadores (future proofing)
             'alerts' => 'alertas',     // Portuguese consistency
+            'tourism' => 'turismo',    // Frontend uses turismo
         ];
 
         foreach ($updates as $old => $new) {
