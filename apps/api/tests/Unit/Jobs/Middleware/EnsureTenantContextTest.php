@@ -19,11 +19,26 @@ class EnsureTenantContextTest extends TestCase
         parent::setUp();
 
         Schema::dropIfExists('cities');
+        Schema::dropIfExists('tenant_incidents');
         Schema::create('cities', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->string('name');
             $table->string('slug')->unique();
             $table->boolean('active')->default(true);
+            $table->timestamps();
+        });
+
+        Schema::create('tenant_incidents', function (Blueprint $table): void {
+            $table->uuid('id')->primary();
+            $table->uuid('city_id')->nullable();
+            $table->string('type', 120);
+            $table->string('severity', 20)->default('warning');
+            $table->string('source', 50)->nullable();
+            $table->string('module_key', 50)->nullable();
+            $table->string('request_id', 64)->nullable();
+            $table->string('trace_id', 64)->nullable();
+            $table->json('context')->nullable();
+            $table->timestamp('acknowledged_at')->nullable();
             $table->timestamps();
         });
 
@@ -53,6 +68,7 @@ class EnsureTenantContextTest extends TestCase
         app()->forgetInstance('tenant.city');
         app()->forgetInstance('tenant.resolution_source');
 
+        Schema::dropIfExists('tenant_incidents');
         Schema::dropIfExists('cities');
 
         parent::tearDown();
@@ -124,8 +140,9 @@ class EnsureTenantContextTest extends TestCase
         }
 
         Log::shouldHaveReceived('error')
-            ->once()
-            ->with('tenant_job_missing_city_id', Mockery::type('array'));
+            ->with('tenant_job_missing_city_id', Mockery::type('array'))
+            ->atLeast()
+            ->once();
     }
 
     public function test_fails_fast_when_city_id_is_unknown(): void
@@ -160,8 +177,9 @@ class EnsureTenantContextTest extends TestCase
         }
 
         Log::shouldHaveReceived('error')
-            ->once()
-            ->with('tenant_job_city_not_found', Mockery::type('array'));
+            ->with('tenant_job_city_not_found', Mockery::type('array'))
+            ->atLeast()
+            ->once();
     }
 
     public function test_each_job_uses_its_own_city_context_without_leaking(): void

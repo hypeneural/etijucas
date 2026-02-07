@@ -11,8 +11,7 @@ import { idbPersister } from "./lib/queryPersister";
 import { PersistGate } from "./components/providers/PersistGate";
 
 // Tenant Management
-import { useTenantStore } from "./store/useTenantStore";
-import { DEFAULT_CITY_SLUG } from "./constants/tenant";
+import { resolveCityFromUrl, useTenantStore } from "./store/useTenantStore";
 import { ModuleRoute } from "./components/ModuleRoute";
 
 // ======================================================
@@ -129,28 +128,20 @@ function AppProviders({ children }: { children: React.ReactNode }) {
 function TenantBootstrap({ children }: { children: React.ReactNode }) {
   const { bootstrap, isBootstrapped, isLoading, error, city } = useTenantStore();
 
-  // Resolve city slug from URL or use default
-  const getCitySlugFromLocation = () => {
-    const path = window.location.pathname;
-
-    // Match /uf/cidade pattern (e.g., /sc/tijucas)
-    const match = path.match(/^\/([a-z]{2})\/([a-z0-9-]+)/i);
-    if (match) {
-      const [, uf, cidade] = match;
-      return `${cidade.toLowerCase()}-${uf.toLowerCase()}`; // "tijucas-sc"
-    }
-
-    // Default fallback to Tijucas
-    return DEFAULT_CITY_SLUG;
-  };
-
   useEffect(() => {
-    if (!isBootstrapped && !isLoading) {
-      const citySlug = getCitySlugFromLocation();
-      console.log('[TenantBootstrap] Bootstrapping city:', citySlug);
-      bootstrap(citySlug);
+    if (isLoading) {
+      return;
     }
-  }, [bootstrap, isBootstrapped, isLoading]);
+
+    const urlCitySlug = resolveCityFromUrl();
+    const currentCitySlug = city?.slug ?? null;
+
+    // URL path is canonical for tenant context; re-bootstrap on mismatch.
+    if (!isBootstrapped || currentCitySlug !== urlCitySlug) {
+      console.log('[TenantBootstrap] Bootstrapping city:', urlCitySlug);
+      bootstrap(urlCitySlug);
+    }
+  }, [bootstrap, city?.slug, isBootstrapped, isLoading]);
 
   // Show loading only on first load (not on subsequent renders)
   if (!isBootstrapped && isLoading) {
@@ -169,7 +160,7 @@ function TenantBootstrap({ children }: { children: React.ReactNode }) {
         <p className="text-destructive font-medium">Erro ao carregar configuração</p>
         <p className="text-sm text-muted-foreground">{error}</p>
         <button
-          onClick={() => bootstrap(DEFAULT_CITY_SLUG)}
+          onClick={() => bootstrap(resolveCityFromUrl())}
           className="px-4 py-2 bg-primary text-primary-foreground rounded-lg"
         >
           Tentar novamente

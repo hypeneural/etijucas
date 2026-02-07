@@ -44,3 +44,17 @@ export type {
     ApiResponse,
     PaginatedResponse,
 } from './generated-types';
+
+export type {
+    TenantCityConfig,
+    TenantBrandConfig,
+    TenantModuleConfig,
+    TenantGeoConfig,
+    TenantFeaturesConfig,
+    TenantConfigPayload,
+    TenantConfigResponse,
+    TenantCityListItem,
+    TenantCitiesResponse,
+    TenantCityDetectData,
+    TenantCityDetectResponse,
+} from './tenant-config';

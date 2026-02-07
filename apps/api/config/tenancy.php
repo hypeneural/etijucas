@@ -58,6 +58,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Observability
+    |--------------------------------------------------------------------------
+    |
+    | Runtime signals for tenancy hardening and incident response.
+    |
+    */
+    'observability' => [
+        'tenant_mismatch_window_seconds' => (int) env('TENANCY_MISMATCH_WINDOW', 300),
+        'tenant_mismatch_alert_threshold' => (int) env('TENANCY_MISMATCH_THRESHOLD', 5),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Strict Mode
     |--------------------------------------------------------------------------
     |

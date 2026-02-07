@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Models\City;
 use App\Models\CityDomain;
+use App\Support\TenantIncidentReporter;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -49,7 +50,12 @@ class TenantContext
             ], 400);
         }
 
-        ['city' => $city, 'source' => $resolutionSource] = $this->resolveTenant($request, $host);
+        [
+            'city' => $city,
+            'source' => $resolutionSource,
+            'header_slug' => $headerSlug,
+            'path_slug' => $pathSlug,
+        ] = $this->resolveTenant($request, $host);
 
         if (!$city) {
             if (config('tenancy.strict_mode', false)) {
@@ -71,6 +77,22 @@ class TenantContext
                 'error' => 'CITY_INACTIVE',
                 'message' => 'O serviço não está disponível para esta localidade.',
             ], 400);
+        }
+
+        if (
+            is_string($headerSlug) &&
+            $headerSlug !== '' &&
+            is_string($pathSlug) &&
+            $pathSlug !== '' &&
+            $headerSlug !== $pathSlug
+        ) {
+            TenantIncidentReporter::recordHeaderPathMismatch(
+                request: $request,
+                headerSlug: $headerSlug,
+                pathSlug: $pathSlug,
+                resolvedCityId: $city->id,
+                resolvedCitySlug: $city->slug
+            );
         }
 
         // Bind city to container for easy access
@@ -129,12 +151,17 @@ class TenantContext
      */
     private function resolveTenant(Request $request, string $host): array
     {
+        $headerSlug = null;
+        $pathSlug = $this->resolveByPath($request->getPathInfo());
+
         // 1. Resolve by domain (database-driven, cached)
         $city = $this->resolveByDomain($host);
         if ($city) {
             return [
                 'city' => $city,
                 'source' => 'domain',
+                'header_slug' => null,
+                'path_slug' => $pathSlug,
             ];
         }
 
@@ -148,17 +175,20 @@ class TenantContext
                     return [
                         'city' => $city,
                         'source' => 'header',
+                        'header_slug' => $slug,
+                        'path_slug' => $pathSlug,
                     ];
                 }
             }
         }
 
         // 3. Path /uf/cidade (e.g., /sc/tijucas)
-        $pathSlug = $this->resolveByPath($request->getPathInfo());
         if ($pathSlug) {
             return [
                 'city' => City::whereSlug($pathSlug)->where('active', true)->first(),
                 'source' => 'path',
+                'header_slug' => is_string($headerSlug) ? strtolower(trim($headerSlug)) : null,
+                'path_slug' => $pathSlug,
             ];
         }
 
@@ -166,6 +196,8 @@ class TenantContext
         return [
             'city' => null,
             'source' => null,
+            'header_slug' => is_string($headerSlug) ? strtolower(trim($headerSlug)) : null,
+            'path_slug' => $pathSlug,
         ];
     }
 

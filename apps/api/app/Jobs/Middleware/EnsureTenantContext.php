@@ -6,6 +6,7 @@ namespace App\Jobs\Middleware;
 
 use App\Jobs\Contracts\TenantAwareJob;
 use App\Models\City;
+use App\Support\TenantIncidentReporter;
 use Closure;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
@@ -29,6 +30,16 @@ class EnsureTenantContext
                 'module_key' => $moduleKey,
                 'trace_id' => $traceId,
             ]);
+            TenantIncidentReporter::record(
+                type: 'tenant_job_missing_city_id',
+                context: [
+                    'job' => $job::class,
+                ],
+                severity: 'critical',
+                source: 'queue',
+                moduleKey: is_string($moduleKey) ? $moduleKey : null,
+                traceId: is_string($traceId) ? $traceId : null
+            );
 
             throw new RuntimeException('Tenant-aware job requires city_id.');
         }
@@ -41,6 +52,17 @@ class EnsureTenantContext
                 'module_key' => $moduleKey,
                 'trace_id' => $traceId,
             ]);
+            TenantIncidentReporter::record(
+                type: 'tenant_job_city_not_found',
+                context: [
+                    'job' => $job::class,
+                ],
+                cityId: $cityId,
+                severity: 'critical',
+                source: 'queue',
+                moduleKey: is_string($moduleKey) ? $moduleKey : null,
+                traceId: is_string($traceId) ? $traceId : null
+            );
 
             throw new RuntimeException(sprintf('Tenant city not found for queued job: %s', $cityId));
         }
@@ -70,4 +92,3 @@ class EnsureTenantContext
         }
     }
 }
-

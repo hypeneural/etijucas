@@ -134,7 +134,7 @@ Escopo tecnico:
 - [x] Criar middleware `RequireTenant`.
 - [x] Definir lista explicita de rotas globais permitidas.
 - [x] Aplicar `RequireTenant` em grupos tenant-required da API.
-- [ ] Aplicar `RequireTenant` em web tenant-aware quando aplicavel.
+- [x] Aplicar `RequireTenant` em web tenant-aware quando aplicavel.
 - [x] Criar teste que falha se rota tenant-required nascer sem middleware.
 
 Arquivos alvo iniciais:
@@ -255,15 +255,15 @@ Escopo tecnico:
 - [x] Adicionar indices compostos por fila e status.
 
 Testes:
-- [ ] Backfill sem perda de linhas.
-- [ ] Novos inserts exigem `city_id`.
-- [ ] Queries de fila usam indices corretos.
+- [x] Backfill sem perda de linhas.
+- [x] Novos inserts exigem `city_id`.
+- [x] Queries de fila usam indices corretos.
 
 Rollback:
 - [ ] Reverter colunas novas mantendo backup de dados de backfill.
 
 Criterio de aceite:
-- [ ] Tabelas de moderacao com cidade explicita e auditavel.
+- [x] Tabelas de moderacao com cidade explicita e auditavel.
 
 ---
 
@@ -319,16 +319,16 @@ Criterio de aceite:
 Objetivo: frontend completamente orientado ao contrato de backend.
 
 Escopo tecnico:
-- [ ] Tipar contrato de `/api/v1/config`.
+- [x] Tipar contrato de `/api/v1/config`.
 - [ ] Remover hardcode de modulo no app web.
-- [ ] Garantir gate de rota/menu/home por `module_key`.
-- [ ] Padronizar politica de conflito URL vs `X-City` (URL vence).
+- [x] Garantir gate de rota/menu/home por `module_key`.
+- [x] Padronizar politica de conflito URL vs `X-City` (URL vence).
 - [ ] Preparar SDK/mobile para mesmo contrato.
 
 Testes:
-- [ ] Pagina de modulo desativado nao aparece.
-- [ ] Deep link com cidade incorreta corrige contexto.
-- [ ] Store reflete exatamente payload de `/config`.
+- [x] Pagina de modulo desativado nao aparece.
+- [x] Deep link com cidade incorreta corrige contexto.
+- [x] Store reflete exatamente payload de `/config`.
 
 Rollback:
 - [ ] Fallback parcial para gates antigos por flag.

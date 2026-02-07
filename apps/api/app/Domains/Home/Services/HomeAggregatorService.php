@@ -486,6 +486,7 @@ class HomeAggregatorService
                 'label' => 'Eventos',
                 'icon' => 'calendar',
                 'route' => '/agenda',
+                'module_key' => 'events',
                 'badge' => $eventosHoje > 0 ? "{$eventosHoje} hoje" : null,
                 'badge_color' => 'blue',
                 'highlight' => $eventosHoje > 0,
@@ -495,6 +496,7 @@ class HomeAggregatorService
                 'label' => 'Missas',
                 'icon' => 'church',
                 'route' => '/missas',
+                'module_key' => 'masses',
                 'badge' => null,
             ],
             [
@@ -502,6 +504,7 @@ class HomeAggregatorService
                 'label' => 'Coleta',
                 'icon' => 'trash',
                 'route' => '/coleta-lixo',
+                'module_key' => 'trash',
                 'badge' => $coletaHoje,
                 'badge_color' => 'green',
             ],
@@ -510,6 +513,7 @@ class HomeAggregatorService
                 'label' => 'Telefones',
                 'icon' => 'phone',
                 'route' => '/telefones',
+                'module_key' => 'phones',
                 'badge' => null,
             ],
             [
@@ -517,6 +521,7 @@ class HomeAggregatorService
                 'label' => 'Turismo',
                 'icon' => 'map-pin',
                 'route' => '/pontos-turisticos',
+                'module_key' => 'tourism',
                 'badge' => null,
             ],
             [
@@ -524,6 +529,7 @@ class HomeAggregatorService
                 'label' => 'Fiscaliza',
                 'icon' => 'alert-triangle',
                 'route' => '/denuncias',
+                'module_key' => 'reports',
                 'badge' => $reportsPerto > 0 ? "{$reportsPerto} perto" : null,
                 'badge_color' => 'orange',
                 'highlight' => $reportsPerto > 0,
@@ -533,6 +539,7 @@ class HomeAggregatorService
                 'label' => 'Tempo',
                 'icon' => 'cloud-sun',
                 'route' => '/previsao',
+                'module_key' => 'weather',
                 'badge' => null,
             ],
             [
@@ -540,6 +547,7 @@ class HomeAggregatorService
                 'label' => 'Fórum',
                 'icon' => 'message-circle',
                 'route' => '/forum',
+                'module_key' => 'forum',
                 'badge' => null,
             ],
         ];

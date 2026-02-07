@@ -4,6 +4,7 @@ namespace App\Traits;
 
 use App\Support\Tenant;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -21,6 +22,13 @@ use Illuminate\Support\Facades\Log;
 trait BelongsToTenant
 {
     /**
+     * Cache table=>has city_id to avoid repeated schema checks.
+     *
+     * @var array<string, bool>
+     */
+    protected static array $tenantCityColumnCache = [];
+
+    /**
      * Boot the trait
      */
     protected static function bootBelongsToTenant(): void
@@ -29,6 +37,10 @@ trait BelongsToTenant
         static::creating(function ($model) {
             if (empty($model->city_id) && Tenant::cityId()) {
                 $model->city_id = Tenant::cityId();
+            }
+
+            if (self::requiresCityId($model) && empty($model->city_id)) {
+                throw new \DomainException('Registro tenant-aware exige city_id explicito.');
             }
         });
 
@@ -148,6 +160,30 @@ trait BelongsToTenant
         }
 
         return ['unknown' => true];
+    }
+
+    private static function requiresCityId(object $model): bool
+    {
+        if (!method_exists($model, 'getTable')) {
+            return false;
+        }
+
+        $table = $model->getTable();
+        if (!is_string($table) || $table === '') {
+            return false;
+        }
+
+        if (array_key_exists($table, self::$tenantCityColumnCache)) {
+            return self::$tenantCityColumnCache[$table];
+        }
+
+        try {
+            self::$tenantCityColumnCache[$table] = Schema::hasColumn($table, 'city_id');
+        } catch (\Throwable) {
+            self::$tenantCityColumnCache[$table] = false;
+        }
+
+        return self::$tenantCityColumnCache[$table];
     }
 }
 

@@ -7,51 +7,58 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import type {
+  TenantBrandConfig,
+  TenantCityConfig,
+  TenantConfigResponse,
+  TenantGeoConfig,
+  TenantModuleConfig,
+} from '@repo/sdk';
+
+const LEGACY_MODULE_KEY_ALIASES: Record<string, string> = {
+    forum: 'forum',
+    events: 'events',
+    denuncias: 'reports',
+    reports: 'reports',
+    telefones: 'phones',
+    phones: 'phones',
+    alertas: 'alerts',
+    alerts: 'alerts',
+    turismo: 'tourism',
+    tourism: 'tourism',
+    'coleta-lixo': 'trash',
+    trash: 'trash',
+    missas: 'masses',
+    masses: 'masses',
+    veiculos: 'vehicles',
+    vehicles: 'vehicles',
+    tempo: 'weather',
+    weather: 'weather',
+    votacoes: 'voting',
+    voting: 'voting',
+    vereadores: 'council',
+    council: 'council',
+};
+
+function normalizeModuleIdentifier(identifier: string): string {
+    const normalized = identifier.toLowerCase().trim();
+    return LEGACY_MODULE_KEY_ALIASES[normalized] ?? normalized;
+}
+
+function isLegacyModuleGateFallbackEnabled(): boolean {
+    return String(import.meta.env.VITE_TENANT_LEGACY_GATE_FALLBACK ?? '0') === '1';
+}
 
 // ============================================
 // Types
 // ============================================
 
-interface CityConfig {
-    id: string;
-    name: string;
-    slug: string;
-    uf: string;
-    fullName: string;
-    status: 'staging' | 'active';
-    ibgeCode?: string;
-}
-
-interface CityBrand {
-    appName: string;
-    primaryColor: string;
-    secondaryColor?: string;
-    logoUrl?: string;
-    faviconUrl?: string;
-}
-
-interface Module {
-    key?: string;
-    slug: string;
-    name: string;
-    namePtbr?: string;
-    routeSlugPtbr?: string;
-    icon: string;
-    description?: string;
-}
-
-interface GeoConfig {
-    defaultBairroId?: string;
-    lat?: number;
-    lon?: number;
-}
-
 interface TenantState {
     // State
-    city: CityConfig | null;
-    brand: CityBrand | null;
-    modules: Module[];
-    geo: GeoConfig | null;
+    city: TenantCityConfig | null;
+    brand: TenantBrandConfig | null;
+    modules: TenantModuleConfig[];
+    geo: TenantGeoConfig | null;
     isLoading: boolean;
     isBootstrapped: boolean;
     error: string | null;
@@ -102,12 +109,17 @@ export const useTenantStore = create<TenantState>()(
                         throw new Error(errorData.message || 'Cidade não encontrada');
                     }
 
-                    const { data } = await response.json();
+                    const { data } = (await response.json()) as TenantConfigResponse;
+                    const normalizedModules = (data.modules || []).map((module) => ({
+                        ...module,
+                        key: normalizeModuleIdentifier(module.key || module.slug || ''),
+                        slug: (module.slug || '').toLowerCase(),
+                    }));
 
                     set({
                         city: data.city,
                         brand: data.brand,
-                        modules: data.modules || [],
+                        modules: normalizedModules,
                         geo: data.geo,
                         isLoading: false,
                         isBootstrapped: true,
@@ -150,14 +162,21 @@ export const useTenantStore = create<TenantState>()(
              * Check if a module is enabled for current tenant
              */
             isModuleEnabled: (identifier: string): boolean => {
-                const normalized = identifier.toLowerCase();
-
-                return get().modules.some((m) => {
-                    const moduleKey = (m.key || m.slug || '').toLowerCase();
+                const normalized = normalizeModuleIdentifier(identifier);
+                const isEnabled = get().modules.some((m) => {
+                    const moduleKey = normalizeModuleIdentifier(m.key || m.slug || '');
                     const moduleSlug = (m.slug || '').toLowerCase();
+                    const enabled = m.enabled !== false;
 
-                    return moduleKey === normalized || moduleSlug === normalized;
+                    return enabled && (moduleKey === normalized || moduleSlug === normalized);
                 });
+
+                if (isEnabled) {
+                    return true;
+                }
+
+                // Optional rollback path for older clients/servers.
+                return isLegacyModuleGateFallbackEnabled() && !get().isBootstrapped;
             },
 
             /**
@@ -195,28 +214,40 @@ export const getCitySlugForSdk = (): string | null => {
  * Check if current tenant has a specific module enabled
  */
 export const isModuleEnabled = (slug: string): boolean => {
-    const normalized = slug.toLowerCase();
-    return useTenantStore
-        .getState()
-        .modules
-        .some((m) => (m.key || m.slug || '').toLowerCase() === normalized || (m.slug || '').toLowerCase() === normalized);
+    const normalized = normalizeModuleIdentifier(slug);
+    const state = useTenantStore.getState();
+    const isEnabled = state.modules.some(
+        (m) =>
+            m.enabled !== false &&
+            (normalizeModuleIdentifier(m.key || m.slug || '') === normalized || (m.slug || '').toLowerCase() === normalized)
+    );
+
+    if (isEnabled) {
+        return true;
+    }
+
+    if (isLegacyModuleGateFallbackEnabled() && !state.isBootstrapped) {
+        return true;
+    }
+
+    return false;
 };
 
 // ============================================
 // Helper: Resolve city from URL
 // ============================================
 
-export function resolveCityFromUrl(): string {
-    const path = window.location.pathname;
-
-    // Match /uf/cidade pattern (e.g., /sc/tijucas)
+export function extractCitySlugFromPath(path: string): string | null {
     const match = path.match(/^\/([a-z]{2})\/([a-z0-9-]+)/i);
-
-    if (match) {
-        const [, uf, cidade] = match;
-        return `${cidade.toLowerCase()}-${uf.toLowerCase()}`; // "tijucas-sc"
+    if (!match) {
+        return null;
     }
 
-    // Default fallback
-    return 'tijucas-sc';
+    const [, uf, cidade] = match;
+    return `${cidade.toLowerCase()}-${uf.toLowerCase()}`;
+}
+
+export function resolveCityFromUrl(): string {
+    const fromPath = extractCitySlugFromPath(window.location.pathname);
+    return fromPath ?? 'tijucas-sc';
 }

@@ -35,19 +35,21 @@ export default function MainLayout() {
 
     // Determine active tab based on path
     const getActiveTab = (path: string): TabId => {
-        if (path === '/') return 'home';
-        if (path.startsWith('/denuncia') || path.startsWith('/minhas-denuncias')) return 'reportar';
-        if (path.startsWith('/forum') || path.startsWith('/topico')) return 'forum';
-        if (path.startsWith('/agenda') || path.startsWith('/evento')) return 'agenda';
+        const normalizedPath = normalizeTenantPath(path);
+
+        if (normalizedPath === '/') return 'home';
+        if (normalizedPath.startsWith('/denuncia') || normalizedPath.startsWith('/minhas-denuncias') || normalizedPath.startsWith('/denuncias')) return 'reportar';
+        if (normalizedPath.startsWith('/forum') || normalizedPath.startsWith('/topico')) return 'forum';
+        if (normalizedPath.startsWith('/agenda') || normalizedPath.startsWith('/evento')) return 'agenda';
         if (
-            path.startsWith('/telefones') ||
-            path.startsWith('/coleta-lixo') ||
-            path.startsWith('/pontos-turisticos') ||
-            path.startsWith('/ponto-turistico') ||
-            path.startsWith('/missas') ||
-            path.startsWith('/votacoes') ||
-            path.startsWith('/vereadores') ||
-            path.startsWith('/perfil')
+            normalizedPath.startsWith('/telefones') ||
+            normalizedPath.startsWith('/coleta-lixo') ||
+            normalizedPath.startsWith('/pontos-turisticos') ||
+            normalizedPath.startsWith('/ponto-turistico') ||
+            normalizedPath.startsWith('/missas') ||
+            normalizedPath.startsWith('/votacoes') ||
+            normalizedPath.startsWith('/vereadores') ||
+            normalizedPath.startsWith('/perfil')
         ) return 'mais';
 
         return 'home'; // Fallback
@@ -97,4 +99,9 @@ export default function MainLayout() {
             </div>
         </div>
     );
+}
+
+export function normalizeTenantPath(path: string): string {
+    const normalized = path.replace(/^\/[a-z]{2}\/[a-z0-9-]+(?=\/|$)/i, '');
+    return normalized === '' ? '/' : normalized;
 }

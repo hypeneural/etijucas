@@ -141,6 +141,7 @@ export interface QuickAccessItem {
     label: string;
     icon: string;
     route: string;
+    module_key?: string;
     badge: string | null;
     badge_color?: 'blue' | 'green' | 'orange' | 'red';
     highlight?: boolean;

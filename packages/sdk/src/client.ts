@@ -29,6 +29,11 @@ import type {
     PaginatedResponse,
     ApiResponse,
 } from './generated-types';
+import type {
+    TenantCitiesResponse,
+    TenantCityDetectResponse,
+    TenantConfigResponse,
+} from './tenant-config';
 
 // ============================================
 // Configuration
@@ -280,6 +285,26 @@ export class ApiClient {
 
     async delete<T>(endpoint: string): Promise<T> {
         return this.request<T>(endpoint, { method: 'DELETE' });
+    }
+
+    // ============================================
+    // Tenant Endpoints
+    // ============================================
+
+    get tenant() {
+        return {
+            config: (citySlug?: string) =>
+                this.request<TenantConfigResponse>('/api/v1/config', {
+                    method: 'GET',
+                    headers: citySlug ? { 'X-City': citySlug } : undefined,
+                }),
+
+            cities: () =>
+                this.get<TenantCitiesResponse>('/api/v1/cities'),
+
+            detect: (lat: number, lon: number) =>
+                this.get<TenantCityDetectResponse>('/api/v1/cities/detect', { lat, lon }),
+        };
     }
 
     // ============================================

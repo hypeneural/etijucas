@@ -1,9 +1,9 @@
 /**
  * QuickAccessGridVivo - Enhanced Quick Access with Live Badges
- * 
+ *
  * Version of QuickAccessGrid that displays live badges from the
  * home aggregator API, showing real-time counts and highlights.
- * 
+ *
  * Features:
  * - Filters items based on enabled modules for current city
  * - Uses city-prefixed routes when in multi-city mode
@@ -56,28 +56,28 @@ const badgeColors: Record<string, string> = {
     red: 'bg-red-500/20 text-red-600',
 };
 
-// Map item IDs to module slugs for filtering
-const itemToModuleMap: Record<string, string> = {
-    'eventos': 'events',
-    'turismo': 'tourism',
-    'missas': 'masses',
-    'telefones': 'phones',
-    'coleta': 'trash',
-    'fiscaliza': 'reports',
-    'tempo': 'weather',
-    'forum': 'forum',
+// Legacy fallback for payloads that still do not provide module_key.
+const legacyItemToModuleMap: Record<string, string> = {
+    eventos: 'events',
+    turismo: 'tourism',
+    missas: 'masses',
+    telefones: 'phones',
+    coleta: 'trash',
+    fiscaliza: 'reports',
+    tempo: 'weather',
+    forum: 'forum',
 };
 
 // Default items (fallback when no API data)
 const defaultItems: QuickAccessItem[] = [
-    { id: 'eventos', label: 'Eventos', icon: 'calendar', route: '/agenda', badge: null },
-    { id: 'turismo', label: 'Turismo', icon: 'map-pin', route: '/pontos-turisticos', badge: null },
-    { id: 'missas', label: 'Missas', icon: 'church', route: '/missas', badge: null },
-    { id: 'telefones', label: 'Telefones', icon: 'phone', route: '/telefones', badge: null },
-    { id: 'coleta', label: 'Coleta', icon: 'trash', route: '/coleta-lixo', badge: null },
-    { id: 'fiscaliza', label: 'Fiscaliza', icon: 'alert-triangle', route: '/denuncias', badge: null },
-    { id: 'tempo', label: 'Tempo', icon: 'cloud-sun', route: '/previsao', badge: null },
-    { id: 'forum', label: 'Fórum', icon: 'message-circle', route: '/forum', badge: null },
+    { id: 'eventos', label: 'Eventos', icon: 'calendar', route: '/agenda', module_key: 'events', badge: null },
+    { id: 'turismo', label: 'Turismo', icon: 'map-pin', route: '/pontos-turisticos', module_key: 'tourism', badge: null },
+    { id: 'missas', label: 'Missas', icon: 'church', route: '/missas', module_key: 'masses', badge: null },
+    { id: 'telefones', label: 'Telefones', icon: 'phone', route: '/telefones', module_key: 'phones', badge: null },
+    { id: 'coleta', label: 'Coleta', icon: 'trash', route: '/coleta-lixo', module_key: 'trash', badge: null },
+    { id: 'fiscaliza', label: 'Fiscaliza', icon: 'alert-triangle', route: '/denuncias', module_key: 'reports', badge: null },
+    { id: 'tempo', label: 'Tempo', icon: 'cloud-sun', route: '/previsao', module_key: 'weather', badge: null },
+    { id: 'forum', label: 'Forum', icon: 'message-circle', route: '/forum', module_key: 'forum', badge: null },
 ];
 
 // Base color styles per item
@@ -92,6 +92,20 @@ const itemColors: Record<string, string> = {
     forum: 'bg-purple-100 text-purple-600',
 };
 
+const isLegacyGateFallbackEnabled = String(import.meta.env.VITE_TENANT_LEGACY_GATE_FALLBACK ?? '0') === '1';
+
+export function resolveQuickAccessModuleKey(item: QuickAccessItem): string | null {
+    if (item.module_key) {
+        return item.module_key;
+    }
+
+    if (!isLegacyGateFallbackEnabled) {
+        return null;
+    }
+
+    return legacyItemToModuleMap[item.id] ?? null;
+}
+
 export function QuickAccessGridVivo({ data, className }: QuickAccessGridVivoProps) {
     const navigate = useTenantNavigate();
     const haptic = useHaptic();
@@ -102,12 +116,15 @@ export function QuickAccessGridVivo({ data, className }: QuickAccessGridVivoProp
     const items = useMemo(() => {
         const sourceItems = data?.items || defaultItems;
 
-        return sourceItems.filter(item => {
-            const moduleSlug = itemToModuleMap[item.id];
+        return sourceItems.filter((item) => {
+            const moduleKey = resolveQuickAccessModuleKey(item);
+
             // If no mapping, show the item (backwards compatibility)
-            if (!moduleSlug) return true;
-            // Only show if module is enabled for current city
-            return isModuleEnabled(moduleSlug);
+            if (!moduleKey) {
+                return true;
+            }
+
+            return isModuleEnabled(moduleKey);
         });
     }, [data?.items, isModuleEnabled]);
 
@@ -136,13 +153,12 @@ export function QuickAccessGridVivo({ data, className }: QuickAccessGridVivoProp
 
     const handleClick = (item: QuickAccessItem) => {
         haptic.light();
-        // Use city-prefixed route
         navigate(buildRoute(item.route));
     };
 
     return (
         <div className={cn('px-4 py-4', className)}>
-            <h2 className="text-lg font-bold text-foreground mb-3">Serviços</h2>
+            <h2 className="text-lg font-bold text-foreground mb-3">Servicos</h2>
 
             <motion.div
                 variants={containerVariants}
@@ -153,7 +169,7 @@ export function QuickAccessGridVivo({ data, className }: QuickAccessGridVivoProp
                 {items.map((item) => {
                     const Icon = iconMap[item.icon] || FileText;
                     const colorClass = itemColors[item.id] || 'bg-muted text-muted-foreground';
-                    const badgeColorClass = badgeColors[item.badge_color ?? ''] || badgeColors['blue'];
+                    const badgeColorClass = badgeColors[item.badge_color ?? ''] || badgeColors.blue;
 
                     return (
                         <motion.button
@@ -166,7 +182,6 @@ export function QuickAccessGridVivo({ data, className }: QuickAccessGridVivoProp
                                 item.highlight && 'ring-2 ring-primary/50'
                             )}
                         >
-                            {/* Icon container */}
                             <div className={cn(
                                 'w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0',
                                 colorClass
@@ -174,12 +189,10 @@ export function QuickAccessGridVivo({ data, className }: QuickAccessGridVivoProp
                                 <Icon className="w-5 h-5" />
                             </div>
 
-                            {/* Label */}
                             <span className="text-sm font-medium text-foreground leading-tight">
                                 {item.label}
                             </span>
 
-                            {/* Live badge */}
                             <AnimatePresence>
                                 {item.badge && (
                                     <motion.span
@@ -196,7 +209,6 @@ export function QuickAccessGridVivo({ data, className }: QuickAccessGridVivoProp
                                 )}
                             </AnimatePresence>
 
-                            {/* Pulse animation for highlighted items */}
                             {item.highlight && (
                                 <motion.div
                                     className="absolute inset-0 rounded-xl bg-primary/10"
