@@ -61,18 +61,24 @@ class TenantIncidentReporter
         ?string $resolvedCityId = null,
         ?string $resolvedCitySlug = null
     ): void {
+        $alertsEnabled = (bool) config('tenancy.observability.enable_mismatch_alerts', true);
         $windowSeconds = (int) config('tenancy.observability.tenant_mismatch_window_seconds', 300);
         $threshold = (int) config('tenancy.observability.tenant_mismatch_alert_threshold', 5);
-        $cacheKey = 'tenant_incident:header_path_mismatch:' . sha1(
-            strtolower($request->getHost()) . '|' . $headerSlug . '|' . $pathSlug
-        );
+        $count = 1;
+        $severity = 'warning';
 
-        if (!Cache::has($cacheKey)) {
-            Cache::put($cacheKey, 0, now()->addSeconds($windowSeconds));
+        if ($alertsEnabled) {
+            $cacheKey = 'tenant_incident:header_path_mismatch:' . sha1(
+                strtolower($request->getHost()) . '|' . $headerSlug . '|' . $pathSlug
+            );
+
+            if (!Cache::has($cacheKey)) {
+                Cache::put($cacheKey, 0, now()->addSeconds($windowSeconds));
+            }
+
+            $count = (int) Cache::increment($cacheKey);
+            $severity = $count >= $threshold ? 'critical' : 'warning';
         }
-
-        $count = (int) Cache::increment($cacheKey);
-        $severity = $count >= $threshold ? 'critical' : 'warning';
 
         self::record(
             type: 'tenant_header_path_mismatch',
@@ -84,6 +90,7 @@ class TenantIncidentReporter
                 'count_in_window' => $count,
                 'window_seconds' => $windowSeconds,
                 'threshold' => $threshold,
+                'alerts_enabled' => $alertsEnabled,
                 'resolved_city_slug' => $resolvedCitySlug,
             ],
             cityId: $resolvedCityId,

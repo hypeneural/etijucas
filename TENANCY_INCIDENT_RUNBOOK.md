@@ -33,6 +33,10 @@ php artisan cache:clear
 TENANCY_MISMATCH_THRESHOLD=20
 TENANCY_MISMATCH_WINDOW=300
 ```
+4. Se necessario, desativar apenas escalonamento de alerta (mantendo logs):
+```env
+TENANCY_MISMATCH_ALERTS_ENABLED=false
+```
 
 ## 4. Diagnostico tecnico
 

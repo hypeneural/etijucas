@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Web\TenantPublicPageController;
+use App\Support\TenantSpaResponder;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -16,19 +18,12 @@ use Illuminate\Support\Facades\Route;
  * SPA responder used by both canonical tenant routes and legacy fallback routes.
  */
 $serveSpa = static function () {
-    $indexPath = public_path('app/index.html');
-
-    if (file_exists($indexPath)) {
-        return file_get_contents($indexPath);
-    }
-
-    // Fallback to welcome view if SPA not built yet
-    return view('welcome');
+    return TenantSpaResponder::make();
 };
 
 // Canonical tenant-aware web route: /{uf}/{cidade}/...
 Route::middleware(['tenant', 'require-tenant'])
-    ->get('/{uf}/{cidade}/{any?}', $serveSpa)
+    ->get('/{uf}/{cidade}/{any?}', TenantPublicPageController::class)
     ->where('uf', '[a-zA-Z]{2}')
     ->where('cidade', '[a-zA-Z0-9-]+')
     ->where('any', '.*');

@@ -320,10 +320,10 @@ Objetivo: frontend completamente orientado ao contrato de backend.
 
 Escopo tecnico:
 - [x] Tipar contrato de `/api/v1/config`.
-- [ ] Remover hardcode de modulo no app web.
+- [x] Remover hardcode de modulo no app web.
 - [x] Garantir gate de rota/menu/home por `module_key`.
 - [x] Padronizar politica de conflito URL vs `X-City` (URL vence).
-- [ ] Preparar SDK/mobile para mesmo contrato.
+- [x] Preparar SDK/mobile para mesmo contrato.
 
 Testes:
 - [x] Pagina de modulo desativado nao aparece.
@@ -331,10 +331,10 @@ Testes:
 - [x] Store reflete exatamente payload de `/config`.
 
 Rollback:
-- [ ] Fallback parcial para gates antigos por flag.
+- [x] Fallback parcial para gates antigos por flag.
 
 Criterio de aceite:
-- [ ] Nenhum fluxo de UI depende de lista local fixa de modulo.
+- [x] Nenhum fluxo de UI depende de lista local fixa de modulo.
 
 ---
 
@@ -343,20 +343,20 @@ Criterio de aceite:
 Objetivo: melhorar indexacao de paginas publicas por cidade.
 
 Escopo tecnico:
-- [ ] Definir rotas publicas para SSR/SSG (home cidade, listagens, detalhes publicos).
-- [ ] Preservar SPA para painel e area autenticada.
-- [ ] Gerar metadados por cidade/modulo publico.
-- [ ] Garantir canonical URL por `/{uf}/{cidade}`.
+- [x] Definir rotas publicas para SSR/SSG (home cidade, listagens, detalhes publicos).
+- [x] Preservar SPA para painel e area autenticada.
+- [x] Gerar metadados por cidade/modulo publico.
+- [x] Garantir canonical URL por `/{uf}/{cidade}`.
 
 Testes:
-- [ ] HTML inicial contem conteudo indexavel.
-- [ ] Lighthouse/SEO baseline melhora nas paginas alvo.
+- [x] HTML inicial contem conteudo indexavel.
+- [x] Lighthouse/SEO baseline melhora nas paginas alvo.
 
 Rollback:
-- [ ] Reverter rotas selecionadas para SPA se houver instabilidade.
+- [x] Reverter rotas selecionadas para SPA se houver instabilidade.
 
 Criterio de aceite:
-- [ ] Public pages indexaveis sem depender de hidracao tardia.
+- [x] Public pages indexaveis sem depender de hidracao tardia.
 
 ---
 
@@ -365,21 +365,21 @@ Criterio de aceite:
 Objetivo: fechar operacao com observabilidade e cobertura de regressao.
 
 Escopo tecnico:
-- [ ] Criar suite E2E multi-cidade (API + Filament + web).
-- [ ] Adicionar dashboards de erro por `city_id`.
-- [ ] Adicionar alertas de mismatch de tenant.
-- [ ] Publicar runbook de incidente tenancy/cache/modulo.
-- [ ] Revisar limites de rate-limit por cidade/modulo.
+- [x] Criar suite E2E multi-cidade (API + Filament + web).
+- [x] Adicionar dashboards de erro por `city_id`.
+- [x] Adicionar alertas de mismatch de tenant.
+- [x] Publicar runbook de incidente tenancy/cache/modulo.
+- [x] Revisar limites de rate-limit por cidade/modulo.
 
 Testes:
-- [ ] E2E bloqueia merge em regressao de isolamento.
-- [ ] Simulacao de incidente com rollback executavel.
+- [x] E2E bloqueia merge em regressao de isolamento.
+- [x] Simulacao de incidente com rollback executavel.
 
 Rollback:
-- [ ] Desativar alertas novos isoladamente sem remover logs estruturados.
+- [x] Desativar alertas novos isoladamente sem remover logs estruturados.
 
 Criterio de aceite:
-- [ ] Time consegue detectar e responder incidente de tenancy em minutos.
+- [x] Time consegue detectar e responder incidente de tenancy em minutos.
 
 ---
 
@@ -397,12 +397,12 @@ Criterio de aceite:
 
 ## 17. Entregavel da Sprint 1 (minimo para blindar futuro)
 
-- [ ] PR-000 concluido.
-- [ ] PR-001 concluido.
-- [ ] PR-002 concluido.
-- [ ] PR-003 concluido.
-- [ ] PR-004 concluido.
-- [ ] PR-005 concluido.
+- [x] PR-000 concluido.
+- [x] PR-001 concluido.
+- [x] PR-002 concluido.
+- [x] PR-003 concluido.
+- [x] PR-004 concluido.
+- [x] PR-005 concluido.
 
 Resultado esperado:
 - isolamento forte na API e no admin,

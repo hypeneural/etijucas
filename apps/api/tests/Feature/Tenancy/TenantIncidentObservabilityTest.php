@@ -131,4 +131,30 @@ class TenantIncidentObservabilityTest extends TestCase
             ->expectsOutputToContain('tenant_header_path_mismatch')
             ->assertSuccessful();
     }
+
+    public function test_mismatch_alert_escalation_can_be_disabled_without_stopping_logs(): void
+    {
+        config()->set('tenancy.observability.enable_mismatch_alerts', false);
+        config()->set('tenancy.observability.tenant_mismatch_alert_threshold', 1);
+
+        $this
+            ->withHeaders(['X-City' => 'itajai-sc'])
+            ->get('http://localhost/sc/tijucas')
+            ->assertOk();
+
+        $this
+            ->withHeaders(['X-City' => 'itajai-sc'])
+            ->get('http://localhost/sc/tijucas')
+            ->assertOk();
+
+        $this->assertDatabaseHas('tenant_incidents', [
+            'type' => 'tenant_header_path_mismatch',
+            'severity' => 'warning',
+        ]);
+
+        $this->assertDatabaseMissing('tenant_incidents', [
+            'type' => 'tenant_header_path_mismatch',
+            'severity' => 'critical',
+        ]);
+    }
 }
