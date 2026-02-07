@@ -109,6 +109,16 @@ class City extends Model
         return $this->hasMany(AddressMismatchAgg::class);
     }
 
+    /**
+     * Get all modules enabled for this city.
+     */
+    public function modules(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Module::class, 'city_modules')
+            ->withPivot(['enabled', 'version', 'settings'])
+            ->withTimestamps();
+    }
+
     // ──────────────────────────────────────────────────────────────────────────
     // Scopes
     // ──────────────────────────────────────────────────────────────────────────
