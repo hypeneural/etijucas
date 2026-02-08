@@ -3,6 +3,7 @@ import { useTenantNavigate } from '@/hooks';
 import { motion } from 'framer-motion';
 import { Calendar, Clock, AlertCircle, MapPin } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
+import { useCityName } from '@/hooks/useCityName';
 import { hapticFeedback } from '@/hooks/useHaptics';
 import { SkeletonBentoGrid } from './SkeletonCards';
 
@@ -17,6 +18,7 @@ interface TodayBentoGridProps {
 export default function TodayBentoGrid({ onNavigate }: TodayBentoGridProps) {
   const navigate = useTenantNavigate();
   const { selectedBairro } = useAppStore();
+  const { name: cityName } = useCityName();
 
   // Use offline-first events hook
   const { data: upcomingEvents, isLoading } = useUpcomingOfflineEvents(5);
@@ -71,7 +73,7 @@ export default function TodayBentoGrid({ onNavigate }: TodayBentoGridProps) {
 
   return (
     <div className="px-4 py-2">
-      <h2 className="text-lg font-bold text-foreground mb-3">Hoje em Tijucas</h2>
+      <h2 className="text-lg font-bold text-foreground mb-3">Hoje em {cityName}</h2>
 
       <motion.div
         variants={containerVariants}

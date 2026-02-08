@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils';
 import { TijucanosCounterPayload } from '@/types/home.types';
 import { hapticFeedback } from '@/hooks/useHaptics';
 import confetti from 'canvas-confetti';
+import { useCityName, useAppName } from '@/hooks/useCityName';
 
 interface TijucanosCounterProps {
     data?: TijucanosCounterPayload;
@@ -49,6 +50,8 @@ function TijucanosSkeleton() {
 export function TijucanosCounter({ data, isLoading, className }: TijucanosCounterProps) {
     const [hasAnimated, setHasAnimated] = useState(false);
     const prevTotalRef = useRef<number | null>(null);
+    const { name: cityName } = useCityName();
+    const appName = useAppName();
 
     // Show skeleton while loading
     if (isLoading && !data) {
@@ -110,9 +113,9 @@ export function TijucanosCounter({ data, isLoading, className }: TijucanosCounte
         hapticFeedback('medium');
 
         const shareData = {
-            title: 'eTijucas - A cidade na palma da mão',
-            text: `Já somos ${total.toLocaleString('pt-BR')} tijucanos no eTijucas! Junte-se a nós.`,
-            url: 'https://etijucas.com.br',
+            title: `${appName} - A cidade na palma da mão`,
+            text: `Já somos ${total.toLocaleString('pt-BR')} cidadãos no ${appName}! Junte-se a nós.`,
+            url: `https://${appName.toLowerCase()}.com.br`,
         };
 
         try {
@@ -151,7 +154,7 @@ export function TijucanosCounter({ data, isLoading, className }: TijucanosCounte
                         <Users className="h-4 w-4 text-primary" />
                     </div>
                     <span className="text-sm font-medium text-muted-foreground">
-                        Tijucanos no eTijucas
+                        Cidadãos no {appName}
                     </span>
                 </div>
 

@@ -4,6 +4,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useTenantNavigate } from '@/hooks';
+import { useCityName } from '@/hooks/useCityName';
 import {
   Camera,
   AlertTriangle,
@@ -110,6 +111,7 @@ interface ReportCTAProps {
 
 export default function ReportCTA({ onNavigate }: ReportCTAProps) {
   const navigate = useTenantNavigate();
+  const { name: cityName } = useCityName();
 
   // Fetch stats for KPIs
   const { data: stats } = useQuery({
@@ -181,7 +183,7 @@ export default function ReportCTA({ onNavigate }: ReportCTAProps) {
               <Zap className="w-5 h-5" />
             </motion.div>
             <div>
-              <h3 className="text-xl font-bold">Fiscaliza Tijucas</h3>
+              <h3 className="text-xl font-bold">Fiscaliza {cityName}</h3>
               <p className="text-xs opacity-80">Reporte problemas na cidade</p>
             </div>
           </div>

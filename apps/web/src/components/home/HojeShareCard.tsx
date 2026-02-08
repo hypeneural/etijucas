@@ -15,6 +15,7 @@ import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { hapticFeedback } from '@/hooks/useHaptics';
 import { useToast } from '@/hooks/use-toast';
+import { useCityName, useAppName } from '@/hooks/useCityName';
 
 interface HojeShareCardProps {
     clima?: {
@@ -51,6 +52,8 @@ export function HojeShareCard({
     const cardRef = useRef<HTMLDivElement>(null);
     const [isGenerating, setIsGenerating] = useState(false);
     const { toast } = useToast();
+    const { name: cityName } = useCityName();
+    const appName = useAppName();
 
     const today = new Date();
     const dateStr = format(today, "EEEE, d 'de' MMMM", { locale: ptBR });
@@ -78,10 +81,10 @@ export function HojeShareCard({
 
             // Try native share first
             if (navigator.share && navigator.canShare) {
-                const file = new File([blob], 'hoje-em-tijucas.png', { type: 'image/png' });
+                const file = new File([blob], `hoje-em-${cityName.toLowerCase()}.png`, { type: 'image/png' });
                 const shareData = {
-                    title: 'Hoje em Tijucas',
-                    text: `📍 ${dateStr}\n🌡️ ${clima?.temp}°C\n📅 ${eventos} eventos\n\nVeja mais em etijucas.com.br`,
+                    title: `Hoje em ${cityName}`,
+                    text: `📍 ${dateStr}\n🌡️ ${clima?.temp}°C\n📅 ${eventos} eventos\n\nVeja mais em ${appName.toLowerCase()}.com.br`,
                     files: [file],
                 };
 
@@ -96,7 +99,7 @@ export function HojeShareCard({
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'hoje-em-tijucas.png';
+            a.download = `hoje-em-${cityName.toLowerCase()}.png`;
             a.click();
             URL.revokeObjectURL(url);
 
@@ -139,7 +142,7 @@ export function HojeShareCard({
                 {/* Header */}
                 <div className="relative flex items-center justify-between mb-3">
                     <div>
-                        <h3 className="text-lg font-bold">Hoje em Tijucas</h3>
+                        <h3 className="text-lg font-bold">Hoje em {cityName}</h3>
                         <p className="text-xs text-white/80 capitalize">{dateStr}</p>
                     </div>
                     <div className="flex items-center gap-1 text-2xl font-bold">
@@ -168,13 +171,13 @@ export function HojeShareCard({
                     <div className="flex flex-col items-center p-2 rounded-xl bg-white/10">
                         <Users className="h-4 w-4 mb-1" />
                         <span className="text-lg font-bold">{usuarios}</span>
-                        <span className="text-[9px] text-white/70">tijucanos</span>
+                        <span className="text-[9px] text-white/70">cidadãos</span>
                     </div>
                 </div>
 
                 {/* Footer */}
                 <div className="relative text-center">
-                    <p className="text-xs text-white/60">etijucas.com.br</p>
+                    <p className="text-xs text-white/60">{appName.toLowerCase()}.com.br</p>
                 </div>
             </motion.div>
 

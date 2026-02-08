@@ -18,6 +18,7 @@ import {
   LogOut,
   Vote,
   Car,
+  Globe,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -30,6 +31,7 @@ import { PhoneCategory } from '@/types';
 import { ScreenSkeleton } from '@/components/ui/ScreenSkeleton';
 import { InstallMenuItem } from '@/components/ui/InstallBanner';
 import { useCityName } from '@/hooks/useCityName';
+import { useTenantStore } from '@/store/useTenantStore';
 
 // Lazy load TrashScheduleScreen
 const TrashScheduleScreen = lazy(() => import('@/screens/TrashScheduleScreen'));
@@ -59,6 +61,8 @@ export default function MoreScreen({ scrollRef }: MoreScreenProps) {
   const { selectedBairro, reports } = useAppStore();
   const { user, isAuthenticated, logout } = useAuthStore();
   const { name: cityName } = useCityName();
+  const isModuleEnabled = useTenantStore((state) => state.isModuleEnabled);
+  const citySlug = useTenantStore((state) => state.city?.slug);
 
   const menuItems = [
     { id: 'perfil' as const, label: 'Meu Perfil', icon: User, color: 'bg-primary/10 text-primary', isLink: true },
@@ -69,8 +73,28 @@ export default function MoreScreen({ scrollRef }: MoreScreenProps) {
     { id: 'missas' as ScreenView, label: 'Horários das Missas', icon: Church, color: 'bg-primary/10 text-primary' },
     { id: 'telefones' as ScreenView, label: 'Telefones Úteis', icon: Phone, color: 'bg-accent/10 text-accent' },
     { id: 'vereadores' as const, label: 'Vereadores', icon: User, color: 'bg-blue-100 text-blue-600', isLink: true },
-    { id: 'envios' as ScreenView, label: `Fiscaliza ${cityName}`, icon: FileText, color: 'bg-purple-100 text-purple-600' },
+    { id: 'envios' as ScreenView, label: `Fiscaliza ${cityName}`, icon: FileText, color: 'bg-purple-100 text-purple-600', moduleKey: 'reports' },
+    { id: 'trocar-cidade' as const, label: 'Trocar de Cidade', icon: Globe, color: 'bg-slate-100 text-slate-600', isLink: true },
   ];
+
+  // Module mapping for visibility filtering
+  const moduleMap: Record<string, string> = {
+    lixo: 'trash',
+    veiculos: 'vehicles',
+    votacoes: 'voting',
+    turismo: 'tourism',
+    missas: 'masses',
+    telefones: 'phones',
+    vereadores: 'council',
+    envios: 'reports',
+  };
+
+  // Filter menu items based on enabled modules
+  const filteredMenuItems = menuItems.filter(item => {
+    const moduleKey = moduleMap[item.id];
+    if (!moduleKey) return true; // Always show items without module mapping (perfil, trocar-cidade)
+    return isModuleEnabled(moduleKey);
+  });
 
   const handleLogout = () => {
     logout();
@@ -343,7 +367,7 @@ export default function MoreScreen({ scrollRef }: MoreScreenProps) {
         {/* Install App Item */}
         <InstallMenuItem />
 
-        {menuItems.map((item, index) => {
+        {filteredMenuItems.map((item, index) => {
           const Icon = item.icon;
           return (
             <motion.button
@@ -371,6 +395,9 @@ export default function MoreScreen({ scrollRef }: MoreScreenProps) {
                   navigate('/denuncias');
                 } else if (item.id === 'vereadores') {
                   navigate('/vereadores');
+                } else if (item.id === 'trocar-cidade') {
+                  // Navigate to root to trigger CityGate
+                  window.location.href = '/';
                 } else {
                   setView(item.id as ScreenView);
                 }
@@ -398,7 +425,7 @@ export default function MoreScreen({ scrollRef }: MoreScreenProps) {
           <motion.button
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: menuItems.length * 0.1 }}
+            transition={{ delay: filteredMenuItems.length * 0.1 }}
             whileTap={{ scale: 0.98 }}
             onClick={handleLogout}
             className="w-full flex items-center gap-4 bg-red-50 dark:bg-red-950/30 rounded-2xl p-4 text-left border border-red-200 dark:border-red-800"

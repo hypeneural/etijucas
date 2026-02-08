@@ -9,6 +9,7 @@ import { motion, AnimatePresence, PanInfo } from 'framer-motion';
 import { MapPin, Star, ChevronRight, Camera, Heart, Sparkles } from 'lucide-react';
 import { useOfflineTourism } from '@/hooks/useOfflineTourism';
 import { hapticFeedback } from '@/hooks/useHaptics';
+import { useCityName } from '@/hooks/useCityName';
 import { cn } from '@/lib/utils';
 import { TOURISM_CATEGORIES } from '@/types/tourism.types';
 import { AggregatorTourismItem } from '@/types/home.types';
@@ -45,6 +46,7 @@ export default function TourismHighlights({ onNavigate, data: externalData }: To
 
   console.log('[TourismHighlights] DEBUG: Hook 2 - useOfflineTourism');
   const { featuredSpots: hookSpots, isLoading: hookLoading, likeSpot } = useOfflineTourism();
+  const { name: cityName } = useCityName();
 
   // Use external data if available, otherwise use hook data
   console.log('[TourismHighlights] DEBUG: Hook 3 - useMemo featuredSpots');
@@ -142,7 +144,7 @@ export default function TourismHighlights({ onNavigate, data: externalData }: To
           <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 2, repeat: Infinity, repeatDelay: 2 }}>
             <Camera className="w-5 h-5 text-primary" />
           </motion.div>
-          Descubra Tijucas
+          Descubra {cityName}
         </h2>
         <motion.button whileTap={{ scale: 0.95 }} onClick={handleViewAll} className="flex items-center gap-1 text-sm text-primary font-medium">
           Ver todos <ChevronRight className="w-4 h-4" />
