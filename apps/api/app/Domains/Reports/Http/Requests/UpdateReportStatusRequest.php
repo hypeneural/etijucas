@@ -13,11 +13,21 @@ class UpdateReportStatusRequest extends FormRequest
         return $this->user()->hasAnyRole(['admin', 'moderator']);
     }
 
+    protected function prepareForValidation(): void
+    {
+        if (!$this->filled('version') && $this->header('If-Unmodified-Since')) {
+            $this->merge([
+                'version' => $this->header('If-Unmodified-Since'),
+            ]);
+        }
+    }
+
     public function rules(): array
     {
         return [
             'status' => ['required', new Enum(ReportStatus::class)],
             'note' => 'nullable|string|max:500',
+            'version' => 'required|date',
         ];
     }
 
@@ -25,8 +35,10 @@ class UpdateReportStatusRequest extends FormRequest
     {
         return [
             'status.required' => 'Informe o novo status.',
-            'status.Illuminate\Validation\Rules\Enum' => 'Status inválido.',
-            'note.max' => 'A observação não pode ter mais de 500 caracteres.',
+            'status.enum' => 'Status invalido.',
+            'note.max' => 'A observacao nao pode ter mais de 500 caracteres.',
+            'version.required' => 'Informe a versao atual do registro.',
+            'version.date' => 'A versao informada e invalida.',
         ];
     }
 }

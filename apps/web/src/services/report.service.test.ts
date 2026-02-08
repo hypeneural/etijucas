@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiError } from '@/api/client';
-import { isOfflineLikeReportError } from './report.service';
+import { isOfflineLikeReportError, isReportStatusConflictError } from './report.service';
 
 describe('report.service offline error detection', () => {
     beforeEach(() => {
@@ -38,3 +38,19 @@ describe('report.service offline error detection', () => {
     });
 });
 
+describe('report.service status conflict detection', () => {
+    it('returns true for report status 409 conflict errors', () => {
+        const error = new ApiError(
+            'A denuncia foi atualizada por outro moderador.',
+            409,
+            'REPORT_STATUS_CONFLICT'
+        );
+
+        expect(isReportStatusConflictError(error)).toBe(true);
+    });
+
+    it('returns false for unrelated api errors', () => {
+        const error = new ApiError('validation', 422, 'VALIDATION_ERROR');
+        expect(isReportStatusConflictError(error)).toBe(false);
+    });
+});

@@ -6,4 +6,5 @@ export { StepLocation } from './StepLocation';
 export { StepCamera } from './StepCamera';
 export { StepReview } from './StepReview';
 export { ReportSuccess } from './ReportSuccess';
+export { MapSkeleton } from './MapSkeleton';
 

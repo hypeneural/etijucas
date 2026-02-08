@@ -1,56 +1,34 @@
-// useReports Hook
-// React Query hooks for citizen reports
+/**
+ * Legacy reports hooks bridge.
+ *
+ * @deprecated Prefer hooks from `@/hooks/useMyReports`.
+ */
 
-import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
-import { QUERY_KEYS } from '@/api/config';
-import { reportService } from '@/services';
-import { Report } from '@/types';
-import { ReportFilters, PaginatedResponse, CreateReportDTO } from '@/types/api.types';
+import { usePublicReports, useMyReports, useReportDetail, useCreateReport } from '@/hooks/useMyReports';
+import type { PublicReportsFilters } from '@/services/report.service';
+
+export type ReportFilters = PublicReportsFilters;
 
 /**
- * Get paginated reports with filters
+ * @deprecated Use `usePublicReports` from `@/hooks/useMyReports`.
  */
 export function useReports(filters?: ReportFilters) {
-    return useQuery<PaginatedResponse<Report>>({
-        queryKey: ['reports', 'list', filters],
-        queryFn: () => reportService.getAll(filters),
-        staleTime: 1000 * 60 * 5, // 5 minutes
-    });
+    return usePublicReports(filters);
 }
 
 /**
- * Get current user's reports
- */
-export function useMyReports() {
-    return useQuery<Report[]>({
-        queryKey: ['reports', 'mine'],
-        queryFn: () => reportService.getMyReports(),
-        staleTime: 1000 * 60 * 5, // 5 minutes
-    });
-}
-
-/**
- * Get a single report by ID
+ * @deprecated Use `useReportDetail` from `@/hooks/useMyReports`.
  */
 export function useReport(id: string) {
-    return useQuery<Report | undefined>({
-        queryKey: ['reports', 'detail', id],
-        queryFn: () => reportService.getById(id),
-        enabled: !!id,
-    });
+    return useReportDetail(id);
 }
 
 /**
- * Create a new report
+ * @deprecated Use `useMyReports` from `@/hooks/useMyReports`.
  */
-export function useCreateReport() {
-    const queryClient = useQueryClient();
+export { useMyReports };
 
-    return useMutation({
-        mutationFn: (data: CreateReportDTO) => reportService.create(data),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['reports'] });
-            queryClient.invalidateQueries({ queryKey: ['reports', 'mine'] });
-        },
-    });
-}
+/**
+ * @deprecated Use `useCreateReport` from `@/hooks/useMyReports`.
+ */
+export { useCreateReport };

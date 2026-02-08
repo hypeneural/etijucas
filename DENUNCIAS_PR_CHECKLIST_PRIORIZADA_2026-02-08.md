@@ -12,12 +12,12 @@ Fonte de verdade: `DENUNCIAS_PR_PLAN_EXECUCAO_POR_ARQUIVO_2026-02-08.md` + docs 
 - [x] `PR-02` (P0) Outbox unica oficial (offline sync)
 - [x] `PR-03` (P0) Tenant-safe networking + cache safety
 - [x] `PR-04` (P0) Politica de visibilidade publica + resource publico
-- [ ] `PR-05` (P0) Pipeline de imagem (compressao alvo + limite backend)
+- [x] `PR-05` (P0) Pipeline de imagem (compressao alvo + limite backend)
 - [ ] `PR-06` (P0/P1) UX mapa premium
-- [ ] `PR-07` (P1) Rate limiting dedicado por tenant+ip
-- [ ] `PR-08` (P1) Conflitos de edicao (409)
-- [ ] `PR-09` (P1) Hardening de dados (`city_id`) + indices compostos
-- [ ] `PR-10` (P2) Contratos/types/lint-test/observabilidade
+- [x] `PR-07` (P1) Rate limiting dedicado por tenant+ip
+- [x] `PR-08` (P1) Conflitos de edicao (409)
+- [x] `PR-09` (P1) Hardening de dados (`city_id`) + indices compostos
+- [x] `PR-10` (P2) Contratos/types/lint-test/observabilidade
 
 ---
 
@@ -93,94 +93,106 @@ Gate necessario:
 ---
 
 ## `PR-05` - Pipeline de Imagem
-Status: `PENDENTE`
+Referencia: `DENUNCIAS_PR05_TASKS_DETALHADAS_2026-02-08.md`
+Status: `CONCLUIDO`
 
-- [ ] Adicionar `browser-image-compression` no web.
-- [ ] Implementar pipeline unico (1920px, alvo ~350KB, WebP fallback JPEG).
-- [ ] Garantir compressao antes do draft e antes do upload.
-- [ ] Ajustar limite backend para 8MB em create/upload media.
-- [ ] Criar testes (front compressao + backend limite upload).
+- [x] Adicionar `browser-image-compression` no web.
+- [x] Implementar pipeline unico (1920px, alvo ~350KB, WebP fallback JPEG).
+- [x] Garantir compressao antes do draft e antes do upload.
+- [x] Ajustar limite backend para 8MB em create/upload media.
+- [x] Criar testes (front compressao + backend limite upload).
 
 Gate necessario:
-- [ ] Lint + testes web/api PASS
+- [x] Lint + testes web/api PASS
 - [ ] Amostra real: >=90% imagens <= 400KB
 
 ---
 
 ## `PR-06` - UX Mapa Premium
-Status: `PENDENTE`
+Referencia: `DENUNCIAS_PR06_TASKS_DETALHADAS_2026-02-08.md`
+Status: `EM_VALIDACAO_MANUAL`
 
-- [ ] Skeleton de mapa/tiles para evitar flash inicial.
-- [ ] CTA flutuante "Confirmar local" no step de localizacao.
-- [ ] Haptic leve em ajuste/confirmacao de pino.
-- [ ] Fallback "Enviar mesmo assim" em falha de reverse geocode.
-- [ ] Ajustes de acessibilidade e estados de erro sem bloqueio.
+- [x] Skeleton de mapa/tiles para evitar flash inicial.
+- [x] CTA flutuante "Confirmar local" no step de localizacao.
+- [x] Haptic leve em ajuste/confirmacao de pino.
+- [x] Fallback "Enviar mesmo assim" em falha de reverse geocode.
+- [x] Ajustes de acessibilidade e estados de erro sem bloqueio.
 
 Gate necessario:
 - [ ] Testes de fluxo manual mobile (GPS ok/negado/offline parcial)
-- [ ] Sem bloqueio de envio em erro parcial
+- [x] Sem bloqueio de envio em erro parcial
 
 ---
 
 ## `PR-07` - Rate Limit Dedicado
-Status: `PENDENTE`
+Referencia: `DENUNCIAS_PR07_TASKS_DETALHADAS_2026-02-08.md`
+Status: `CONCLUIDO_TECNICO`
 
-- [ ] Criar limiters `reports-create` (10/h tenant+ip) e `reports-media` (30/h tenant+ip).
-- [ ] Aplicar middleware de throttle dedicado nas rotas de reports.
-- [ ] Instrumentar logs para bloqueios (tenant/ip/rota).
-- [ ] Testes de isolamento por tenant (A bloqueado nao afeta B).
+- [x] `PR07-T001` Criar limiters `reports-create` (10/h tenant+ip) e `reports-media` (30/h tenant+ip).
+- [x] `PR07-T002` Aplicar middleware de throttle dedicado nas rotas de reports.
+- [x] `PR07-T003` Instrumentar logs para bloqueios (tenant/ip/rota).
+- [x] `PR07-T004` Testes de isolamento por tenant (A bloqueado nao afeta B).
 
 Gate necessario:
-- [ ] Testes de rate limit PASS
-- [ ] Logs de bloqueio visiveis no ambiente de teste
+- [x] Testes de rate limit PASS
+- [x] Regressao reports API PASS
+- [ ] Validacao manual de logs de bloqueio em ambiente integrado
 
 ---
 
 ## `PR-08` - Conflitos de Edicao (409)
-Status: `PENDENTE`
+Referencia: `DENUNCIAS_PR08_TASKS_DETALHADAS_2026-02-08.md`
+Status: `CONCLUIDO_TECNICO`
 
-- [ ] Definir token de versao (`updated_at` ou `version`) no contrato.
-- [ ] Validar token no backend antes de atualizar status/edicao.
-- [ ] Retornar `409 Conflict` com estado atual em divergencia.
-- [ ] Tratar erro `409` no front com CTA de refresh/retry.
-- [ ] Criar teste de concorrencia (dois updates concorrentes).
+- [x] `PR08-T001` Definir token de versao (`version` ou header `If-Unmodified-Since`) no contrato de update status.
+- [x] `PR08-T002` Validar token no backend antes de atualizar status.
+- [x] `PR08-T003` Retornar `409 Conflict` com estado atual em divergencia.
+- [x] `PR08-T004` Adicionar suporte de tratamento `409` no front service (helper + endpoint tipado).
+- [x] `PR08-T005` Criar teste de concorrencia (stale version) e cenarios de sucesso/header fallback.
 
 Gate necessario:
-- [ ] Teste de conflito PASS
-- [ ] UX de conflito sem quebrar fluxo
+- [x] Teste de conflito PASS
+- [x] Regressao reports API PASS
+- [x] Lint/test web no escopo alterado PASS
+- [ ] Integrar CTA visual de refresh/retry na tela que consumir update de status
 
 ---
 
 ## `PR-09` - Hardening de Dados + Indices
-Status: `PENDENTE`
+Referencia: `DENUNCIAS_PR09_TASKS_DETALHADAS_2026-02-08.md`
+Status: `CONCLUIDO_TECNICO`
 
-- [ ] Backfill de `city_id` legado em `citizen_reports`.
-- [ ] Tornar `city_id` `NOT NULL` com rollback seguro.
-- [ ] Criar indices compostos tenant-aware:
-  - [ ] `(city_id, created_at)`
-  - [ ] `(city_id, status, created_at)`
-  - [ ] `(city_id, category_id, created_at)`
-- [ ] Validar `EXPLAIN` das queries principais.
+- [x] `PR09-T001` Backfill de `city_id` legado em `citizen_reports` com fallback seguro.
+- [x] `PR09-T002` Tornar `city_id` `NOT NULL` em MySQL/MariaDB com rollback seguro.
+- [x] `PR09-T003` Criar indices compostos tenant-aware:
+  - [x] `(city_id, created_at)`
+  - [x] `(city_id, status, created_at)`
+  - [x] `(city_id, category_id, created_at)`
+- [x] `PR09-T004` Validar cobertura de indices por teste automatizado.
 
 Gate necessario:
-- [ ] Migracoes executadas sem erro
-- [ ] `EXPLAIN` com uso de indice nas consultas alvo
+- [x] Migracoes executadas sem erro (ambiente de teste)
+- [x] Cobertura de indices PASS
+- [ ] Validacao de `EXPLAIN` em banco MySQL/MariaDB de staging/producao
 
 ---
 
 ## `PR-10` - Governanca Final (Contratos/Types/Qualidade/Obs)
-Status: `PENDENTE`
+Referencia: `DENUNCIAS_PR10_TASKS_DETALHADAS_2026-02-08.md`
+Status: `CONCLUIDO`
 
-- [ ] Alinhar `contracts/openapi.yaml` ao comportamento real (multipart, headers, resources).
-- [ ] Atualizar `contracts/features.yaml` (rotas reais do modulo).
-- [ ] Consolidar tipos de report no front (eliminar duplicidade legado/novo).
-- [ ] Fechar debitos de lint remanescentes no modulo de denuncias.
-- [ ] Estabilizar execucao de testes em CI (stack DB definida).
-- [ ] Instrumentar metricas minimas de outbox/rate-limit/idempotencia.
+- [x] Alinhar `contracts/openapi.yaml` ao comportamento real (multipart, headers, resources).
+- [x] Atualizar `contracts/features.yaml` (rotas reais do modulo).
+- [x] Consolidar tipos de report no front (eliminar duplicidade legado/novo no modulo).
+- [x] Fechar debitos de lint remanescentes no modulo de denuncias.
+- [x] Estabilizar execucao de testes em CI (stack de execução definida via `check:reports`).
+- [x] Instrumentar metricas minimas de outbox/rate-limit/idempotencia.
 
 Gate necessario:
-- [ ] Contrato e implementacao sem drift critico
-- [ ] CI verde no pacote reports (web+api)
+- [x] Contrato e implementacao sem drift critico
+- [x] Gate tecnico local web+api PASS
+- [x] Perfil `check:reports` pronto para CI e validado localmente
+- [x] Integrar execução automática no provedor CI do projeto (`.github/workflows/reports-quality-gate.yml`)
 
 ---
 
@@ -191,3 +203,17 @@ Gate necessario:
 - [x] Encerrar PR com bloco de evidencias (comando + resultado).
 - [x] Nao avancar para proxima PR sem gate de testes/lint do escopo atual.
 - [x] Manter checklist central atualizado ao final de cada PR.
+
+---
+
+## 4. Pendencias Finais de Validacao (Manual/Ambiente)
+
+Referencia: `DENUNCIAS_GATE_FINAL_VALIDACAO_2026-02-08.md`
+
+- [ ] `FINAL-T001` Validar workflow CI em execucao real no provedor remoto.
+- [ ] `FINAL-T002` Validar amostra real de compressao (>=90% <=400KB).
+- [ ] `FINAL-T003` Smoke mobile real (Android+iOS) do step de localizacao.
+- [ ] `FINAL-T004` Validar logs de throttle em ambiente integrado.
+- [ ] `FINAL-T005` Fechar UX visual de conflito 409 no ponto de consumo.
+- [ ] `FINAL-T006` Executar EXPLAIN em staging/producao.
+- [ ] `FINAL-T007` Sign-off final de release do modulo.

@@ -28,6 +28,59 @@ const BACKOFF_CONFIG = {
     maxRetries: 5,
 };
 
+export type ReportSyncMetricType =
+    | 'queue_enqueued'
+    | 'sync_started'
+    | 'sync_completed'
+    | 'sync_success'
+    | 'sync_failure'
+    | 'retry_scheduled';
+
+export interface ReportSyncMetricEvent {
+    type: ReportSyncMetricType;
+    timestamp: number;
+    draftId?: string;
+    attempts?: number;
+    delayMs?: number;
+    synced?: number;
+    failed?: number;
+    errorType?: string | null;
+}
+
+export interface ReportSyncMetricsSnapshot {
+    queuedTotal: number;
+    syncedTotal: number;
+    failedTotal: number;
+    retriesScheduledTotal: number;
+    lastSuccessAt: number | null;
+    lastFailureAt: number | null;
+    lastErrorType: string | null;
+}
+
+const metricListeners = new Set<(event: ReportSyncMetricEvent) => void>();
+
+const metrics: ReportSyncMetricsSnapshot = {
+    queuedTotal: 0,
+    syncedTotal: 0,
+    failedTotal: 0,
+    retriesScheduledTotal: 0,
+    lastSuccessAt: null,
+    lastFailureAt: null,
+    lastErrorType: null,
+};
+
+function emitMetric(event: ReportSyncMetricEvent): void {
+    console.info('[ReportSync][metric]', event);
+
+    for (const listener of metricListeners) {
+        try {
+            listener(event);
+        } catch (listenerError) {
+            console.warn('[ReportSync] Metric listener failed:', listenerError);
+        }
+    }
+}
+
 /**
  * Calculate backoff delay based on attempt number
  */
@@ -91,6 +144,17 @@ function initListeners() {
     listenersInitialized = true;
 }
 
+export function subscribeReportSyncMetrics(
+    listener: (event: ReportSyncMetricEvent) => void
+): () => void {
+    metricListeners.add(listener);
+    return () => metricListeners.delete(listener);
+}
+
+export function getReportSyncMetrics(): ReportSyncMetricsSnapshot {
+    return { ...metrics };
+}
+
 /**
  * Bootstrap reports outbox sync runtime.
  * Should be called once on app startup.
@@ -120,6 +184,12 @@ export async function queueForSync(draftId: string): Promise<void> {
     }
 
     await updateDraftStatus(draftId, 'queued');
+    metrics.queuedTotal += 1;
+    emitMetric({
+        type: 'queue_enqueued',
+        timestamp: Date.now(),
+        draftId,
+    });
 
     // Reset retry info for this draft
     state.retryInfo.set(draftId, {
@@ -153,6 +223,10 @@ export async function syncPendingReports(): Promise<{
 
     state.isSyncing = true;
     state.lastSyncAttempt = Date.now();
+    emitMetric({
+        type: 'sync_started',
+        timestamp: state.lastSyncAttempt,
+    });
 
     let synced = 0;
     let failed = 0;
@@ -186,6 +260,12 @@ export async function syncPendingReports(): Promise<{
     }
 
     console.log(`[ReportSync] Sync complete: ${synced} synced, ${failed} failed`);
+    emitMetric({
+        type: 'sync_completed',
+        timestamp: Date.now(),
+        synced,
+        failed,
+    });
     return { synced, failed };
 }
 
@@ -231,6 +311,12 @@ function scheduleNextRetry(): void {
     if (earliestRetry) {
         const delay = Math.max(0, earliestRetry - Date.now());
         console.log(`[ReportSync] Scheduling retry in ${Math.round(delay / 1000)}s`);
+        metrics.retriesScheduledTotal += 1;
+        emitMetric({
+            type: 'retry_scheduled',
+            timestamp: Date.now(),
+            delayMs: delay,
+        });
 
         state.scheduledRetryTimer = setTimeout(() => {
             state.scheduledRetryTimer = null;
@@ -250,6 +336,18 @@ function isRetryableSyncError(error: unknown): boolean {
     }
 
     return true;
+}
+
+function classifySyncError(error: unknown): string {
+    if (error instanceof ApiError) {
+        return error.code ? `api:${error.code}` : `api:${error.status}`;
+    }
+
+    if (error instanceof Error) {
+        return `error:${error.name}`;
+    }
+
+    return 'unknown';
 }
 
 /**
@@ -274,6 +372,13 @@ async function syncSingleReport(draftId: string): Promise<boolean> {
         if (result) {
             await updateDraftStatus(draftId, 'sent');
             console.log('[ReportSync] Report synced:', draftId);
+            metrics.syncedTotal += 1;
+            metrics.lastSuccessAt = Date.now();
+            emitMetric({
+                type: 'sync_success',
+                timestamp: metrics.lastSuccessAt,
+                draftId,
+            });
             return true;
         } else {
             throw new Error('API returned no result');
@@ -282,6 +387,7 @@ async function syncSingleReport(draftId: string): Promise<boolean> {
         console.error('[ReportSync] Failed to sync report:', draftId, error);
 
         const retryable = isRetryableSyncError(error);
+        const errorType = classifySyncError(error);
 
         // Update retry info with exponential backoff
         const currentInfo = state.retryInfo.get(draftId) || { attempts: 0, nextRetryAt: null, lastError: null };
@@ -295,6 +401,17 @@ async function syncSingleReport(draftId: string): Promise<boolean> {
         });
 
         await updateDraftStatus(draftId, 'failed');
+        metrics.failedTotal += 1;
+        metrics.lastFailureAt = Date.now();
+        metrics.lastErrorType = errorType;
+        emitMetric({
+            type: 'sync_failure',
+            timestamp: metrics.lastFailureAt,
+            draftId,
+            attempts: newAttempts,
+            delayMs: retryable ? delay : undefined,
+            errorType,
+        });
 
         if (retryable) {
             console.log(`[ReportSync] Will retry in ${Math.round(delay / 1000)}s (attempt ${newAttempts}/${BACKOFF_CONFIG.maxRetries})`);
@@ -339,6 +456,7 @@ export interface SyncStatusInfo {
         nextRetryIn: number | null; // seconds until next retry
         lastError: string | null;
     }>;
+    metrics: ReportSyncMetricsSnapshot;
 }
 
 /**
@@ -366,6 +484,7 @@ export async function getSyncStatus(): Promise<SyncStatusInfo> {
         lastSyncAttempt: state.lastSyncAttempt,
         pendingCount: queued.length + sending.length + failed.length,
         failedWithRetryInfo,
+        metrics: getReportSyncMetrics(),
     };
 }
 
@@ -414,6 +533,8 @@ export const reportSyncService = {
     queueForSync,
     syncPendingReports,
     getSyncStatus,
+    getReportSyncMetrics,
+    subscribeReportSyncMetrics,
     getPendingCount,
     retryFailed,
     cancelDraft,

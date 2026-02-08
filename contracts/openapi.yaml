@@ -27,6 +27,8 @@ tags:
     description: Boca no Trombone (community forum)
   - name: Masses
     description: Church mass schedules
+  - name: Reports
+    description: Citizen reports (denuncias)
   - name: Phones
     description: Useful phone numbers
   - name: Tourist
@@ -549,10 +551,27 @@ paths:
           description: Favorite toggled
 
   # ============ REPORTS ============
+  /api/v1/report-categories:
+    get:
+      tags: [Reports]
+      summary: List report categories
+      responses:
+        '200':
+          description: Report categories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ReportCategory'
+
   /api/v1/reports:
     get:
       tags: [Reports]
-      summary: List public approved reports
+      summary: List public visible reports
       parameters:
         - $ref: '#/components/parameters/page'
         - $ref: '#/components/parameters/per_page'
@@ -560,53 +579,315 @@ paths:
           in: query
           schema:
             $ref: '#/components/schemas/ReportStatus'
+        - name: categoryId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: search
+          in: query
+          schema:
+            type: string
       responses:
         '200':
           description: List of public reports
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PublicReport'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
     post:
       tags: [Reports]
       summary: Create report
       security:
         - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/XIdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [categoryId, title]
+              properties:
+                categoryId:
+                  type: string
+                  format: uuid
+                title:
+                  type: string
+                description:
+                  type: string
+                  nullable: true
+                bairroId:
+                  type: string
+                  format: uuid
+                  nullable: true
+                addressText:
+                  type: string
+                  nullable: true
+                addressSource:
+                  type: string
+                  enum: [gps, manual, mapa]
+                locationQuality:
+                  type: string
+                  enum: [precisa, aproximada, manual]
+                latitude:
+                  type: number
+                  format: float
+                  nullable: true
+                longitude:
+                  type: number
+                  format: float
+                  nullable: true
+                locationAccuracyM:
+                  type: integer
+                  nullable: true
+                images:
+                  type: array
+                  maxItems: 3
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '201':
+          description: Report created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Report'
+        '409':
+          description: Idempotency replay conflict or duplicated key with different payload
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          description: Rate limit exceeded (`reports-create`)
+
+  /api/v1/reports/map:
+    get:
+      tags: [Reports]
+      summary: List public visible reports for map viewport
+      parameters:
+        - name: bbox
+          in: query
+          schema:
+            type: string
+            example: -27.3,-48.7,-27.1,-48.5
+        - name: zoom
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+            example: recebido,em_analise
+        - name: category
+          in: query
+          schema:
+            type: string
+            example: buracos,iluminacao
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            maximum: 500
+      responses:
+        '200':
+          description: Map payload
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  bbox:
+                    type: string
+                    nullable: true
+                  zoom:
+                    type: integer
+                    nullable: true
+                  total:
+                    type: integer
+                  reports:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ReportMapItem'
+
+  /api/v1/reports/{id}:
+    get:
+      tags: [Reports]
+      summary: Get report details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Report details (public or private view depending on auth/ownership)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    oneOf:
+                      - $ref: '#/components/schemas/PublicReport'
+                      - $ref: '#/components/schemas/Report'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/reports/{id}/media:
+    post:
+      tags: [Reports]
+      summary: Add media to report
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/XIdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [images]
+              properties:
+                images:
+                  type: array
+                  maxItems: 3
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '200':
+          description: Media added
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Report'
+        '409':
+          description: Idempotency replay conflict
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          description: Rate limit exceeded (`reports-media`)
+
+  /api/v1/reports/{id}/media/{mediaId}:
+    delete:
+      tags: [Reports]
+      summary: Remove media from report
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: mediaId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Media removed
+
+  /api/v1/reports/{id}/status:
+    patch:
+      tags: [Reports]
+      summary: Update report status (admin/moderator)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [title, description, category_id]
+              required: [status, version]
               properties:
-                title:
+                status:
+                  $ref: '#/components/schemas/ReportStatus'
+                note:
                   type: string
-                description:
+                  nullable: true
+                version:
                   type: string
-                category_id:
-                  type: string
-                  format: uuid
-                bairro_id:
-                  type: string
-                  format: uuid
-                location:
-                  type: object
-                  properties:
-                    latitude:
-                      type: number
-                    longitude:
-                      type: number
-                    address:
-                      type: string
-                images:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      base64:
-                        type: string
-                      filename:
-                        type: string
+                  format: date-time
       responses:
-        '201':
-          description: Report created
+        '200':
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Report'
+        '409':
+          description: Version conflict
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  code:
+                    type: string
+                    example: REPORT_STATUS_CONFLICT
+                  message:
+                    type: string
+                  currentVersion:
+                    type: string
+                    format: date-time
+                  data:
+                    $ref: '#/components/schemas/Report'
         '422':
           $ref: '#/components/responses/ValidationError'
 
@@ -646,9 +927,32 @@ paths:
       summary: List authenticated user's reports
       security:
         - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/per_page'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/ReportStatus'
+        - name: categoryId
+          in: query
+          schema:
+            type: string
+            format: uuid
       responses:
         '200':
           description: User's reports
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Report'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
 
   # ============ TOURISM ============
   /api/v1/tourism:
@@ -721,6 +1025,13 @@ components:
         type: integer
         default: 15
         maximum: 100
+    XIdempotencyKey:
+      name: X-Idempotency-Key
+      in: header
+      required: true
+      schema:
+        type: string
+        format: uuid
 
   responses:
     Unauthorized:
@@ -856,3 +1167,194 @@ components:
         - em_analise: Report being analyzed
         - resolvido: Report resolved
         - rejeitado: Report rejected
+
+    ReportCategory:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        icon:
+          type: string
+        color:
+          type: string
+        tips:
+          type: array
+          items:
+            type: string
+        sortOrder:
+          type: integer
+
+    ReportMedia:
+      type: object
+      properties:
+        id:
+          type: string
+        url:
+          type: string
+        thumbUrl:
+          type: string
+        webUrl:
+          type: string
+        width:
+          type: integer
+          nullable: true
+        height:
+          type: integer
+          nullable: true
+        mimeType:
+          type: string
+        size:
+          type: integer
+
+    ReportHistoryItem:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/ReportStatus'
+        note:
+          type: string
+          nullable: true
+        at:
+          type: string
+          format: date-time
+        by:
+          type: string
+          nullable: true
+
+    Report:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        protocol:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          $ref: '#/components/schemas/ReportStatus'
+        statusLabel:
+          type: string
+        statusColor:
+          type: string
+        statusIcon:
+          type: string
+        category:
+          $ref: '#/components/schemas/ReportCategory'
+        categoryId:
+          type: string
+          format: uuid
+        addressText:
+          type: string
+          nullable: true
+        addressSource:
+          type: string
+          nullable: true
+        locationQuality:
+          type: string
+          nullable: true
+        locationQualityLabel:
+          type: string
+          nullable: true
+        latitude:
+          type: number
+          nullable: true
+        longitude:
+          type: number
+          nullable: true
+        locationAccuracyM:
+          type: integer
+          nullable: true
+        bairroId:
+          type: string
+          format: uuid
+          nullable: true
+        media:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReportMedia'
+        history:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReportHistoryItem'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+          nullable: true
+        resolvedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    PublicReport:
+      allOf:
+        - $ref: '#/components/schemas/Report'
+
+    ReportMapCategory:
+      type: object
+      nullable: true
+      properties:
+        slug:
+          type: string
+        name:
+          type: string
+        icon:
+          type: string
+        color:
+          type: string
+
+    ReportMapImage:
+      type: object
+      properties:
+        url:
+          type: string
+        thumb:
+          type: string
+
+    ReportMapItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        lat:
+          type: number
+        lon:
+          type: number
+        category:
+          $ref: '#/components/schemas/ReportMapCategory'
+        status:
+          $ref: '#/components/schemas/ReportStatus'
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        protocol:
+          type: string
+          nullable: true
+        address:
+          type: string
+          nullable: true
+        addressShort:
+          type: string
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReportMapImage'
+        thumbUrl:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time

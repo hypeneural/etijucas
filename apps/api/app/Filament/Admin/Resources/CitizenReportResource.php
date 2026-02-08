@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Resources;
 
+use Carbon\CarbonImmutable;
 use App\Domains\Reports\Enums\LocationQuality;
 use App\Domains\Reports\Enums\ReportStatus;
 use App\Domains\Reports\Actions\AssignReportAction;
@@ -19,17 +20,20 @@ use Filament\Forms;
 use Filament\Forms\Components\Actions;
 use Filament\Forms\Components\Actions\Action as FormAction;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Notifications\Notification;
 use Filament\Tables;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\HtmlString;
+use Throwable;
 
 class CitizenReportResource extends BaseResource
 {
@@ -376,6 +380,9 @@ class CitizenReportResource extends BaseResource
                     ->icon('heroicon-o-adjustments-horizontal')
                     ->color('warning')
                     ->form([
+                        Hidden::make('version')
+                            ->default(fn(CitizenReport $record): ?string => $record->updated_at?->toIso8601String()
+                                ?? $record->created_at?->toIso8601String()),
                         Select::make('status')
                             ->label('Status')
                             ->options(collect(ReportStatus::cases())
@@ -387,12 +394,50 @@ class CitizenReportResource extends BaseResource
                             ->rows(3),
                     ])
                     ->action(function (CitizenReport $record, array $data): void {
+                        $freshRecord = CitizenReport::query()->findOrFail($record->id);
+                        $currentVersion = $freshRecord->updated_at?->toImmutable()
+                            ?? $freshRecord->created_at?->toImmutable();
+                        $expectedVersion = null;
+
+                        if (isset($data['version']) && is_string($data['version']) && $data['version'] !== '') {
+                            try {
+                                $expectedVersion = CarbonImmutable::parse($data['version']);
+                            } catch (Throwable) {
+                                Notification::make()
+                                    ->title('Não foi possível validar a versão da denúncia')
+                                    ->body('Recarregue a lista e tente novamente.')
+                                    ->warning()
+                                    ->send();
+
+                                return;
+                            }
+                        }
+
+                        if (
+                            $expectedVersion !== null
+                            && $currentVersion !== null
+                            && !$currentVersion->equalTo($expectedVersion)
+                        ) {
+                            Notification::make()
+                                ->title('Conflito de atualização detectado')
+                                ->body('A denúncia foi alterada por outro moderador. Atualize a tela e tente novamente.')
+                                ->warning()
+                                ->send();
+
+                            return;
+                        }
+
                         app(UpdateReportStatusAction::class)->execute(
-                            $record,
+                            $freshRecord,
                             ReportStatus::from($data['status']),
                             $data['note'] ?? null,
                             auth()->user()
                         );
+
+                        Notification::make()
+                            ->title('Status atualizado com sucesso')
+                            ->success()
+                            ->send();
                     })
                     ->visible(fn(): bool => auth()->user()?->hasAnyRole(['admin', 'moderator']) ?? false),
                 ...static::baseTableActions(),

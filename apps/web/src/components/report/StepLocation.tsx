@@ -21,6 +21,7 @@ import { cn } from '@/lib/utils';
 import { StepHeader } from './HelpTooltip';
 import { LocationMap } from './LocationMap';
 import { reportService } from '@/services/report.service';
+import { haptic as triggerHaptic } from '@/hooks/useHaptic';
 import type { ReportDraft, LocationData, LocationState, GeocodeSuggestion } from '@/types/report';
 
 interface StepLocationProps {
@@ -39,15 +40,19 @@ export function StepLocation({ draft, onUpdate, onNext, onBack }: StepLocationPr
     const [searchResults, setSearchResults] = useState<GeocodeSuggestion[]>([]);
     const [isSearching, setIsSearching] = useState(false);
     const [isReverseGeocoding, setIsReverseGeocoding] = useState(false);
+    const [reverseGeocodeFailed, setReverseGeocodeFailed] = useState(false);
 
     // Reverse geocode to get address from coordinates
     const reverseGeocode = useCallback(async (lat: number, lon: number): Promise<string | undefined> => {
         try {
             setIsReverseGeocoding(true);
             const result = await reportService.geocodeReverse(lat, lon);
-            return result?.address || result?.displayName;
+            const resolvedAddress = result?.address || result?.displayName;
+            setReverseGeocodeFailed(!resolvedAddress);
+            return resolvedAddress || undefined;
         } catch (error) {
             console.warn('[StepLocation] Reverse geocode failed:', error);
+            setReverseGeocodeFailed(true);
             return undefined;
         } finally {
             setIsReverseGeocoding(false);
@@ -72,6 +77,7 @@ export function StepLocation({ draft, onUpdate, onNext, onBack }: StepLocationPr
 
                 // Get address via reverse geocoding
                 const address = await reverseGeocode(lat, lon);
+                setReverseGeocodeFailed(!address);
 
                 const locationData: LocationData = {
                     latitude: lat,
@@ -84,6 +90,7 @@ export function StepLocation({ draft, onUpdate, onNext, onBack }: StepLocationPr
 
                 onUpdate({ location: locationData });
                 setLocationState({ status: 'success' });
+                triggerHaptic('success');
             },
             (error) => {
                 let errorMessage = 'Não conseguimos acessar sua localização.';
@@ -98,6 +105,7 @@ export function StepLocation({ draft, onUpdate, onNext, onBack }: StepLocationPr
                     errorMessage = 'Demorou muito para obter sua localização. Verifique sua conexão e tente novamente.';
                     setLocationState({ status: 'error', errorMessage });
                 }
+                triggerHaptic('warning');
             },
             {
                 enableHighAccuracy: true,
@@ -170,9 +178,11 @@ export function StepLocation({ draft, onUpdate, onNext, onBack }: StepLocationPr
 
         onUpdate({ location: locationData });
         setLocationState({ status: 'success' });
+        setReverseGeocodeFailed(false);
         setSearchQuery('');
         setSearchResults([]);
         setShowManualAdjust(false);
+        triggerHaptic('selection');
     };
 
     useEffect(() => {
@@ -180,6 +190,12 @@ export function StepLocation({ draft, onUpdate, onNext, onBack }: StepLocationPr
             requestLocation();
         }
     }, [draft.location, locationState.status, requestLocation]);
+
+    const handleConfirmLocation = useCallback(() => {
+        if (!draft.location) return;
+        triggerHaptic('success');
+        onNext();
+    }, [draft.location, onNext]);
 
     const canContinue = !!draft.location;
 
@@ -400,6 +416,7 @@ export function StepLocation({ draft, onUpdate, onNext, onBack }: StepLocationPr
                                 });
                             }}
                             onCenterGPS={draft.location.source === 'gps' ? requestLocation : undefined}
+                            onConfirmLocation={handleConfirmLocation}
                         />
 
                         {/* Address display */}
@@ -428,6 +445,29 @@ export function StepLocation({ draft, onUpdate, onNext, onBack }: StepLocationPr
                                 </Button>
                             </div>
                         </Card>
+
+                        {reverseGeocodeFailed && (
+                            <Card className="p-4 border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800">
+                                <div className="flex items-start justify-between gap-3">
+                                    <div>
+                                        <p className="font-medium text-amber-800 dark:text-amber-300">
+                                            Endereco indisponivel no momento
+                                        </p>
+                                        <p className="text-xs text-amber-700 dark:text-amber-400 mt-1">
+                                            Nao conseguimos converter as coordenadas em endereco. Voce pode seguir com o ponto no mapa.
+                                        </p>
+                                    </div>
+                                    <Button
+                                        size="sm"
+                                        variant="secondary"
+                                        onClick={handleConfirmLocation}
+                                        className="shrink-0"
+                                    >
+                                        Enviar mesmo assim
+                                    </Button>
+                                </div>
+                            </Card>
+                        )}
 
                         {/* Observation / Reference Point */}
                         <div className="space-y-2">
@@ -588,11 +628,11 @@ export function StepLocation({ draft, onUpdate, onNext, onBack }: StepLocationPr
                             !canContinue && "opacity-50"
                         )}
                         disabled={!canContinue}
-                        onClick={onNext}
+                        onClick={handleConfirmLocation}
                     >
                         {canContinue ? (
                             <>
-                                Continuar
+                                {reverseGeocodeFailed ? 'Enviar mesmo assim' : 'Continuar'}
                                 <ChevronRight className="h-5 w-5 ml-2" />
                             </>
                         ) : (

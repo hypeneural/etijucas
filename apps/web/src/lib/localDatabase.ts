@@ -2,7 +2,8 @@
 // Provides typed storage for all app data with offline-first support
 
 import { get, set, del, keys, createStore } from 'idb-keyval';
-import type { Report, Topic, Comment, Event, UsefulPhone, MassSchedule, Alert, TourismSpot, Bairro } from '@/types';
+import type { Topic, Comment, Event, UsefulPhone, MassSchedule, Alert, TourismSpot, Bairro } from '@/types';
+import type { CitizenReport } from '@/types/report';
 
 // Create separate stores for different data types
 const reportsStore = createStore('etijucas-reports', 'reports');
@@ -47,13 +48,13 @@ async function safeStoreOperation<T>(
 }
 
 export const reportsDB = {
-    async getAll(): Promise<Report[]> {
+    async getAll(): Promise<CitizenReport[]> {
         return safeStoreOperation(
             async () => {
                 const allKeys = await keys(reportsStore);
-                const reports: Report[] = [];
+                const reports: CitizenReport[] = [];
                 for (const key of allKeys) {
-                    const report = await get<Report>(key, reportsStore);
+                    const report = await get<CitizenReport>(key, reportsStore);
                     if (report) reports.push(report);
                 }
                 // Sort by date (newest first)
@@ -66,15 +67,15 @@ export const reportsDB = {
         );
     },
 
-    async getById(id: string): Promise<Report | undefined> {
+    async getById(id: string): Promise<CitizenReport | undefined> {
         return safeStoreOperation(
-            () => get<Report>(id, reportsStore),
+            () => get<CitizenReport>(id, reportsStore),
             undefined,
             'Error getting report by id'
         );
     },
 
-    async save(report: Report): Promise<void> {
+    async save(report: CitizenReport): Promise<void> {
         return safeStoreOperation(
             () => set(report.id, report, reportsStore),
             undefined,
@@ -82,7 +83,7 @@ export const reportsDB = {
         );
     },
 
-    async saveMany(reports: Report[]): Promise<void> {
+    async saveMany(reports: CitizenReport[]): Promise<void> {
         return safeStoreOperation(
             async () => {
                 for (const report of reports) {

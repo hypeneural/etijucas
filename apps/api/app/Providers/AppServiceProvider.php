@@ -67,6 +67,7 @@ use App\Policies\VenuePolicy;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Models\Role;
@@ -187,6 +188,56 @@ class AppServiceProvider extends ServiceProvider
             // 5 attempts per minute per IP per tenant
             return Limit::perMinute(5)
                 ->by("{$tenantKey}:{$request->ip()}");
+        });
+
+        // Reports create rate limiter: 10/hour per tenant + IP
+        RateLimiter::for('reports-create', function (Request $request) {
+            $tenantKey = $request->attributes->get('tenant_city_id', 'global');
+            $ip = $request->ip() ?? 'unknown-ip';
+            $key = "{$tenantKey}:reports:create:ip:{$ip}";
+
+            return Limit::perHour(10)
+                ->by($key)
+                ->response(function (Request $request, array $headers) use ($tenantKey, $ip) {
+                    Log::warning('[RateLimiter] Reports create blocked', [
+                        'tenant_city_id' => $tenantKey,
+                        'ip' => $ip,
+                        'user_id' => $request->user()?->id,
+                        'path' => $request->path(),
+                        'method' => $request->method(),
+                    ]);
+
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Limite de criacao de denuncias excedido. Tente novamente mais tarde.',
+                        'code' => 'REPORTS_CREATE_RATE_LIMITED',
+                    ], 429, $headers);
+                });
+        });
+
+        // Reports media upload rate limiter: 30/hour per tenant + IP
+        RateLimiter::for('reports-media', function (Request $request) {
+            $tenantKey = $request->attributes->get('tenant_city_id', 'global');
+            $ip = $request->ip() ?? 'unknown-ip';
+            $key = "{$tenantKey}:reports:media:ip:{$ip}";
+
+            return Limit::perHour(30)
+                ->by($key)
+                ->response(function (Request $request, array $headers) use ($tenantKey, $ip) {
+                    Log::warning('[RateLimiter] Reports media upload blocked', [
+                        'tenant_city_id' => $tenantKey,
+                        'ip' => $ip,
+                        'user_id' => $request->user()?->id,
+                        'path' => $request->path(),
+                        'method' => $request->method(),
+                    ]);
+
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Limite de upload de midia excedido. Tente novamente mais tarde.',
+                        'code' => 'REPORTS_MEDIA_RATE_LIMITED',
+                    ], 429, $headers);
+                });
         });
     }
 }

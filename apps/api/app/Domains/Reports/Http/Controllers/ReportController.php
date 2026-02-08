@@ -11,6 +11,7 @@ use App\Domains\Reports\Http\Resources\ReportResource;
 use App\Domains\Reports\Models\CitizenReport;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -304,6 +305,20 @@ class ReportController extends Controller
         $user = $request->user();
         $report = CitizenReport::findOrFail($id);
         $validated = $request->validated();
+        $expectedVersion = CarbonImmutable::parse($validated['version']);
+        $currentVersion = $report->updated_at?->toImmutable() ?? $report->created_at?->toImmutable();
+
+        if ($currentVersion !== null && !$currentVersion->equalTo($expectedVersion)) {
+            $report->load(['category', 'bairro', 'statusHistory.createdBy', 'media']);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'A denuncia foi atualizada por outro moderador. Recarregue para ver as mudancas.',
+                'code' => 'REPORT_STATUS_CONFLICT',
+                'currentVersion' => $currentVersion->toIso8601String(),
+                'data' => new ReportResource($report),
+            ], 409);
+        }
 
         $newStatus = ReportStatus::from($validated['status']);
         $note = $validated['note'] ?? null;

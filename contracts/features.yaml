@@ -89,19 +89,30 @@ features:
 
   reports:
     screens:
-      - ReportScreen
-      - ReportListPage
+      - ReportWizardPage
+      - MyReportsPage
+      - ReportDetailPage
+      - ReportsMapScreen
     api:
+      - GET /api/v1/report-categories
+      - GET /api/v1/reports
+      - GET /api/v1/reports/map
+      - GET /api/v1/reports/stats
       - POST /api/v1/reports
-      - GET /api/v1/users/me/reports
+      - GET /api/v1/reports/me
+      - GET /api/v1/reports/{id}
+      - POST /api/v1/reports/{id}/media
+      - DELETE /api/v1/reports/{id}/media/{mediaId}
+      - PATCH /api/v1/reports/{id}/status
     tables:
-      - reports
+      - citizen_reports
       - report_categories
+      - report_status_history
       - media
     permissions:
-      read: auth:sanctum
+      read: public
       write: auth:sanctum
-      mod: role:admin
+      mod: role:admin|moderator
     offline: true
 
   bairros:

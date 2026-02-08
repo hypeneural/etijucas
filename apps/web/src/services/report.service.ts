@@ -12,6 +12,7 @@ import type {
     ReportCategory,
     CreateReportPayload,
     GeocodeSuggestion,
+    ReportStatus,
 } from '@/types/report';
 
 // ======================================================
@@ -117,7 +118,7 @@ export async function createReport(
         // Cache to IndexedDB (non-blocking)
         if (response.data) {
             try {
-                await reportsDB.save(response.data as unknown as import('@/types').Report);
+                await reportsDB.save(response.data);
             } catch (cacheErr) {
                 console.warn('[ReportService] Failed to cache report to IndexedDB:', cacheErr);
             }
@@ -220,6 +221,12 @@ export function isOfflineLikeReportError(error: unknown): boolean {
     return false;
 }
 
+export function isReportStatusConflictError(error: unknown): error is ApiError {
+    return error instanceof ApiError
+        && error.status === 409
+        && error.code === 'REPORT_STATUS_CONFLICT';
+}
+
 // ======================================================
 // My Reports
 // ======================================================
@@ -261,9 +268,7 @@ export async function getMyReports(
         // Cache to IndexedDB (non-blocking)
         if (response.data.length > 0) {
             try {
-                await reportsDB.saveMany(
-                    response.data as unknown as import('@/types').Report[]
-                );
+                await reportsDB.saveMany(response.data);
             } catch (cacheErr) {
                 console.warn('[ReportService] Failed to cache reports to IndexedDB:', cacheErr);
             }
@@ -370,7 +375,7 @@ export async function getReportById(id: string): Promise<CitizenReport | null> {
 
         // Cache to IndexedDB (non-blocking)
         try {
-            await reportsDB.save(response.data as unknown as import('@/types').Report);
+            await reportsDB.save(response.data);
         } catch (cacheErr) {
             console.warn('[ReportService] Failed to cache report to IndexedDB:', cacheErr);
         }
@@ -416,6 +421,29 @@ export async function removeReportMedia(
     mediaId: string
 ): Promise<void> {
     await apiClient.delete(ENDPOINTS.reports.removeMedia(reportId, mediaId));
+}
+
+// ======================================================
+// Update Report Status (admin/moderator)
+// ======================================================
+
+export interface UpdateReportStatusPayload {
+    status: ReportStatus;
+    note?: string;
+    version: string;
+}
+
+export async function updateReportStatus(
+    reportId: string,
+    payload: UpdateReportStatusPayload
+): Promise<CitizenReport> {
+    const response = await apiClient.patch<{
+        success: boolean;
+        message: string;
+        data: CitizenReport;
+    }>(ENDPOINTS.reports.updateStatus(reportId), payload);
+
+    return response.data;
 }
 
 // ======================================================
@@ -480,6 +508,9 @@ export const reportService = {
     getReportById,
     addReportMedia,
     removeReportMedia,
+    updateReportStatus,
+    isReportStatusConflictError,
+    isOfflineLikeReportError,
     geocodeAutocomplete,
     geocodeReverse,
 };

@@ -1,7 +1,7 @@
 /**
  * Auto-generated types from OpenAPI specification
  * 
- * Generated at: 2026-02-03T18:51:20.886Z
+ * Generated at: 2026-02-08T11:36:09.538Z
  * Source: contracts/openapi.yaml
  * 
  * For full type generation, install openapi-typescript:

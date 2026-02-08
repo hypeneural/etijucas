@@ -9,11 +9,17 @@ Objetivo: executar as melhorias P0/P1/P2 com baixo risco de regressao, em PRs pe
 ## Status Consolidado (atual)
 
 - Checklist central por prioridade: `DENUNCIAS_PR_CHECKLIST_PRIORIZADA_2026-02-08.md`
+- Gate final manual/ambiente: `DENUNCIAS_GATE_FINAL_VALIDACAO_2026-02-08.md`
 - PR-01: `CONCLUIDO` (`DENUNCIAS_PR01_TASKS_DETALHADAS_2026-02-08.md`)
 - PR-02: `CONCLUIDO` (`DENUNCIAS_PR02_TASKS_DETALHADAS_2026-02-08.md`)
 - PR-03: `CONCLUIDO` (`DENUNCIAS_PR03_TASKS_DETALHADAS_2026-02-08.md`)
 - PR-04: `CONCLUIDO` (`DENUNCIAS_PR04_TASKS_DETALHADAS_2026-02-08.md`)
-- PR-05 ate PR-10: `PENDENTE`
+- PR-05: `CONCLUIDO` (`DENUNCIAS_PR05_TASKS_DETALHADAS_2026-02-08.md`)
+- PR-06: `EM_VALIDACAO_MANUAL` (`DENUNCIAS_PR06_TASKS_DETALHADAS_2026-02-08.md`)
+- PR-07: `CONCLUIDO` (`DENUNCIAS_PR07_TASKS_DETALHADAS_2026-02-08.md`)
+- PR-08: `CONCLUIDO` (`DENUNCIAS_PR08_TASKS_DETALHADAS_2026-02-08.md`)
+- PR-09: `CONCLUIDO` (`DENUNCIAS_PR09_TASKS_DETALHADAS_2026-02-08.md`)
+- PR-10: `CONCLUIDO` (`DENUNCIAS_PR10_TASKS_DETALHADAS_2026-02-08.md`)
 
 ---
 
@@ -253,6 +259,12 @@ Rollback:
 
 ## PR-05 - Pipeline de Imagem e Limites (P0)
 
+Execucao detalhada com IDs de tasks e subtarefas:
+
+- `DENUNCIAS_PR05_TASKS_DETALHADAS_2026-02-08.md`
+
+Status: `CONCLUIDO`
+
 Objetivo:
 
 - padronizar compressao no client;
@@ -308,6 +320,12 @@ Rollback:
 
 ## PR-06 - UX Mapa Native Feel (P0/P1)
 
+Execucao detalhada com IDs de tasks e subtarefas:
+
+- `DENUNCIAS_PR06_TASKS_DETALHADAS_2026-02-08.md`
+
+Status: `EM_VALIDACAO_MANUAL`
+
 Objetivo:
 
 - reduzir abandono no step de localizacao;
@@ -347,6 +365,12 @@ Rollback:
 
 ## PR-07 - Rate Limiting Dedicado + Logs (P1)
 
+Execucao detalhada com IDs de tasks e subtarefas:
+
+- `DENUNCIAS_PR07_TASKS_DETALHADAS_2026-02-08.md`
+
+Status: `CONCLUIDO`
+
 Objetivo:
 
 - conter spam sem degradar experiencia legitima;
@@ -361,14 +385,13 @@ Arquivos (API):
 - `apps/api/routes/api.php`
   - aplicar `throttle:reports-create` em `POST /reports`.
   - aplicar `throttle:reports-media` em `POST /reports/{id}/media`.
-- `apps/api/app/Http/Middleware/RequestIdMiddleware.php`
-  - garantir contexto para logs de bloqueio.
+  - manter middleware generico removido do grupo de reports autenticado.
 
 Arquivos (Testes):
 
-- `apps/api/tests/Feature/Reports/ReportRateLimitTenantScopeTest.php` (novo)
-  - bloqueio por tenant+ip.
-  - tenant A bloqueado nao impacta tenant B.
+- `apps/api/tests/Unit/Providers/RateLimiterTenantScopeTest.php`
+  - validar key e limites de `reports-create` e `reports-media`.
+  - validar isolamento tenant A bloqueado nao impacta tenant B.
 
 DoD:
 
@@ -387,6 +410,12 @@ Rollback:
 
 ## PR-08 - Conflito de Edicao (409) (P1)
 
+Execucao detalhada com IDs de tasks e subtarefas:
+
+- `DENUNCIAS_PR08_TASKS_DETALHADAS_2026-02-08.md`
+
+Status: `CONCLUIDO`
+
 Objetivo:
 
 - evitar sobrescrita silenciosa de status em concorrencia/offline.
@@ -394,23 +423,25 @@ Objetivo:
 Arquivos (API):
 
 - `apps/api/app/Domains/Reports/Http/Requests/UpdateReportStatusRequest.php`
-  - aceitar token de versao (`If-Unmodified-Since` ou `version`).
+  - exigir token de versao (`version`) e aceitar fallback por header `If-Unmodified-Since`.
 - `apps/api/app/Domains/Reports/Http/Controllers/ReportController.php`
   - validar token antes de atualizar.
   - retornar `409 Conflict` com estado atual quando divergente.
-- `apps/api/app/Domains/Reports/Actions/UpdateReportStatusAction.php`
-  - manter acao pura; conflito tratado no controller.
 
-Arquivos (Front/Admin Web):
+Arquivos (Front):
 
 - `apps/web/src/services/report.service.ts`
-  - mapear erro `409` para tipo de conflito.
-- `apps/web/src/pages/ReportDetailPage.tsx` (ou tela admin correspondente)
-  - exibir mensagem "denuncia atualizada por outro moderador" + CTA refresh.
+  - helper `isReportStatusConflictError`.
+  - endpoint tipado `updateReportStatus` com `version`.
+- `apps/web/src/services/report.service.test.ts`
+  - cobertura de deteccao do erro `409` de conflito.
 
 Arquivos (Testes):
 
 - `apps/api/tests/Feature/Reports/ReportStatusConflictTest.php` (novo)
+  - sucesso com `version` atual.
+  - conflito com `version` stale.
+  - fallback via `If-Unmodified-Since`.
 
 DoD:
 
@@ -429,6 +460,12 @@ Rollback:
 
 ## PR-09 - Hardening de Dados + Indices (P1)
 
+Execucao detalhada com IDs de tasks e subtarefas:
+
+- `DENUNCIAS_PR09_TASKS_DETALHADAS_2026-02-08.md`
+
+Status: `CONCLUIDO`
+
 Objetivo:
 
 - eliminar registros sem `city_id`;
@@ -436,11 +473,11 @@ Objetivo:
 
 Arquivos (DB migrations):
 
-- `apps/api/database/migrations/2026_02_08_220000_backfill_city_id_in_citizen_reports.php` (novo)
-  - preencher `city_id` legado (via user/categoria/cidade default controlada).
-- `apps/api/database/migrations/2026_02_08_220100_make_city_id_not_null_in_citizen_reports.php` (novo)
-  - aplicar `NOT NULL` com seguranca.
-- `apps/api/database/migrations/2026_02_08_220200_add_reports_tenant_composite_indexes.php` (novo)
+- `apps/api/database/migrations/2026_02_08_230000_backfill_city_id_in_citizen_reports.php` (novo)
+  - preencher `city_id` legado (via user/bairro/cidade default controlada).
+- `apps/api/database/migrations/2026_02_08_230100_make_city_id_not_null_in_citizen_reports.php` (novo)
+  - aplicar `NOT NULL` com seguranca (MySQL/MariaDB).
+- `apps/api/database/migrations/2026_02_08_230200_add_reports_tenant_composite_indexes.php` (novo)
   - criar:
     - `(city_id, created_at)`
     - `(city_id, status, created_at)`
@@ -449,7 +486,7 @@ Arquivos (DB migrations):
 Arquivos (Testes/validacao):
 
 - `apps/api/tests/Feature/Reports/ReportsIndexCoverageTest.php` (novo)
-  - validar plano de execucao usando indice.
+  - validar existencia dos indices compostos esperados.
 
 DoD:
 
@@ -468,6 +505,12 @@ Rollback:
 
 ## PR-10 - Contratos, Tipos, Lint/Testes e Observabilidade (P2)
 
+Execucao detalhada com IDs de tasks e subtarefas:
+
+- `DENUNCIAS_PR10_TASKS_DETALHADAS_2026-02-08.md`
+
+Status: `CONCLUIDO`
+
 Objetivo:
 
 - reduzir drift entre API e front;
@@ -476,41 +519,51 @@ Objetivo:
 Arquivos (Contratos):
 
 - `contracts/openapi.yaml`
-  - corrigir `POST /api/v1/reports` para multipart real.
-  - documentar `X-Idempotency-Key`.
-  - documentar respostas publicas x privadas.
+  - corrigir `POST /api/v1/reports` para multipart real. (`DONE`)
+  - documentar `X-Idempotency-Key`. (`DONE`)
+  - documentar respostas publicas x privadas. (`DONE`)
 - `contracts/features.yaml`
-  - trocar `/users/me/reports` para `/reports/me`.
+  - trocar `/users/me/reports` para `/reports/me`. (`DONE`)
 
 Arquivos (Front types):
 
 - `apps/web/src/types/index.ts`
-  - remover modelo legado de report (ou marcar explicitamente deprecated fora do modulo).
+  - remover dependencia do modelo legado no modulo de denuncias. (`DONE`)
 - `apps/web/src/types/report.ts`
-  - consolidar como fonte unica para modulo de denuncias.
+  - consolidar como fonte unica para modulo de denuncias. (`DONE`)
+- `apps/web/src/lib/localDatabase.ts`
+  - tipar `reportsDB` com `CitizenReport`. (`DONE`)
+- `apps/web/src/hooks/useOfflineReports.ts`
+  - alinhar hook legado ao contrato atual de reports. (`DONE`)
+- `apps/web/src/hooks/queries/useReports.ts`
+  - transformar em bridge para hooks modernos de reports. (`DONE`)
 
 Arquivos (Lint):
 
 - `apps/web/eslint.config.js`
   - ignorar `dev-dist/**`.
 - `apps/web/src/pages/ReportWizardPage.tsx`
-  - corrigir hooks condicionais.
+  - corrigir hooks condicionais. (`DONE`)
 - `apps/web/src/pages/MyReportsPage.tsx`
-  - corrigir hooks condicionais e bug `setFilter(null)`.
+  - corrigir hooks condicionais e bug `setFilter(null)`. (`DONE`)
 
 Arquivos (Testes API):
 
 - `apps/api/phpunit.xml` e/ou pipeline CI
-  - alinhar ambiente de teste (preferencia MariaDB/MySQL para migrations atuais).
+  - alinhar ambiente de teste para gate de reports no CI. (`DONE`)
+- `.github/workflows/reports-quality-gate.yml`
+  - executar `pnpm check:reports` automaticamente em `pull_request`/`push` para o escopo de denuncias. (`DONE`)
+- `package.json`
+  - adicionar perfil `check:reports` para execução padronizada web+api no CI. (`DONE`)
 
 Arquivos (Observabilidade):
 
 - `apps/web/src/services/reportOutbox.service.ts`
-  - emitir metricas de fila (`pending`, `failed`, `retry`).
+  - expor métricas e assinatura de eventos do sync runtime. (`DONE`)
 - `apps/api/app/Http/Middleware/IdempotencyKey.php`
-  - logs de replay.
+  - logs de replay. (`DONE`)
 - `apps/api/app/Providers/AppServiceProvider.php`
-  - logs de throttling de reports.
+  - logs de throttling de reports. (`DONE`)
 
 DoD:
 

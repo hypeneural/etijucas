@@ -11,8 +11,10 @@ import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-lea
 import L from 'leaflet';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Navigation, MapPin, WifiOff } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Navigation, MapPin, WifiOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { haptic } from '@/hooks/useHaptic';
+import { MapSkeleton } from './MapSkeleton';
 
 // Fix for default marker icon in Leaflet + Vite
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
@@ -33,6 +35,7 @@ interface LocationMapProps {
     zoom?: number;
     onLocationChange: (lat: number, lon: number) => void;
     onCenterGPS?: () => void;
+    onConfirmLocation?: () => void;
     hasGPS?: boolean;
     className?: string;
 }
@@ -109,11 +112,15 @@ export function LocationMap({
     zoom = 16,
     onLocationChange,
     onCenterGPS,
+    onConfirmLocation,
     hasGPS = false,
     className,
     readOnly = false,
 }: LocationMapProps & { readOnly?: boolean }) {
     const [isOnline, setIsOnline] = useState(navigator.onLine);
+    const [isMapReady, setIsMapReady] = useState(false);
+    const [isTileLayerLoaded, setIsTileLayerLoaded] = useState(false);
+    const [tileLoadError, setTileLoadError] = useState(false);
     const position: [number, number] = [latitude, longitude];
 
     // Online/offline detection
@@ -132,17 +139,25 @@ export function LocationMap({
 
     const handleMarkerDragEnd = useCallback(
         (lat: number, lon: number) => {
-            if (!readOnly) onLocationChange(lat, lon);
+            if (!readOnly) {
+                haptic('selection');
+                onLocationChange(lat, lon);
+            }
         },
         [onLocationChange, readOnly]
     );
 
     const handleMapClick = useCallback(
         (lat: number, lon: number) => {
-            if (!readOnly) onLocationChange(lat, lon);
+            if (!readOnly) {
+                haptic('selection');
+                onLocationChange(lat, lon);
+            }
         },
         [onLocationChange, readOnly]
     );
+
+    const showMapSkeleton = isOnline && (!isMapReady || !isTileLayerLoaded) && !tileLoadError;
 
     // Offline fallback
     if (!isOnline) {
@@ -176,10 +191,20 @@ export function LocationMap({
                     scrollWheelZoom={true}
                     className="h-48 w-full z-0"
                     zoomControl={false}
+                    whenReady={() => setIsMapReady(true)}
                 >
                     <TileLayer
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                        eventHandlers={{
+                            load: () => {
+                                setIsTileLayerLoaded(true);
+                                setTileLoadError(false);
+                            },
+                            tileerror: () => {
+                                setTileLoadError(true);
+                            },
+                        }}
                     />
                     <DraggableMarker
                         position={position}
@@ -190,6 +215,17 @@ export function LocationMap({
                     <MapController center={position} zoom={zoom} />
                 </MapContainer>
 
+                {showMapSkeleton && <MapSkeleton />}
+
+                {tileLoadError && (
+                    <div className="absolute left-2 top-2 right-2 z-20 rounded-lg bg-amber-100/90 px-2 py-1 text-[11px] text-amber-900 backdrop-blur-sm">
+                        <div className="flex items-center gap-1.5">
+                            <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                            <span>Falha parcial no mapa. Continue ajustando o ponto.</span>
+                        </div>
+                    </div>
+                )}
+
                 {/* GPS Button */}
                 {hasGPS && onCenterGPS && (
                     <Button
@@ -199,6 +235,21 @@ export function LocationMap({
                         onClick={onCenterGPS}
                     >
                         <Navigation className="h-4 w-4" />
+                    </Button>
+                )}
+
+                {/* Floating confirm button */}
+                {!readOnly && onConfirmLocation && (
+                    <Button
+                        size="sm"
+                        className="absolute bottom-8 right-2 z-20 h-8 rounded-full px-3 shadow-lg"
+                        onClick={() => {
+                            haptic('success');
+                            onConfirmLocation();
+                        }}
+                    >
+                        <CheckCircle2 className="h-3.5 w-3.5 mr-1.5" />
+                        Confirmar local
                     </Button>
                 )}
 
