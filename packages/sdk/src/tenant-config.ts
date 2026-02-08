@@ -4,7 +4,9 @@ export interface TenantCityConfig {
     slug: string;
     uf: string;
     fullName: string;
-    status: 'staging' | 'active' | 'inactive' | 'archived';
+    status: 'draft' | 'staging' | 'active' | 'paused' | 'inactive' | 'archived';
+    timezone: string;
+    isCoastal: boolean;
     ibgeCode?: string;
 }
 
@@ -37,6 +39,8 @@ export interface TenantGeoConfig {
 export interface TenantFeaturesConfig {
     offlineEnabled?: boolean;
     pushNotifications?: boolean;
+    weatherV2?: boolean;
+    weatherV2RolloutMode?: 'all' | 'canary' | 'off';
 }
 
 export interface TenantConfigPayload {

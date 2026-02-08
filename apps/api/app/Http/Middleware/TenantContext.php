@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Models\City;
 use App\Models\CityDomain;
+use App\Support\Tenant;
 use App\Support\TenantIncidentReporter;
 use Closure;
 use Illuminate\Http\Request;
@@ -96,15 +97,34 @@ class TenantContext
         }
 
         // Bind city to container for easy access
+        $tenantKey = Tenant::buildKey($city);
+        $tenantTimezone = (string) ($city->timezone ?: 'America/Sao_Paulo');
+
         app()->instance('tenant.city', $city);
+        app()->instance('tenant.key', $tenantKey);
+        app()->instance('tenant.timezone', $tenantTimezone);
+        Log::shareContext([
+            'tenant_city_id' => $city->id,
+            'tenant_slug' => $city->slug,
+            'tenant_key' => $tenantKey,
+            'tenant_timezone' => $tenantTimezone,
+        ]);
 
         // Also set on request for controllers
         $request->attributes->set('tenant_city_id', $city->id);
         $request->attributes->set('tenant_city', $city);
+        $request->attributes->set('tenant_key', $tenantKey);
+        $request->attributes->set('tenant_timezone', $tenantTimezone);
         $request->attributes->set('tenant_resolution_source', $resolutionSource);
         app()->instance('tenant.resolution_source', $resolutionSource);
 
-        return $next($request);
+        $response = $next($request);
+
+        $response->headers->set('X-Tenant-City', $city->slug);
+        $response->headers->set('X-Tenant-Timezone', $tenantTimezone);
+        $response->headers->set('X-Tenant-Key', $tenantKey);
+
+        return $response;
     }
 
     /**

@@ -3,6 +3,15 @@
 namespace App\Providers;
 
 use App\Console\Commands\MakeAdminCrud;
+use App\Domains\Weather\Contracts\WeatherProviderInterface;
+use App\Domains\Weather\Providers\OpenMeteoProvider;
+use App\Domains\Weather\Services\WeatherServiceV2;
+use App\Domains\Weather\Support\WeatherCacheKeyFactory;
+use App\Domains\Weather\Support\WeatherCircuitBreaker;
+use App\Domains\Weather\Support\WeatherNormalizer;
+use App\Domains\Weather\Support\WeatherTelemetry;
+use App\Domains\Weather\Support\WeatherTtlJitter;
+use App\Domains\Weather\Support\WeatherTtlPolicy;
 use App\Domains\Reports\Models\CitizenReport;
 use App\Domains\Reports\Models\ReportCategory;
 use App\Domains\Tourism\Models\TourismReview;
@@ -73,6 +82,27 @@ class AppServiceProvider extends ServiceProvider
         $this->commands([
             MakeAdminCrud::class,
         ]);
+
+        $this->app->bind(WeatherProviderInterface::class, OpenMeteoProvider::class);
+        $this->app->singleton(WeatherCacheKeyFactory::class);
+        $this->app->singleton(WeatherTtlPolicy::class);
+        $this->app->singleton(WeatherTtlJitter::class);
+        $this->app->singleton(WeatherCircuitBreaker::class, function ($app) {
+            return new WeatherCircuitBreaker($app->make(WeatherCacheKeyFactory::class));
+        });
+        $this->app->singleton(WeatherNormalizer::class);
+        $this->app->singleton(WeatherTelemetry::class);
+        $this->app->singleton(WeatherServiceV2::class, function ($app) {
+            return new WeatherServiceV2(
+                $app->make(WeatherProviderInterface::class),
+                $app->make(WeatherNormalizer::class),
+                $app->make(WeatherCacheKeyFactory::class),
+                $app->make(WeatherTtlPolicy::class),
+                $app->make(WeatherTtlJitter::class),
+                $app->make(WeatherCircuitBreaker::class),
+                $app->make(WeatherTelemetry::class),
+            );
+        });
     }
 
     /**

@@ -23,7 +23,7 @@ class BackfillCityId implements ShouldQueue, GlobalQueueJob
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    private const TIJUCAS_IBGE = 4218007;
+    private const TIJUCAS_IBGE = 4218004;
 
     /**
      * Tables to backfill (table => has_bairro_id)

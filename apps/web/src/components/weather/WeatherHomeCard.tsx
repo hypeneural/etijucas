@@ -12,6 +12,7 @@ import { useWeatherHome } from '@/services/weather.service';
 import { getWeatherInfo, getWindDirection } from '@/types/weather';
 import { cn } from '@/lib/utils';
 import { haptic } from '@/hooks/useHaptic';
+import { extractHourFromLocalIso, extractTimeFromLocalIso, getNowInTimeZone } from '@/lib/timezone';
 
 // Generate human-readable phrase based on conditions
 function getHeroPhrase(
@@ -71,7 +72,7 @@ export function WeatherHomeCard() {
 
     const { current, today, next_hours, marine_preview } = data;
     const weatherInfo = getWeatherInfo(current.weather_code);
-    const isNight = checkIsNight(today?.sunrise, today?.sunset);
+    const isNight = checkIsNight(today?.sunrise, today?.sunset, data?.location?.timezone);
 
     // Calculate rain in next hours
     const rainNextHours = next_hours?.some(h => h.rain_prob_pct > 50);
@@ -182,14 +183,13 @@ export function WeatherHomeCard() {
                         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
                             {next_hours.slice(0, 6).map((hour, idx) => {
                                 const hourInfo = getWeatherInfo(hour.weather_code);
-                                const time = new Date(hour.t);
                                 return (
                                     <div
                                         key={idx}
                                         className="flex-shrink-0 text-center bg-white/10 backdrop-blur-sm rounded-lg px-2 py-1.5"
                                     >
                                         <div className="text-xs text-white/70">
-                                            {time.getHours()}h
+                                            {extractHourFromLocalIso(hour.t)}h
                                         </div>
                                         <Icon
                                             icon={hourInfo.icon}
@@ -240,17 +240,21 @@ function WeatherHomeCardSkeleton() {
     );
 }
 
-function checkIsNight(sunrise?: string, sunset?: string): boolean {
+function checkIsNight(sunrise?: string, sunset?: string, timezone?: string): boolean {
+    const safeTimezone = timezone || 'America/Sao_Paulo';
+    const now = getNowInTimeZone(safeTimezone);
+
     if (!sunrise || !sunset) {
-        const hour = new Date().getHours();
-        return hour < 6 || hour >= 18;
+        return now.hour < 6 || now.hour >= 18;
     }
 
-    const now = new Date();
-    const sunriseTime = new Date(sunrise);
-    const sunsetTime = new Date(sunset);
+    const [sunriseHour, sunriseMinute] = extractTimeFromLocalIso(sunrise).split(':').map(Number);
+    const [sunsetHour, sunsetMinute] = extractTimeFromLocalIso(sunset).split(':').map(Number);
+    const nowMinutes = now.hour * 60 + now.minute;
+    const sunriseMinutes = (sunriseHour || 0) * 60 + (sunriseMinute || 0);
+    const sunsetMinutes = (sunsetHour || 0) * 60 + (sunsetMinute || 0);
 
-    return now < sunriseTime || now > sunsetTime;
+    return nowMinutes < sunriseMinutes || nowMinutes > sunsetMinutes;
 }
 
 export default WeatherHomeCard;

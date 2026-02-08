@@ -104,6 +104,7 @@ class FullBrazilianCitiesSeeder extends Seeder
                     'lon' => $cityData['longitude'] ?? null,
                     'ddd' => isset($cityData['ddd']) ? (string) $cityData['ddd'] : null,
                     'timezone' => $cityData['fuso_horario'] ?? 'America/Sao_Paulo',
+                    'is_coastal' => false,
                     'active' => ($cityData['codigo_ibge'] == 4218004), // Only Tijucas is active (ibge: 4218004)
                     'is_capital' => (bool) ($cityData['capital'] ?? false),
                     'siafi_id' => $cityData['siafi_id'] ?? null,

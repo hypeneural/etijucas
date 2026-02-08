@@ -1,4 +1,5 @@
 import { API_CONFIG, ENDPOINTS } from './config';
+import { resolveCitySlugForRequest, useTenantStore } from '@/store/useTenantStore';
 
 // Token storage keys
 const TOKEN_KEY = 'etijucas_token';
@@ -99,6 +100,32 @@ function getAdaptiveTimeout(defaultTimeout: number): number {
     return defaultTimeout;
 }
 
+function getTenantHeaders(): Record<string, string> {
+    const citySlug = resolveCitySlugForRequest();
+
+    if (!citySlug) {
+        return {};
+    }
+
+    return { 'X-City': citySlug };
+}
+
+function syncTenantContextFromResponse(response: Response): void {
+    const tenantKey = response.headers.get('X-Tenant-Key');
+    const tenantTimezone = response.headers.get('X-Tenant-Timezone');
+    const tenantCity = response.headers.get('X-Tenant-City');
+
+    if (!tenantKey && !tenantTimezone && !tenantCity) {
+        return;
+    }
+
+    useTenantStore.getState().syncTransportContext({
+        citySlug: tenantCity,
+        tenantKey,
+        tenantTimezone,
+    });
+}
+
 /**
  * Attempt to refresh the access token using the refresh token.
  * Uses direct fetch to avoid interceptor loops.
@@ -124,10 +151,13 @@ async function performTokenRefresh(): Promise<string | null> {
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json',
+                        ...getTenantHeaders(),
                     },
                     body: JSON.stringify({ refreshToken }),
                 }
             );
+
+            syncTenantContextFromResponse(response);
 
             if (!response.ok) {
                 // Refresh failed - clear tokens
@@ -183,6 +213,7 @@ async function fetchWithRetry<T>(
             'Accept': 'application/json',
             'X-App-Version': '1.0.0',
             ...(authToken && { 'Authorization': `Bearer ${authToken}` }),
+            ...getTenantHeaders(),
             ...fetchOptions.headers as Record<string, string>,
         };
 
@@ -193,6 +224,7 @@ async function fetchWithRetry<T>(
         });
 
         clearTimeout(timeoutId);
+        syncTenantContextFromResponse(response);
 
         // Handle 401 Unauthorized - try token refresh first
         if (response.status === 401) {
@@ -319,6 +351,7 @@ export const apiClient = {
             'Accept': 'application/json',
             'X-App-Version': '1.0.0',
             ...(authToken && { 'Authorization': `Bearer ${authToken}` }),
+            ...getTenantHeaders(),
             ...(options?.headers || {}),
         };
         // Note: Do NOT set Content-Type for FormData - browser sets it with boundary
@@ -328,6 +361,8 @@ export const apiClient = {
             headers,
             body: formData,
         });
+
+        syncTenantContextFromResponse(response);
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));

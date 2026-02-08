@@ -1,0 +1,1 @@
+import{f as t}from"./index-C4Iad8d5.js";const e={name:"Tijucas",uf:"SC",fullName:"Tijucas/SC"};function s(){const a=t(n=>n.city);return{name:a?.name??e.name,fullName:a?.fullName??e.fullName,uf:a?.uf??e.uf,slug:a?.slug??null}}function c(){const a=t(u=>u.brand),n=t(u=>u.city);return a?.appName??`e${n?.name??e.name}`}export{s as a,c as u};

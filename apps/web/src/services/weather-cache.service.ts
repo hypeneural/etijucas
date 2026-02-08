@@ -8,6 +8,8 @@ const DB_NAME = 'etijucas-weather-cache';
 const DB_VERSION = 1;
 const STORE_NAME = 'weather-data';
 
+export type WeatherCacheScope = 'home' | 'forecast' | 'marine' | 'insights' | 'preset' | 'bundle';
+
 // Cache TTLs (in milliseconds)
 const CACHE_TTLS = {
     home: 30 * 60 * 1000,      // 30 minutes
@@ -32,8 +34,82 @@ export interface CacheStatus {
     isUpdating: boolean;
 }
 
+export interface BuildWeatherCacheKeyOptions {
+    scope: WeatherCacheScope;
+    tenantKey: string;
+    days?: number;
+    units?: 'metric' | 'imperial';
+    sections?: string[];
+    presetType?: string;
+    params?: Record<string, string | number | boolean | undefined>;
+}
+
 // Initialize IndexedDB
 let dbPromise: Promise<IDBDatabase> | null = null;
+
+function normalizeSegment(value: string): string {
+    return value
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, '-');
+}
+
+function normalizeSections(sections?: string[]): string {
+    if (!sections || sections.length === 0) {
+        return 'none';
+    }
+
+    const normalized = sections
+        .map(normalizeSegment)
+        .filter(Boolean);
+
+    normalized.sort();
+
+    return normalized.join(',');
+}
+
+/**
+ * Build tenant-aware cache key for IndexedDB.
+ * Format: weather:{scope}:{tenantKey}:days:{n}:units:{u}:sections:{s}:v1
+ */
+export function buildWeatherCacheKey(options: BuildWeatherCacheKeyOptions): string {
+    const parts: string[] = [
+        'weather',
+        normalizeSegment(options.scope),
+        normalizeSegment(options.tenantKey || 'global'),
+    ];
+
+    if (typeof options.days === 'number') {
+        parts.push('days', String(options.days));
+    }
+
+    if (options.units) {
+        parts.push('units', normalizeSegment(options.units));
+    }
+
+    if (options.presetType) {
+        parts.push('preset', normalizeSegment(options.presetType));
+    }
+
+    if (options.sections && options.sections.length > 0) {
+        parts.push('sections', normalizeSections(options.sections));
+    }
+
+    if (options.params) {
+        const paramPairs = Object.entries(options.params)
+            .filter(([, value]) => value !== undefined && value !== null)
+            .map(([key, value]) => `${normalizeSegment(key)}=${normalizeSegment(String(value))}`)
+            .sort();
+
+        if (paramPairs.length > 0) {
+            parts.push('params', paramPairs.join('&'));
+        }
+    }
+
+    parts.push('v1');
+
+    return parts.join(':');
+}
 
 function getDB(): Promise<IDBDatabase> {
     if (dbPromise) return dbPromise;
@@ -287,6 +363,7 @@ export const CACHE_KEYS = {
     FORECAST: 'weather-forecast',
     MARINE: 'weather-marine',
     INSIGHTS: 'weather-insights',
+    BUNDLE: 'weather-bundle',
 } as const;
 
 export default {

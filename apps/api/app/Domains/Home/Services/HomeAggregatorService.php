@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domains\Home\Services;
 
-use App\Domains\Weather\Services\OpenMeteoService;
+use App\Domains\Weather\Contracts\WeatherOptions;
 use App\Domains\Weather\Services\WeatherInsightsService;
+use App\Domains\Weather\Services\WeatherServiceV2;
 use App\Models\Alert;
 use App\Models\Event;
 use App\Models\Topic;
@@ -32,7 +33,7 @@ class HomeAggregatorService
     private const CACHE_TTL_STATS = 600; // 10 minutes
 
     public function __construct(
-        private OpenMeteoService $weatherService,
+        private WeatherServiceV2 $weatherService,
         private WeatherInsightsService $insightsService
     ) {
     }
@@ -344,27 +345,110 @@ class HomeAggregatorService
 
     private function getWeatherBrief(): array
     {
-        try {
-            $weather = $this->weatherService->getWeather();
-            $marine = $this->weatherService->getMarine();
-            $insights = $this->insightsService->generateInsights($weather ?? [], $marine ?? []);
+        $city = Tenant::city();
+        $cityName = (string) ($city?->name ?: 'sua cidade');
+        $timezone = (string) ($city?->timezone ?: 'America/Sao_Paulo');
+        $defaultPhrase = "Tempo estavel em {$cityName}";
 
-            $current = $weather['current'] ?? [];
-
-            return [
-                'temp' => (int) ($current['temperature_2m'] ?? 25),
-                'icon' => $current['weather_code'] ?? 0,
-                'frase' => $insights['beach']['headline'] ?? 'Tempo bom em Tijucas',
-                'uv' => $insights['uv']['severity'] ?? 'moderate',
-            ];
-        } catch (\Exception $e) {
+        if (!$city) {
             return [
                 'temp' => 25,
                 'icon' => 0,
-                'frase' => 'Tempo bom em Tijucas',
+                'frase' => $defaultPhrase,
                 'uv' => 'moderate',
             ];
         }
+
+        try {
+            $options = new WeatherOptions(
+                forecastDays: 2,
+                units: 'metric',
+                timezone: $timezone,
+            );
+
+            $forecastEnvelope = $this->weatherService->getSection($city, $options, 'forecast');
+            $forecastData = is_array($forecastEnvelope['data'] ?? null) ? $forecastEnvelope['data'] : [];
+
+            $marineData = [];
+            if ((bool) ($city->is_coastal ?? false)) {
+                $marineEnvelope = $this->weatherService->getSection($city, $options, 'marine');
+                $marineData = is_array($marineEnvelope['data'] ?? null) ? $marineEnvelope['data'] : [];
+            }
+
+            $insights = $this->insightsService->generateInsights(
+                ['data' => $forecastData],
+                ['data' => $marineData],
+                $timezone,
+            );
+
+            $current = is_array($forecastData['current'] ?? null) ? $forecastData['current'] : [];
+            $temperature = isset($current['temperature_2m']) ? (float) $current['temperature_2m'] : 25.0;
+            $weatherCode = isset($current['weather_code']) ? (int) $current['weather_code'] : 0;
+
+            return [
+                'temp' => (int) round($temperature),
+                'icon' => $weatherCode,
+                'frase' => $this->extractWeatherPhrase($insights, $defaultPhrase),
+                'uv' => $this->extractUvSeverity($insights),
+            ];
+        } catch (\Exception $e) {
+            \Log::warning('Home weather brief failed', [
+                'city' => $city->slug,
+                'error' => $e->getMessage(),
+            ]);
+
+            return [
+                'temp' => 25,
+                'icon' => 0,
+                'frase' => $defaultPhrase,
+                'uv' => 'moderate',
+            ];
+        }
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $insights
+     */
+    private function extractWeatherPhrase(array $insights, string $fallback): string
+    {
+        $priority = ['beach', 'rain', 'rain_window', 'wind', 'temperature', 'uv', 'sea'];
+
+        foreach ($priority as $type) {
+            foreach ($insights as $insight) {
+                if (!is_array($insight) || (string) ($insight['type'] ?? '') !== $type) {
+                    continue;
+                }
+
+                $message = trim((string) ($insight['message'] ?? ''));
+                if ($message !== '') {
+                    return $message;
+                }
+
+                $title = trim((string) ($insight['title'] ?? ''));
+                if ($title !== '') {
+                    return $title;
+                }
+            }
+        }
+
+        return $fallback;
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $insights
+     */
+    private function extractUvSeverity(array $insights): string
+    {
+        foreach ($insights as $insight) {
+            if (!is_array($insight) || (string) ($insight['type'] ?? '') !== 'uv') {
+                continue;
+            }
+
+            $severity = (string) ($insight['severity'] ?? 'moderate');
+            return $severity !== '' ? $severity : 'moderate';
+        }
+
+        return 'moderate';
     }
 
     private function getBoletimBlock(int $priority, ?string $bairroId): array

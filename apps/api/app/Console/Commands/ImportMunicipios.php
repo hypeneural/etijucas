@@ -88,6 +88,7 @@ class ImportMunicipios extends Command
                     'lon' => $m['longitude'],
                     'ddd' => (string) $m['ddd'],
                     'timezone' => str_replace('\\/', '/', $m['fuso_horario']),
+                    'is_coastal' => false,
                     'is_capital' => $m['capital'] === 1,
                     'siafi_id' => $m['siafi_id'],
                     'active' => false, // ALL inactive by default
@@ -111,6 +112,7 @@ class ImportMunicipios extends Command
                     'lon',
                     'ddd',
                     'timezone',
+                    'is_coastal',
                     'is_capital',
                     'siafi_id',
                     'updated_at'
@@ -125,7 +127,7 @@ class ImportMunicipios extends Command
 
         // Activate Tijucas if flag is set
         if ($this->option('activate-tijucas')) {
-            City::where('ibge_code', 4218007)->update(['active' => true]);
+            City::where('ibge_code', 4218004)->update(['active' => true]);
             $this->info('✅ Tijucas activated!');
         }
 

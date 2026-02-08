@@ -14,7 +14,7 @@ class CityDomainsSeeder extends Seeder
      */
     public function run(): void
     {
-        $tijucas = City::where('ibge_code', 4218007)->first();
+        $tijucas = City::where('ibge_code', 4218004)->first();
 
         if (!$tijucas) {
             $this->command->warn('Tijucas city not found. Run CitiesSeeder first.');

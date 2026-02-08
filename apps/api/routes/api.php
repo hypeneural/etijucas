@@ -98,6 +98,7 @@ Route::prefix('v1')->group(function () {
     // Weather API (public, cached in DB for 6h)
     // =====================================================
     Route::prefix('weather')->group(function () {
+        Route::get('bundle', [\App\Domains\Weather\Http\Controllers\WeatherBundleController::class, '__invoke']);
         Route::get('home', [\App\Domains\Weather\Http\Controllers\WeatherController::class, 'home']);
         Route::get('forecast', [\App\Domains\Weather\Http\Controllers\WeatherController::class, 'forecast']);
         Route::get('marine', [\App\Domains\Weather\Http\Controllers\WeatherController::class, 'marine']);

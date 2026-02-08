@@ -24,6 +24,8 @@ class RequestIdMiddleware
     {
         // Get or generate request ID
         $requestId = $request->header('X-Request-Id') ?? Str::uuid()->toString();
+        $request->attributes->set('request_id', $requestId);
+        app()->instance('request.id', $requestId);
 
         // Share context with all log calls in this request
         Log::shareContext([

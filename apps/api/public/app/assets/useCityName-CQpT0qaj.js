@@ -1,1 +1,0 @@
-import{f as t,D as e}from"./index-Df2jNpcx.js";function s(){const a=t(n=>n.city);return{name:a?.name??e.name,fullName:a?.fullName??e.fullName,uf:a?.uf??e.uf,slug:a?.slug??null}}function f(){const a=t(u=>u.brand),n=t(u=>u.city);return a?.appName??`e${n?.name??e.name}`}export{s as a,f as u};

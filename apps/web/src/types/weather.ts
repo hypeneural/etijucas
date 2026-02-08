@@ -155,6 +155,56 @@ export interface MarineForecastResponse {
 }
 
 // ======================================================
+// Weather Bundle v2.0
+// ======================================================
+
+export type WeatherBundleSection = 'current' | 'hourly' | 'daily' | 'marine' | 'insights';
+
+export interface WeatherSectionError {
+    code: string;
+    msg: string;
+}
+
+export interface WeatherBundleLocation {
+    city_slug: string;
+    lat: number | null;
+    lon: number | null;
+    timezone: string;
+    is_coastal: boolean;
+}
+
+export interface WeatherBundleCacheMeta {
+    generated_at_utc: string;
+    expires_at_utc: string;
+    stale_until_utc: string;
+    degraded: boolean;
+    degraded_reason: string | null;
+}
+
+export interface WeatherBundleData {
+    current?: Record<string, unknown> | null;
+    hourly?: Record<string, unknown>;
+    daily?: Record<string, unknown>;
+    marine?: Record<string, unknown> | null;
+    insights?: WeatherInsight[];
+    [key: string]: unknown;
+}
+
+export interface WeatherBundleResponse {
+    contract_version: string;
+    provider: string;
+    request_id: string;
+    location: WeatherBundleLocation;
+    cache: WeatherBundleCacheMeta;
+    errors: {
+        forecast: WeatherSectionError | null;
+        marine: WeatherSectionError | null;
+        insights: WeatherSectionError | null;
+    };
+    data: WeatherBundleData;
+}
+
+// ======================================================
 // Weather Code Mapping
 // ======================================================
 

@@ -16,6 +16,7 @@
     "check:contracts": "node tools/check-contracts.js",
     "check:features": "node tools/check-features-map.js",
     "check:tenancy": "node tools/check-tenancy-guardrails.js",
+    "check:weather": "node tools/check-weather-guardrails.js",
     "make:feature": "node tools/make-feature.js",
     "make:crud": "node tools/make-crud.js",
     "mocks:gen": "node tools/generate-mocks.js",
@@ -23,7 +24,7 @@
     "web:build": "pnpm --filter @repo/web build",
     "prod:build": "pnpm sdk:gen && pnpm web:build",
     "deploy:prep": "pnpm prod:build && echo 'Build ready in apps/api/public/app'",
-    "ci": "pnpm check:contracts && pnpm check:features && pnpm check:tenancy && pnpm lint && pnpm test && pnpm build"
+    "ci": "pnpm check:contracts && pnpm check:features && pnpm check:tenancy && pnpm check:weather && pnpm lint && pnpm test && pnpm build"
   },
   "devDependencies": {
     "typescript": "^5.8.3",

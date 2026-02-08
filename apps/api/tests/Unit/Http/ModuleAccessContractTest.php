@@ -120,6 +120,8 @@ class ModuleAccessContractTest extends TestCase
         $payload = $configResponse->getData(true);
         $this->assertTrue($payload['success']);
         $this->assertSame('Host, X-City', $configResponse->headers->get('Vary'));
+        $this->assertSame('America/Sao_Paulo', $payload['data']['city']['timezone'] ?? null);
+        $this->assertSame(false, $payload['data']['city']['isCoastal'] ?? null);
 
         $moduleKeys = array_column($payload['data']['modules'], 'key');
         $this->assertContains('forum', $moduleKeys);
@@ -176,6 +178,8 @@ class ModuleAccessContractTest extends TestCase
             'status' => 'active',
             'lat' => null,
             'lon' => null,
+            'timezone' => 'America/Sao_Paulo',
+            'is_coastal' => false,
             'active' => true,
         ]);
 
@@ -183,4 +187,3 @@ class ModuleAccessContractTest extends TestCase
         app()->instance('tenant.resolution_source', 'test');
     }
 }
-

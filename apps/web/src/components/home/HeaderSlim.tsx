@@ -20,6 +20,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useAppName } from '@/hooks/useCityName';
 import { WeatherMiniPayload } from '@/types/home.types';
 import { cn } from '@/lib/utils';
+import { useWeatherBundle } from '@/services/weather.service';
 
 interface HeaderSlimProps {
     scrollRef: React.RefObject<HTMLDivElement>;
@@ -30,8 +31,8 @@ interface HeaderSlimProps {
 
 // Weather icon based on code
 function WeatherIcon({ code, className }: { code: number; className?: string }) {
-    // Simplified - just use CloudSun for now, could expand
-    return <CloudSun className={cn('text-amber-300', className)} />;
+    const color = code >= 61 ? 'text-blue-200' : 'text-amber-300';
+    return <CloudSun className={cn(color, className)} />;
 }
 
 export default function HeaderSlim({
@@ -46,6 +47,40 @@ export default function HeaderSlim({
     const [bairroSheetOpen, setBairroSheetOpen] = useState(false);
     const { data: bairros = [] } = useBairros();
     const appName = useAppName();
+    const { data: weatherBundle } = useWeatherBundle({
+        sections: ['current'],
+        days: 1,
+        units: 'metric',
+    });
+
+    const bundleCurrent = weatherBundle?.data?.current;
+    const weatherFromBundle = (() => {
+        if (!bundleCurrent || typeof bundleCurrent !== 'object' || Array.isArray(bundleCurrent)) {
+            return null;
+        }
+
+        const payload = bundleCurrent as Record<string, unknown>;
+        const temp = Number(payload.temperature_2m);
+        const icon = Number(payload.weather_code);
+
+        if (!Number.isFinite(temp)) {
+            return null;
+        }
+
+        return {
+            temp: Math.round(temp),
+            icon: Number.isFinite(icon) ? icon : 0,
+        };
+    })();
+
+    const inlineWeather = weatherFromBundle
+        ? {
+            temp: weatherFromBundle.temp,
+            icon: weatherFromBundle.icon,
+            frase: '',
+            uv: 'moderate',
+        }
+        : weather;
 
     const { scrollY } = useScroll({
         container: scrollRef,
@@ -97,14 +132,14 @@ export default function HeaderSlim({
                     </h1>
 
                     {/* Weather inline */}
-                    {weather && (
+                    {inlineWeather && (
                         <motion.div
                             style={{ opacity: weatherOpacity }}
                             className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-white/10"
                         >
-                            <WeatherIcon code={weather.icon} className="w-4 h-4" />
+                            <WeatherIcon code={inlineWeather.icon} className="w-4 h-4" />
                             <span className="text-sm font-medium text-primary-foreground">
-                                {weather.temp}°
+                                {inlineWeather.temp}°
                             </span>
                         </motion.div>
                     )}

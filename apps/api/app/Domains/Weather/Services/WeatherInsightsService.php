@@ -34,10 +34,10 @@ class WeatherInsightsService
     /**
      * Gera todos os insights a partir dos dados de previsão
      */
-    public function generateInsights(array $weatherData, array $marineData): array
+    public function generateInsights(array $weatherData, array $marineData, string $timezone = 'America/Sao_Paulo'): array
     {
         $insights = [];
-        $now = Carbon::now('America/Sao_Paulo');
+        $now = $this->resolveNow($timezone);
 
         // Weather insights
         if (isset($weatherData['data'])) {
@@ -554,9 +554,13 @@ class WeatherInsightsService
     /**
      * Gera preset específico
      */
-    public function generatePreset(string $type, array $weatherData, array $marineData): array
-    {
-        $now = Carbon::now('America/Sao_Paulo');
+    public function generatePreset(
+        string $type,
+        array $weatherData,
+        array $marineData,
+        string $timezone = 'America/Sao_Paulo'
+    ): array {
+        $now = $this->resolveNow($timezone);
         $weather = $weatherData['data'] ?? [];
         $marine = $marineData['data'] ?? [];
 
@@ -631,5 +635,14 @@ class WeatherInsightsService
                 $this->generateUVInsights($weather, $now)
             ),
         ];
+    }
+
+    private function resolveNow(string $timezone): Carbon
+    {
+        try {
+            return Carbon::now($timezone);
+        } catch (\Throwable) {
+            return Carbon::now('America/Sao_Paulo');
+        }
     }
 }

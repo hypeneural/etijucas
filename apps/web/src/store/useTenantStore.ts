@@ -59,12 +59,19 @@ interface TenantState {
     brand: TenantBrandConfig | null;
     modules: TenantModuleConfig[];
     geo: TenantGeoConfig | null;
+    tenantKey: string | null;
+    tenantTimezone: string | null;
     isLoading: boolean;
     isBootstrapped: boolean;
     error: string | null;
 
     // Actions
     bootstrap: (citySlug: string) => Promise<boolean>;
+    syncTransportContext: (context: {
+        citySlug?: string | null;
+        tenantKey?: string | null;
+        tenantTimezone?: string | null;
+    }) => void;
     clear: () => void;
 
     // Computed
@@ -84,6 +91,8 @@ export const useTenantStore = create<TenantState>()(
             brand: null,
             modules: [],
             geo: null,
+            tenantKey: null,
+            tenantTimezone: null,
             isLoading: false,
             isBootstrapped: false,
             error: null,
@@ -109,6 +118,8 @@ export const useTenantStore = create<TenantState>()(
                         throw new Error(errorData.message || 'Cidade não encontrada');
                     }
 
+                    const responseTenantKey = response.headers.get('X-Tenant-Key');
+                    const responseTenantTimezone = response.headers.get('X-Tenant-Timezone');
                     const { data } = (await response.json()) as TenantConfigResponse;
                     const normalizedModules = (data.modules || []).map((module) => ({
                         ...module,
@@ -121,6 +132,8 @@ export const useTenantStore = create<TenantState>()(
                         brand: data.brand,
                         modules: normalizedModules,
                         geo: data.geo,
+                        tenantKey: responseTenantKey ?? null,
+                        tenantTimezone: responseTenantTimezone ?? data.city?.timezone ?? null,
                         isLoading: false,
                         isBootstrapped: true,
                         error: null,
@@ -147,6 +160,34 @@ export const useTenantStore = create<TenantState>()(
             },
 
             /**
+             * Sync tenant transport context from API response headers.
+             * URL remains canonical; this only keeps header context current.
+             */
+            syncTransportContext: ({ citySlug, tenantKey, tenantTimezone }) =>
+                set((state) => {
+                    const next: Partial<TenantState> = {};
+
+                    if (tenantKey && tenantKey !== state.tenantKey) {
+                        next.tenantKey = tenantKey;
+                    }
+
+                    if (tenantTimezone && tenantTimezone !== state.tenantTimezone) {
+                        next.tenantTimezone = tenantTimezone;
+                    } else if (!state.tenantTimezone && state.city?.timezone) {
+                        next.tenantTimezone = state.city.timezone;
+                    }
+
+                    if (citySlug && state.city && citySlug !== state.city.slug) {
+                        next.city = {
+                            ...state.city,
+                            slug: citySlug,
+                        };
+                    }
+
+                    return next;
+                }),
+
+            /**
              * Clear all tenant state (for logout/city change)
              */
             clear: () => set({
@@ -154,6 +195,8 @@ export const useTenantStore = create<TenantState>()(
                 brand: null,
                 modules: [],
                 geo: null,
+                tenantKey: null,
+                tenantTimezone: null,
                 isBootstrapped: false,
                 error: null,
             }),
@@ -193,6 +236,8 @@ export const useTenantStore = create<TenantState>()(
                 brand: state.brand,
                 modules: state.modules,
                 geo: state.geo,
+                tenantKey: state.tenantKey,
+                tenantTimezone: state.tenantTimezone,
                 isBootstrapped: state.isBootstrapped,
             }),
         }
@@ -207,6 +252,22 @@ export const useTenantStore = create<TenantState>()(
  * Get city slug for SDK initialization
  */
 export const getCitySlugForSdk = (): string | null => {
+    return useTenantStore.getState().city?.slug ?? null;
+};
+
+/**
+ * Resolve city slug for transport headers.
+ * Canonical URL (if present) wins over persisted tenant state.
+ */
+export const resolveCitySlugForRequest = (pathname?: string): string | null => {
+    const resolvedPath =
+        pathname ?? (typeof window !== 'undefined' ? window.location.pathname : '');
+    const fromPath = extractCitySlugFromPath(resolvedPath);
+
+    if (fromPath) {
+        return fromPath;
+    }
+
     return useTenantStore.getState().city?.slug ?? null;
 };
 

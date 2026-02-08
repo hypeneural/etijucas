@@ -57,6 +57,14 @@ class TenantCache
     }
 
     /**
+     * Store an item in cache for an explicit city.
+     */
+    public static function putForCity(string $cityId, string $key, mixed $value, int $ttl): bool
+    {
+        return Cache::put(self::keyForCity($cityId, $key), $value, $ttl);
+    }
+
+    /**
      * Store an item in the cache.
      */
     public static function put(string $key, mixed $value, int $ttl): bool
@@ -70,6 +78,14 @@ class TenantCache
     public static function get(string $key, mixed $default = null): mixed
     {
         return Cache::get(self::key($key), $default);
+    }
+
+    /**
+     * Get an item from cache for an explicit city.
+     */
+    public static function getForCity(string $cityId, string $key, mixed $default = null): mixed
+    {
+        return Cache::get(self::keyForCity($cityId, $key), $default);
     }
 
     /**
@@ -94,6 +110,14 @@ class TenantCache
     public static function has(string $key): bool
     {
         return Cache::has(self::key($key));
+    }
+
+    /**
+     * Check if an item exists in cache for an explicit city.
+     */
+    public static function hasForCity(string $cityId, string $key): bool
+    {
+        return Cache::has(self::keyForCity($cityId, $key));
     }
 
     /**

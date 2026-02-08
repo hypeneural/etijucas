@@ -14,6 +14,9 @@ import type { WeatherInsight } from '@/types/weather';
 
 interface SimpleWeatherViewProps {
     className?: string;
+    insights?: WeatherInsight[];
+    isLoading?: boolean;
+    hasError?: boolean;
 }
 
 // Agrupa insights por categoria
@@ -29,14 +32,29 @@ function groupInsights(insights: WeatherInsight[]) {
     return { beach, sea, rain, wind, temperature, uv, warnings };
 }
 
-export function SimpleWeatherView({ className }: SimpleWeatherViewProps) {
-    const { data, isLoading, error } = useWeatherInsights();
+export function SimpleWeatherView({
+    className,
+    insights: providedInsights,
+    isLoading: providedLoading,
+    hasError: providedError,
+}: SimpleWeatherViewProps) {
+    const {
+        data,
+        isLoading: hookLoading,
+        error: hookError,
+    } = useWeatherInsights({
+        enabled: providedInsights === undefined,
+    });
+
+    const insights = providedInsights ?? data?.insights ?? [];
+    const isLoading = providedLoading ?? hookLoading;
+    const hasError = providedError ?? Boolean(hookError);
 
     if (isLoading) {
         return <SimpleWeatherSkeleton />;
     }
 
-    if (error || !data?.insights) {
+    if (hasError || insights.length === 0) {
         return (
             <div className="text-center py-12 text-muted-foreground">
                 <Icon icon="mdi:weather-cloudy-alert" className="h-12 w-12 mx-auto mb-2 opacity-50" />
@@ -45,7 +63,7 @@ export function SimpleWeatherView({ className }: SimpleWeatherViewProps) {
         );
     }
 
-    const { beach, sea, rain, wind, temperature, uv, warnings } = groupInsights(data.insights);
+    const { beach, sea, rain, wind, temperature, uv, warnings } = groupInsights(insights);
 
     return (
         <motion.div

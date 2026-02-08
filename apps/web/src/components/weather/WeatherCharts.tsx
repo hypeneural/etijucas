@@ -10,6 +10,7 @@ import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { haptic } from '@/hooks/useHaptic';
 import type { WeatherHourPoint } from '@/types/weather';
+import { extractHourFromLocalIso } from '@/lib/timezone';
 
 // ======================================================
 // Temperature + Rain Chart
@@ -160,10 +161,9 @@ export function TempRainChart({ hours, className }: TempRainChartProps) {
             {/* Hour labels */}
             <div className="flex mt-2">
                 {hours.slice(0, 24).filter((_, i) => i % 4 === 0).map((hour, idx) => {
-                    const time = new Date(hour.t);
                     return (
                         <div key={idx} className="flex-1 text-center text-xs text-muted-foreground">
-                            {time.getHours()}h
+                            {extractHourFromLocalIso(hour.t)}h
                         </div>
                     );
                 })}
@@ -187,13 +187,11 @@ export function TempRainChart({ hours, className }: TempRainChartProps) {
 }
 
 function ChartTooltip({ hour }: { hour: WeatherHourPoint }) {
-    const time = new Date(hour.t);
-
     return (
         <div className="grid grid-cols-4 gap-3 text-center">
             <div>
                 <div className="text-xs text-muted-foreground">Hora</div>
-                <div className="font-semibold">{time.getHours()}:00</div>
+                <div className="font-semibold">{extractHourFromLocalIso(hour.t)}:00</div>
             </div>
             <div>
                 <div className="text-xs text-muted-foreground">Temp</div>
@@ -264,7 +262,6 @@ export function WindChart({ hours, className }: WindChartProps) {
             {/* Horizontal scroll wind chart */}
             <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                 {hours.slice(0, 24).map((hour, idx) => {
-                    const time = new Date(hour.t);
                     const windHeight = (hour.wind_kmh / maxWind) * 100;
                     const isSelected = selectedIndex === idx;
                     const isStrong = hour.wind_kmh >= 30 || (hour.gust_kmh ?? 0) >= 50;
@@ -284,7 +281,7 @@ export function WindChart({ hours, className }: WindChartProps) {
                         >
                             {/* Time */}
                             <div className="text-xs text-muted-foreground mb-1">
-                                {time.getHours()}h
+                                {extractHourFromLocalIso(hour.t)}h
                             </div>
 
                             {/* Wind arrow */}
@@ -339,14 +336,13 @@ export function WindChart({ hours, className }: WindChartProps) {
 }
 
 function WindTooltip({ hour }: { hour: WeatherHourPoint }) {
-    const time = new Date(hour.t);
     const direction = getDirectionLabel(hour.wind_dir_deg);
 
     return (
         <div className="grid grid-cols-4 gap-2 text-center">
             <div>
                 <div className="text-xs text-muted-foreground">Hora</div>
-                <div className="font-semibold">{time.getHours()}:00</div>
+                <div className="font-semibold">{extractHourFromLocalIso(hour.t)}:00</div>
             </div>
             <div>
                 <div className="text-xs text-muted-foreground">Vento</div>
