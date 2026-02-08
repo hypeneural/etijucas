@@ -33,6 +33,7 @@ export * from './useOnlineSync';
 // ============================================
 export * from './useCityRoute';
 export * from './useTenantNavigate';
+export * from './useCityDetection';
 
 // ============================================
 // PROFILE / AUTH HOOKS

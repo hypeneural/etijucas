@@ -68,7 +68,8 @@ export function CitySwitcher({
     };
 
     /**
-     * Detect city via GPS
+     * Detect city via GPS (offline-first)
+     * Uses cached cities with Haversine distance first, falls back to API
      */
     const handleDetectCity = async () => {
         if (!navigator.geolocation) {
@@ -77,15 +78,33 @@ export function CitySwitcher({
 
         setIsDetecting(true);
 
+        try {
+            // Try offline detection first
+            const { detectCityOffline } = await import('@/services/city-detection.service');
+            const offlineResult = await detectCityOffline();
+
+            if (offlineResult) {
+                // Found city offline!
+                const detectedCity: City = {
+                    id: offlineResult.city.id,
+                    nome: offlineResult.city.name,
+                    slug: offlineResult.city.slug,
+                    uf: offlineResult.city.uf,
+                };
+                handleSelectCity(detectedCity);
+                return;
+            }
+        } catch (offlineErr) {
+            console.warn('Offline detection failed, trying API:', offlineErr);
+        }
+
+        // Fallback to API
         navigator.geolocation.getCurrentPosition(
             async (position) => {
                 try {
-                    const response = await apiClient.get<{ data: City }>('/v1/cities/detect', {
-                        params: {
-                            lat: position.coords.latitude,
-                            lng: position.coords.longitude,
-                        },
-                    });
+                    const response = await apiClient.get<{ data: City }>(
+                        `/v1/cities/detect?lat=${position.coords.latitude}&lng=${position.coords.longitude}`
+                    );
 
                     if (response.data) {
                         handleSelectCity(response.data);

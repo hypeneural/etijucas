@@ -18,4 +18,5 @@
 export { ApiClient, createApiClient, ApiClientError } from './client';
 export type { ClientConfig, LoginRequest, LoginResponse, RegisterRequest, CreateTopicRequest, CreateCommentRequest, EventFilters, TopicFilters, } from './client';
 export type { User, Bairro, Event, EventCategory, EventTag, Topic, Comment, PaginationMeta, ApiResponse, PaginatedResponse, } from './generated-types';
+export type { TenantCityConfig, TenantBrandConfig, TenantModuleConfig, TenantGeoConfig, TenantFeaturesConfig, TenantConfigPayload, TenantConfigResponse, TenantCityListItem, TenantCitiesResponse, TenantCityDetectData, TenantCityDetectResponse, } from './tenant-config';
 //# sourceMappingURL=index.d.ts.map

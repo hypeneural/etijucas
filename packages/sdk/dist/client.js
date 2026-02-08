@@ -43,6 +43,7 @@ export class ApiClientError extends Error {
 export class ApiClient {
     baseUrl;
     getToken;
+    getCitySlug;
     onTokenExpired;
     onError;
     timeout;
@@ -50,6 +51,7 @@ export class ApiClient {
     constructor(config) {
         this.baseUrl = config.baseUrl.replace(/\/$/, '');
         this.getToken = config.getToken || (() => null);
+        this.getCitySlug = config.getCitySlug || (() => null);
         this.onTokenExpired = config.onTokenExpired;
         this.onError = config.onError;
         this.timeout = config.timeout ?? DEFAULT_CONFIG.timeout;
@@ -73,12 +75,16 @@ export class ApiClient {
             if (qs)
                 url += `?${qs}`;
         }
-        // Build headers
+        // Build headers with tenant context
         const token = this.getToken();
+        const citySlug = this.getCitySlug();
+        const requestId = crypto.randomUUID();
         const headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
             ...(token && { Authorization: `Bearer ${token}` }),
+            ...(citySlug && { 'X-City': citySlug }),
+            'X-Request-Id': requestId,
             ...(idempotencyKey && { 'X-Idempotency-Key': idempotencyKey }),
             ...fetchOptions.headers,
         };
@@ -154,6 +160,19 @@ export class ApiClient {
     }
     async delete(endpoint) {
         return this.request(endpoint, { method: 'DELETE' });
+    }
+    // ============================================
+    // Tenant Endpoints
+    // ============================================
+    get tenant() {
+        return {
+            config: (citySlug) => this.request('/api/v1/config', {
+                method: 'GET',
+                headers: citySlug ? { 'X-City': citySlug } : undefined,
+            }),
+            cities: () => this.get('/api/v1/cities'),
+            detect: (lat, lon) => this.get('/api/v1/cities/detect', { lat, lon }),
+        };
     }
     // ============================================
     // Auth Endpoints

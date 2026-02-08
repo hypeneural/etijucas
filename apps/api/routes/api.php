@@ -28,6 +28,7 @@ Route::prefix('v1')->group(function () {
     // =====================================================
     Route::get('cities', [\App\Http\Controllers\Api\V1\ConfigController::class, 'cities']);
     Route::get('cities/detect', [\App\Http\Controllers\Api\V1\ConfigController::class, 'detect']);
+    Route::get('cities/cacheable', [\App\Http\Controllers\Api\V1\ConfigController::class, 'cacheable']);
 
     Route::middleware('require-tenant')->group(function () {
         // =====================================================

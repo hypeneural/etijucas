@@ -9,30 +9,20 @@ use Illuminate\Http\Request;
 
 /**
  * Config Controller
- * 
+ *
  * Provides tenant configuration for frontend bootstrap.
  * This endpoint is the single source of truth for:
  * - City information
  * - Brand/theming
  * - Enabled modules
  * - Geo defaults
- * 
+ *
  * Frontend should call this on startup to initialize tenant context.
  */
 class ConfigController extends Controller
 {
     /**
      * Get tenant configuration for frontend bootstrap.
-     * 
-     * @response 200 {
-     *   "success": true,
-     *   "data": {
-     *     "city": { "id": "...", "name": "Tijucas", "slug": "tijucas-sc", "uf": "SC" },
-     *     "brand": { "appName": "ETijucas", "primaryColor": "#10B981" },
-     *     "modules": [{ "slug": "forum", "name": "Fórum" }],
-     *     "geo": { "defaultBairroId": "...", "lat": -27.23, "lon": -48.63 }
-     *   }
-     * }
      */
     public function bootstrap(Request $request): JsonResponse
     {
@@ -89,6 +79,34 @@ class ConfigController extends Controller
     }
 
     /**
+     * Get cities with coordinates for frontend caching.
+     * Minimal payload for offline city detection using Haversine.
+     */
+    public function cacheable(Request $request): JsonResponse
+    {
+        $cities = \App\Models\City::query()
+            ->where('active', true)
+            ->whereNotNull('lat')
+            ->whereNotNull('lon')
+            ->select(['id', 'name', 'slug', 'uf', 'lat', 'lon'])
+            ->orderBy('name')
+            ->get()
+            ->map(fn($city) => [
+                'id' => $city->id,
+                'name' => $city->name,
+                'slug' => $city->slug,
+                'uf' => $city->uf,
+                'lat' => (float) $city->lat,
+                'lon' => (float) $city->lon,
+            ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => $cities,
+        ])->header('Cache-Control', 'public, max-age=86400'); // 24h
+    }
+
+    /**
      * Detect city based on GPS coordinates.
      * Uses Haversine formula to find nearest city.
      */
@@ -96,11 +114,12 @@ class ConfigController extends Controller
     {
         $request->validate([
             'lat' => 'required|numeric|between:-90,90',
-            'lon' => 'required|numeric|between:-180,180',
+            'lng' => 'nullable|numeric|between:-180,180',
+            'lon' => 'nullable|numeric|between:-180,180',
         ]);
 
         $lat = $request->float('lat');
-        $lon = $request->float('lon');
+        $lon = $request->float('lon') ?: $request->float('lng');
 
         // Find nearest city using Haversine formula
         $city = \App\Models\City::query()
@@ -129,6 +148,8 @@ class ConfigController extends Controller
                 'name' => $city->name,
                 'slug' => $city->slug,
                 'uf' => $city->uf,
+                'lat' => (float) $city->lat,
+                'lon' => (float) $city->lon,
                 'fullName' => "{$city->name}/{$city->uf}",
                 'distance' => round($city->distance, 2),
             ],

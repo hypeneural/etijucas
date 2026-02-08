@@ -19,9 +19,11 @@
  * ```
  */
 import type { User, Event, EventCategory, Bairro, PaginatedResponse } from './generated-types';
+import type { TenantCitiesResponse, TenantCityDetectResponse, TenantConfigResponse } from './tenant-config';
 export interface ClientConfig {
     baseUrl: string;
     getToken?: () => string | null;
+    getCitySlug?: () => string | null;
     onTokenExpired?: () => void;
     onError?: (error: ApiClientError) => void;
     timeout?: number;
@@ -83,6 +85,7 @@ export interface TopicFilters {
 export declare class ApiClient {
     private baseUrl;
     private getToken;
+    private getCitySlug;
     private onTokenExpired?;
     private onError?;
     private timeout;
@@ -94,6 +97,11 @@ export declare class ApiClient {
     put<T>(endpoint: string, data?: unknown): Promise<T>;
     patch<T>(endpoint: string, data?: unknown): Promise<T>;
     delete<T>(endpoint: string): Promise<T>;
+    get tenant(): {
+        config: (citySlug?: string) => Promise<TenantConfigResponse>;
+        cities: () => Promise<TenantCitiesResponse>;
+        detect: (lat: number, lon: number) => Promise<TenantCityDetectResponse>;
+    };
     get auth(): {
         login: (data: LoginRequest) => Promise<LoginResponse>;
         register: (data: RegisterRequest) => Promise<LoginResponse>;

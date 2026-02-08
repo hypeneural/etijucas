@@ -57,7 +57,7 @@ class WhatsAppService
 
             $appUrl = config('app.frontend_url', 'https://etijucas.com.br');
             $copyCodeUrl = "https://www.whatsapp.com/otp/code/?otp_type=COPY_CODE&code={$code}";
-            $magicLinkUrl = "{$appUrl}/login/otp?sid={$sid}";
+            $magicLinkUrl = "{$appUrl}/auth/magic?sid={$sid}";
 
             $payload = [
                 'phone' => $this->formatPhoneNumber($phone),
@@ -69,13 +69,13 @@ class WhatsAppService
                         'id' => '1',
                         'type' => 'URL',
                         'url' => $magicLinkUrl,
-                        'label' => 'Abrir eTijucas',
+                        'label' => '🚀 Login Fácil',
                     ],
                     [
                         'id' => '2',
                         'type' => 'URL',
                         'url' => $copyCodeUrl,
-                        'label' => 'Copiar código',
+                        'label' => '📋 Copiar código',
                     ],
                 ],
             ];
