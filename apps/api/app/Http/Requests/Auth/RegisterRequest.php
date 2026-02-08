@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Models\City;
+use App\Support\Tenant;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -86,12 +88,7 @@ class RegisterRequest extends FormRequest
                 'nullable',
                 'string',
                 'max:100',
-                function ($attribute, $value, $fail) {
-                    // Validate city is Tijucas (case insensitive)
-                    if ($value && !in_array(strtolower(trim($value)), ['tijucas', 'tijucas/sc'])) {
-                        $fail('Somente moradores de Tijucas podem se cadastrar.');
-                    }
-                },
+                // City validation is now tenant-aware (no hardcoded Tijucas)
             ],
             'address.estado' => [
                 'nullable',
@@ -128,14 +125,13 @@ class RegisterRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
-        // Force city and state for Tijucas
-        if ($this->has('address')) {
+        // Resolve city from tenant context or payload
+        $city = $this->resolveCityForRegistration();
+
+        if ($this->has('address') && $city) {
             $address = $this->input('address');
-
-            // Always force Tijucas/SC
-            $address['cidade'] = 'Tijucas';
-            $address['estado'] = 'SC';
-
+            $address['cidade'] = $city->name;
+            $address['estado'] = $city->uf;
             $this->merge(['address' => $address]);
         }
 
@@ -145,19 +141,45 @@ class RegisterRequest extends FormRequest
                 'bairro_id' => $this->input('bairroId'),
             ]);
         }
+
+        // Add resolved city_id for controller use
+        if ($city) {
+            $this->merge(['resolved_city_id' => $city->id]);
+        }
     }
 
     /**
-     * Get validated data with forced city/state.
+     * Resolve city using hybrid strategy:
+     * 1. Tenant context (from URL/header) takes priority
+     * 2. Fallback to city_slug from payload if no tenant
+     */
+    private function resolveCityForRegistration(): ?City
+    {
+        // Priority 1: Tenant context (server-side, secure)
+        if (Tenant::city()) {
+            return Tenant::city();
+        }
+
+        // Priority 2: city_slug from payload (when no tenant context)
+        if ($this->input('city_slug')) {
+            return City::whereSlug($this->input('city_slug'))
+                ->where('active', true)
+                ->first();
+        }
+
+        return null;
+    }
+
+    /**
+     * Get validated data with resolved city.
      */
     public function validated($key = null, $default = null): array
     {
         $validated = parent::validated($key, $default);
 
-        // Ensure address has forced values
-        if (isset($validated['address'])) {
-            $validated['address']['cidade'] = 'Tijucas';
-            $validated['address']['estado'] = 'SC';
+        // Include resolved city_id for controller
+        if ($this->input('resolved_city_id')) {
+            $validated['city_id'] = $this->input('resolved_city_id');
         }
 
         return $validated;

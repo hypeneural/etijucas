@@ -1,7 +1,7 @@
 {
-  "name": "eTijucas",
-  "short_name": "eTijucas",
-  "description": "Tijucas em tempo real. Reporte problemas, participe do fórum, confira eventos e serviços.",
+  "name": "Observada",
+  "short_name": "Observada",
+  "description": "A cidade observada por quem vive nela. Reporte problemas, participe do fórum, confira eventos e serviços.",
   "start_url": "/",
   "id": "/",
   "scope": "/",
@@ -10,8 +10,8 @@
     "standalone",
     "minimal-ui"
   ],
-  "background_color": "#f8fafc",
-  "theme_color": "#0891b2",
+  "background_color": "#f5f7f8",
+  "theme_color": "#3d5a6c",
   "orientation": "portrait-primary",
   "categories": [
     "social",
@@ -22,13 +22,25 @@
   "dir": "ltr",
   "icons": [
     {
-      "src": "/icon-192.png",
+      "src": "/pwa-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/pwa-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-192-maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/pwa-512-maskable.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -47,19 +59,19 @@
       "url": "/?tab=reportar",
       "icons": [
         {
-          "src": "/icon-192.png",
+          "src": "/pwa-192.png",
           "sizes": "192x192"
         }
       ]
     },
     {
       "name": "Fórum da Comunidade",
-      "short_name": "F\u00f3rum",
+      "short_name": "Fórum",
       "description": "Participe das discussões da comunidade",
       "url": "/?tab=forum",
       "icons": [
         {
-          "src": "/icon-192.png",
+          "src": "/pwa-192.png",
           "sizes": "192x192"
         }
       ]
@@ -71,7 +83,7 @@
       "url": "/?tab=agenda",
       "icons": [
         {
-          "src": "/icon-192.png",
+          "src": "/pwa-192.png",
           "sizes": "192x192"
         }
       ]
