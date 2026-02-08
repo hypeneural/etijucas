@@ -8,11 +8,11 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type {
-  TenantBrandConfig,
-  TenantCityConfig,
-  TenantConfigResponse,
-  TenantGeoConfig,
-  TenantModuleConfig,
+    TenantBrandConfig,
+    TenantCityConfig,
+    TenantConfigResponse,
+    TenantGeoConfig,
+    TenantModuleConfig,
 } from '@repo/sdk';
 
 const LEGACY_MODULE_KEY_ALIASES: Record<string, string> = {
@@ -308,7 +308,7 @@ export function extractCitySlugFromPath(path: string): string | null {
     return `${cidade.toLowerCase()}-${uf.toLowerCase()}`;
 }
 
-export function resolveCityFromUrl(): string {
+export function resolveCityFromUrl(): string | null {
     const fromPath = extractCitySlugFromPath(window.location.pathname);
-    return fromPath ?? 'tijucas-sc';
+    return fromPath ?? null;
 }

@@ -123,7 +123,7 @@ class MatchResult
         ];
 
         if (!$this->cityOk) {
-            $hints['toast'] = 'Este CEP é de outra cidade. Apenas moradores de Tijucas podem se cadastrar.';
+            $hints['toast'] = 'Este CEP parece ser de outra cidade. Confirme seu endereço.';
         } elseif (!$this->bairroOk) {
             $hints['toast'] = 'Selecione seu bairro para finalizar.';
         }

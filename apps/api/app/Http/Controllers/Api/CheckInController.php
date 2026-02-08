@@ -53,11 +53,13 @@ class CheckInController extends Controller
      */
     private function getCheckInMessage(array $result): string
     {
+        $cityName = \App\Support\Tenant::city()?->name ?? 'sua cidade';
+
         if ($result['is_milestone']) {
             $milestoneMessages = [
                 7 => '🎉 1 semana! Você é dedicado!',
                 14 => '🔥 2 semanas seguidas! Continue assim!',
-                30 => '🏆 1 mês! Você é um verdadeiro Tijucano!',
+                30 => "🏆 1 mês! Você é cidadão exemplar de {$cityName}!",
                 60 => '⭐ 2 meses! Impressionante!',
                 90 => '💎 3 meses! Você é lenda!',
                 180 => '👑 6 meses! Cidadão exemplar!',
@@ -71,7 +73,7 @@ class CheckInController extends Controller
         }
 
         if ($result['current'] > 1) {
-            return "🔥 Dia {$result['current']} acompanhando Tijucas!";
+            return "🔥 Dia {$result['current']} acompanhando {$cityName}!";
         }
 
         return 'Check-in realizado!';

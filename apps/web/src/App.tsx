@@ -128,7 +128,7 @@ function AppProviders({ children }: { children: React.ReactNode }) {
 
 /**
  * TenantBootstrap - Initializes tenant context on app load
- * Resolves city from URL (/uf/cidade) or defaults to Tijucas/SC
+ * Resolves city from URL (/uf/cidade). CityGate handles city selection if none in URL.
  */
 function TenantBootstrap({ children }: { children: React.ReactNode }) {
   const { bootstrap, isBootstrapped, isLoading, error, city } = useTenantStore();
@@ -142,13 +142,14 @@ function TenantBootstrap({ children }: { children: React.ReactNode }) {
     const currentCitySlug = city?.slug ?? null;
 
     // URL path is canonical for tenant context; re-bootstrap on mismatch.
-    if (!isBootstrapped || currentCitySlug !== urlCitySlug) {
+    // CityGate should handle the case when urlCitySlug is null
+    if (urlCitySlug && (!isBootstrapped || currentCitySlug !== urlCitySlug)) {
       console.log('[TenantBootstrap] Bootstrapping city:', urlCitySlug);
       bootstrap(urlCitySlug);
     }
 
-    // Persist last city for CityGate (only if not fallback)
-    if (urlCitySlug && urlCitySlug !== 'tijucas-sc') {
+    // Persist last city for CityGate
+    if (urlCitySlug) {
       const match = window.location.pathname.match(/^\/([a-z]{2})\/([a-z0-9-]+)/i);
       if (match) {
         saveLastCity(match[1].toLowerCase(), match[2].toLowerCase());

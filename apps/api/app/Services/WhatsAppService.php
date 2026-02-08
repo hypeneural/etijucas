@@ -208,7 +208,10 @@ class WhatsAppService
      */
     public function sendEventNotification(string $phone, string $eventName, string $date, string $location): bool
     {
-        $message = "📅 *Novo Evento em Tijucas*\n\n"
+        $city = \App\Support\Tenant::city();
+        $cityName = $city?->name ?? 'sua cidade';
+
+        $message = "📅 *Novo Evento em {$cityName}*\n\n"
             . "*{$eventName}*\n"
             . "📆 {$date}\n"
             . "📍 {$location}";
@@ -221,7 +224,9 @@ class WhatsAppService
      */
     protected function formatOtpMessage(string $code): string
     {
-        return "🔐 *eTijucas - Código de Verificação*\n\n"
+        $appName = $this->getAppName();
+
+        return "🔐 *{$appName} - Código de Verificação*\n\n"
             . "Seu código é: *{$code}*\n\n"
             . "⏱️ Este código expira em 5 minutos.\n\n"
             . "_Se você não solicitou este código, ignore esta mensagem._";
@@ -232,9 +237,20 @@ class WhatsAppService
      */
     protected function formatOtpButtonMessage(string $code): string
     {
-        return "🔐 Seu código de acesso ao eTijucas é: *{$code}*\n\n"
+        $appName = $this->getAppName();
+
+        return "🔐 Seu código de acesso ao {$appName} é: *{$code}*\n\n"
             . "Ele expira em 5 minutos.\n"
             . "Se você não solicitou, ignore.";
+    }
+
+    /**
+     * Get the app name for the current tenant.
+     */
+    private function getAppName(): string
+    {
+        $city = \App\Support\Tenant::city();
+        return 'e' . ($city?->name ?? 'Cidade');
     }
 
     /**

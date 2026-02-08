@@ -22,7 +22,7 @@ use Illuminate\Support\Carbon;
 /**
  * HomeAggregatorService - Aggregates all Home data in a single response
  * 
- * This service is the backbone of the "Hoje em Tijucas" experience,
+ * This service is the backbone of the "Hoje em [Cidade]" experience,
  * providing all the data needed for the home screen in a single request.
  */
 class HomeAggregatorService
@@ -282,12 +282,12 @@ class HomeAggregatorService
         $message = match (true) {
             $n < 10 => 'Seja um dos primeiros! Ajude a cidade a crescer.',
             $n < 50 => 'Estamos ganhando tração — convide 1 amigo!',
-            $n < 100 => 'Quase 100 tijucanos — bora bater essa meta!',
+            $n < 100 => 'Quase 100 cidadãos — bora bater essa meta!',
             $n < 500 => 'Crescendo rápido! Compartilhe com vizinhos.',
             $n < 1000 => 'Quase mil! A cidade está acordando.',
             $n < 5000 => 'A cidade está usando! Compartilhe com seu bairro.',
-            $n < 10000 => 'Rumo aos 10 mil tijucanos conectados!',
-            default => 'Tijucas conectada! Continue convidando.',
+            $n < 10000 => 'Rumo aos 10 mil cidadãos conectados!',
+            default => 'Cidade conectada! Continue convidando.',
         };
 
         return [
@@ -686,7 +686,7 @@ class HomeAggregatorService
             'priority' => $priority,
             'visible' => count($spots) > 0,
             'payload' => [
-                'title' => '📍 Descubra Tijucas',
+                'title' => '📍 Descubra ' . (Tenant::city()?->name ?? 'a cidade'),
                 'spots' => $spots,
             ],
         ];
