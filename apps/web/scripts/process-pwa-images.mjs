@@ -38,7 +38,9 @@ async function processIcons() {
         { size: 192, name: 'pwa-192.png' },
         { size: 512, name: 'pwa-512.png' },
         { size: 180, name: 'apple-touch-icon.png' },
+        { size: 48, name: 'favicon-48.png' },
         { size: 32, name: 'favicon-32.png' },
+        { size: 16, name: 'favicon-16.png' },
     ];
 
     for (const { size, name } of iconSizes) {
