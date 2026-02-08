@@ -25,12 +25,12 @@ class CityDomainsSeeder extends Seeder
             // Production domains
             [
                 'city_id' => $tijucas->id,
-                'domain' => 'etijucas.com.br',
+                'domain' => 'observada.com.br',
                 'is_primary' => true,
             ],
             [
                 'city_id' => $tijucas->id,
-                'domain' => 'www.etijucas.com.br',
+                'domain' => 'www.observada.com.br',
                 'is_primary' => false,
             ],
             // Development domains
@@ -47,7 +47,7 @@ class CityDomainsSeeder extends Seeder
             // Staging/Preview
             [
                 'city_id' => $tijucas->id,
-                'domain' => 'staging.etijucas.com.br',
+                'domain' => 'staging.observada.com.br',
                 'is_primary' => false,
             ],
         ];

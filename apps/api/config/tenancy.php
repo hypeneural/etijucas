@@ -11,8 +11,8 @@ return [
     |
     */
     'trusted_hosts' => array_filter([
-        env('APP_URL_HOST', 'etijucas.com.br'),
-        'www.' . env('APP_URL_HOST', 'etijucas.com.br'),
+        env('APP_URL_HOST', 'observada.com.br'),
+        'www.' . env('APP_URL_HOST', 'observada.com.br'),
         '*.cidadeconectada.app',
         // Development hosts
         'localhost',
