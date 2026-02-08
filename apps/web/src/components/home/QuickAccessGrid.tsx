@@ -1,5 +1,5 @@
 import React from 'react';
-import { useTenantNavigate } from '@/hooks';
+import { useTenantNavigate, useCityName } from '@/hooks';
 import { motion } from 'framer-motion';
 import { Calendar, MapPin, Church, Phone, FileText, Trash2 } from 'lucide-react';
 
@@ -11,13 +11,14 @@ interface ServiceItem {
   route: string;
 }
 
-const services: ServiceItem[] = [
+// Services will use dynamic city name
+const getServices = (cityName: string): ServiceItem[] => [
   { id: 'agenda', label: 'Agenda de Eventos', icon: Calendar, color: 'bg-secondary/10 text-secondary', route: '/agenda' },
   { id: 'turismo', label: 'Pontos Turísticos', icon: MapPin, color: 'bg-green-100 text-green-600', route: '/pontos-turisticos' },
   { id: 'missas', label: 'Horários das Missas', icon: Church, color: 'bg-primary/10 text-primary', route: '/missas' },
   { id: 'telefones', label: 'Telefones Úteis', icon: Phone, color: 'bg-accent/10 text-accent', route: '/telefones' },
   { id: 'coleta', label: 'Coleta de Lixo', icon: Trash2, color: 'bg-emerald-100 text-emerald-600', route: '/coleta-lixo' },
-  { id: 'envios', label: 'Fiscaliza Tijucas', icon: FileText, color: 'bg-purple-100 text-purple-600', route: '/denuncias' },
+  { id: 'envios', label: `Fiscaliza ${cityName}`, icon: FileText, color: 'bg-purple-100 text-purple-600', route: '/denuncias' },
 ];
 
 interface QuickAccessGridProps {
@@ -26,6 +27,8 @@ interface QuickAccessGridProps {
 
 export default function QuickAccessGrid({ onNavigate }: QuickAccessGridProps) {
   const navigate = useTenantNavigate();
+  const { name: cityName } = useCityName();
+  const services = getServices(cityName);
 
   const containerVariants = {
     hidden: { opacity: 0 },

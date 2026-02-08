@@ -16,6 +16,7 @@ import {
     MoreVertical
 } from 'lucide-react';
 import { useInstallPrompt, DismissOption } from '@/hooks/useInstallPrompt';
+import { useAppName } from '@/hooks/useCityName';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -47,6 +48,7 @@ export function InstallBanner({ variant = 'banner' }: InstallBannerProps) {
         isIOSTutorialVisible,
         isInstalled,
     } = useInstallPrompt();
+    const appName = useAppName();
 
     // Handle native install (Android)
     const handleInstall = async () => {
@@ -64,7 +66,7 @@ export function InstallBanner({ variant = 'banner' }: InstallBannerProps) {
 
     // Don't render if shouldn't show
     if (isInstalled || !shouldShowBanner) {
-        return <IOSTutorialModal isOpen={isIOSTutorialVisible} onClose={hideIOSTutorial} />;
+        return <IOSTutorialModal isOpen={isIOSTutorialVisible} onClose={hideIOSTutorial} appName={appName} />;
     }
 
     // Card variant (for home page or promotional sections)
@@ -87,7 +89,7 @@ export function InstallBanner({ variant = 'banner' }: InstallBannerProps) {
                                 <Smartphone className="h-6 w-6" />
                             </div>
                             <div className="flex-1 min-w-0">
-                                <h3 className="font-bold text-lg">Instalar eTijucas</h3>
+                                <h3 className="font-bold text-lg">Instalar {appName}</h3>
                                 <p className="text-sm text-white/80 mt-0.5">
                                     Acesso mais rápido e funciona offline
                                 </p>
@@ -134,7 +136,7 @@ export function InstallBanner({ variant = 'banner' }: InstallBannerProps) {
                     </motion.div>
                 </AnimatePresence>
 
-                <IOSTutorialModal isOpen={isIOSTutorialVisible} onClose={hideIOSTutorial} />
+                <IOSTutorialModal isOpen={isIOSTutorialVisible} onClose={hideIOSTutorial} appName={appName} />
             </>
         );
     }
@@ -157,7 +159,7 @@ export function InstallBanner({ variant = 'banner' }: InstallBannerProps) {
                             </div>
 
                             <div className="flex-1 min-w-0">
-                                <h3 className="font-semibold text-sm text-foreground">Instalar eTijucas</h3>
+                                <h3 className="font-semibold text-sm text-foreground">Instalar {appName}</h3>
                                 <p className="text-xs text-muted-foreground truncate">
                                     {isIOSSafari
                                         ? 'Adicione à tela inicial'
@@ -245,7 +247,7 @@ function DismissDropdown({ onDismiss }: { onDismiss: (option: DismissOption) => 
 /**
  * iOS Tutorial Modal
  */
-function IOSTutorialModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+function IOSTutorialModal({ isOpen, onClose, appName = 'eTijucas' }: { isOpen: boolean; onClose: () => void; appName?: string }) {
     const steps = [
         {
             icon: <Share className="h-6 w-6" />,
@@ -270,7 +272,7 @@ function IOSTutorialModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <Smartphone className="h-5 w-5 text-primary" />
-                        Instalar eTijucas no iPhone
+                        Instalar {appName} no iPhone
                     </DialogTitle>
                 </DialogHeader>
 

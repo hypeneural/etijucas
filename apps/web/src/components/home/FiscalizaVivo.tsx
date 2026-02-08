@@ -1,5 +1,5 @@
 /**
- * FiscalizaVivo - Live Fiscaliza Tijucas Card
+ * FiscalizaVivo - Live Fiscaliza Card
  * 
  * Shows dynamic KPIs and rotating phrases about citizen reports.
  * Designed to make the feature feel "alive" and encourage participation.
@@ -7,7 +7,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useTenantNavigate } from '@/hooks';
+import { useTenantNavigate, useCityName } from '@/hooks';
 import {
     AlertTriangle,
     CheckCircle2,
@@ -34,7 +34,7 @@ interface FiscalizaVivoProps {
 const defaultPhrases = [
     '🔧 Sua denúncia faz a diferença!',
     '📍 Viu algo? Registre agora.',
-    '🏆 Tijucanos resolvendo juntos.',
+    '🏆 Cidadãos resolvendo juntos.',
     '⚡ Tempo médio de resposta: 48h',
 ];
 
@@ -93,6 +93,7 @@ function FiscalizaSkeleton({ className }: { className?: string }) {
 export function FiscalizaVivo({ data, isLoading, hasError, className }: FiscalizaVivoProps) {
     const navigate = useTenantNavigate();
     const haptic = useHaptic();
+    const { name: cityName } = useCityName();
     const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
     const [showMap, setShowMap] = useState(false);
 
@@ -170,7 +171,7 @@ export function FiscalizaVivo({ data, isLoading, hasError, className }: Fiscaliz
                         <AlertTriangle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
                     </div>
                     <div>
-                        <h3 className="text-sm font-semibold text-foreground">Fiscaliza Tijucas</h3>
+                        <h3 className="text-sm font-semibold text-foreground">Fiscaliza {cityName}</h3>
                         <p className="text-xs text-muted-foreground">Denúncias dos cidadãos</p>
                     </div>
                 </div>

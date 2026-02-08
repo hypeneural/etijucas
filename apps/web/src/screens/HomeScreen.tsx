@@ -173,7 +173,7 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
       celebrateMilestone(justReachedMilestone);
       toast({
         title: `🔥 ${justReachedMilestone} dias seguidos!`,
-        description: 'Parabéns! Continue acompanhando Tijucas!',
+        description: 'Parabéns! Continue acompanhando sua cidade!',
       });
       clearMilestone();
     }

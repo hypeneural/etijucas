@@ -165,11 +165,26 @@ export function CityGate({ children, onCitySelected }: CityGateProps) {
         );
     }, [handleSelectCity]);
 
-    // Filter cities by search query
-    const filteredCities = cities.filter(city =>
-        city.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        city.uf.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    // Filter cities by search query - only show when user is searching
+    const shouldShowList = searchQuery.length >= 2;
+
+    // Filter and limit results for better UX
+    const filteredCities = shouldShowList
+        ? cities
+            .filter(city =>
+                city.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                city.uf.toLowerCase().includes(searchQuery.toLowerCase())
+            )
+            .slice(0, 15) // Limit to 15 results
+        : [];
+
+    // Group cities by UF for better organization
+    const citiesByUf = filteredCities.reduce<Record<string, City[]>>((acc, city) => {
+        const uf = city.uf.toUpperCase();
+        if (!acc[uf]) acc[uf] = [];
+        acc[uf].push(city);
+        return acc;
+    }, {});
 
     // Still checking
     if (needsCitySelection === null) {
@@ -256,30 +271,53 @@ export function CityGate({ children, onCitySelected }: CityGateProps) {
                     <div className="flex items-center justify-center py-8">
                         <Loader2 className="w-6 h-6 animate-spin text-primary" />
                     </div>
+                ) : !shouldShowList ? (
+                    <div className="text-center py-8 space-y-3">
+                        <div className="w-14 h-14 mx-auto rounded-2xl bg-muted/50 flex items-center justify-center">
+                            <Search className="w-6 h-6 text-muted-foreground/50" />
+                        </div>
+                        <p className="text-muted-foreground text-sm">
+                            Digite o nome da cidade para buscar
+                        </p>
+                        <p className="text-xs text-muted-foreground/60">
+                            +5.500 cidades disponíveis
+                        </p>
+                    </div>
                 ) : filteredCities.length === 0 ? (
                     <p className="text-center text-muted-foreground py-8">
-                        {searchQuery ? 'Nenhuma cidade encontrada' : 'Nenhuma cidade disponível'}
+                        Nenhuma cidade encontrada para "{searchQuery}"
                     </p>
                 ) : (
-                    <div className="space-y-2">
-                        {filteredCities.map((city) => (
-                            <button
-                                key={city.id}
-                                onClick={() => handleSelectCity(city)}
-                                className="w-full flex items-center justify-between px-4 py-4 rounded-xl bg-card border border-border hover:border-primary/50 hover:bg-primary/5 transition-all group"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                                        <MapPin className="w-5 h-5 text-primary" />
-                                    </div>
-                                    <div className="text-left">
-                                        <p className="font-medium text-foreground">{city.name}</p>
-                                        <p className="text-sm text-muted-foreground">{city.uf}</p>
-                                    </div>
+                    <div className="space-y-4">
+                        {Object.entries(citiesByUf).map(([uf, ufCities]) => (
+                            <div key={uf}>
+                                <p className="text-xs font-semibold text-muted-foreground mb-2 px-1">
+                                    {uf}
+                                </p>
+                                <div className="space-y-2">
+                                    {ufCities.map((city) => (
+                                        <button
+                                            key={city.id}
+                                            onClick={() => handleSelectCity(city)}
+                                            className="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-card border border-border hover:border-primary/50 hover:bg-primary/5 transition-all group"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                                                    <MapPin className="w-4 h-4 text-primary" />
+                                                </div>
+                                                <p className="font-medium text-foreground text-sm">{city.name}</p>
+                                            </div>
+                                            <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                                        </button>
+                                    ))}
                                 </div>
-                                <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                            </button>
+                            </div>
                         ))}
+                        {filteredCities.length === 15 && (
+                            <p className="text-xs text-center text-muted-foreground/60 pt-2">
+                                Refine a busca para ver mais resultados
+                            </p>
+                        )}
                     </div>
                 )}
             </div>
