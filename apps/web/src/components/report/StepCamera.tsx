@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+﻿import { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Camera,
@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { StepHeader } from './HelpTooltip';
-import { compressImage, formatBytes } from '@/lib/imageCompression';
+import { compressForReportUpload, formatBytes } from '@/lib/imageCompression';
 import { toast } from 'sonner';
 import type { ReportDraft, CapturedImage, CameraState } from '@/types/report';
 import { generateUUID } from '@/lib/uuid';
@@ -53,7 +53,7 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
             setCameraState(prev => ({
                 ...prev,
                 status: 'error',
-                errorMessage: 'Seu navegador não suporta acesso à câmera. Tente usar Chrome, Safari ou Firefox.',
+                errorMessage: 'Seu navegador nÃ£o suporta acesso Ã  cÃ¢mera. Tente usar Chrome, Safari ou Firefox.',
             }));
             return;
         }
@@ -89,25 +89,25 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
                     setCameraState(prev => ({
                         ...prev,
                         status: 'denied',
-                        errorMessage: 'Você não permitiu o acesso à câmera.',
+                        errorMessage: 'VocÃª nÃ£o permitiu o acesso Ã  cÃ¢mera.',
                     }));
                 } else if (error.name === 'NotFoundError') {
                     setCameraState(prev => ({
                         ...prev,
                         status: 'error',
-                        errorMessage: 'Nenhuma câmera foi encontrada no seu dispositivo.',
+                        errorMessage: 'Nenhuma cÃ¢mera foi encontrada no seu dispositivo.',
                     }));
                 } else if (error.name === 'NotReadableError') {
                     setCameraState(prev => ({
                         ...prev,
                         status: 'error',
-                        errorMessage: 'A câmera está sendo usada por outro aplicativo. Feche outros apps e tente novamente.',
+                        errorMessage: 'A cÃ¢mera estÃ¡ sendo usada por outro aplicativo. Feche outros apps e tente novamente.',
                     }));
                 } else if (error.name === 'OverconstrainedError') {
                     setCameraState(prev => ({
                         ...prev,
                         status: 'error',
-                        errorMessage: 'Sua câmera não atende aos requisitos. Tentando configuração alternativa...',
+                        errorMessage: 'Sua cÃ¢mera nÃ£o atende aos requisitos. Tentando configuraÃ§Ã£o alternativa...',
                     }));
                     // Try with less constraints
                     try {
@@ -129,21 +129,21 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
                         setCameraState(prev => ({
                             ...prev,
                             status: 'error',
-                            errorMessage: 'Não foi possível acessar sua câmera.',
+                            errorMessage: 'NÃ£o foi possÃ­vel acessar sua cÃ¢mera.',
                         }));
                     }
                 } else {
                     setCameraState(prev => ({
                         ...prev,
                         status: 'error',
-                        errorMessage: 'Ocorreu um erro ao acessar a câmera. Tente novamente.',
+                        errorMessage: 'Ocorreu um erro ao acessar a cÃ¢mera. Tente novamente.',
                     }));
                 }
             } else {
                 setCameraState(prev => ({
                     ...prev,
                     status: 'error',
-                    errorMessage: 'Erro desconhecido ao acessar a câmera.',
+                    errorMessage: 'Erro desconhecido ao acessar a cÃ¢mera.',
                 }));
             }
         }
@@ -203,52 +203,53 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
 
         setIsCapturing(true);
 
-        const video = videoRef.current;
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext('2d');
+        try {
+            const video = videoRef.current;
+            const canvas = canvasRef.current;
+            const ctx = canvas.getContext('2d');
 
-        if (!ctx) {
+            if (!ctx) {
+                throw new Error('Canvas context not available');
+            }
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0);
+
+            const rawBlob = await new Promise<Blob>((resolve, reject) => {
+                canvas.toBlob(
+                    (blob) => (blob ? resolve(blob) : reject(new Error('Failed to capture image from camera'))),
+                    'image/jpeg',
+                    0.92
+                );
+            });
+
+            const rawFile = new File([rawBlob], `photo_${Date.now()}.jpg`, {
+                type: 'image/jpeg',
+                lastModified: Date.now(),
+            });
+
+            const compressedFile = await compressForReportUpload(rawFile);
+            const newImage: CapturedImage = {
+                id: generateUUID(),
+                file: compressedFile,
+                previewUrl: URL.createObjectURL(compressedFile),
+                capturedAt: new Date(),
+            };
+
+            onUpdate({
+                images: [...draft.images, newImage],
+            });
+
+            if (draft.images.length + 1 >= MAX_IMAGES) {
+                stopCamera();
+            }
+        } catch (error) {
+            console.error('Failed to capture image:', error);
+            toast.error('Nao foi possivel processar a foto. Tente novamente.');
+        } finally {
             setIsCapturing(false);
-            return;
         }
-
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        ctx.drawImage(video, 0, 0);
-
-        canvas.toBlob(
-            (blob) => {
-                if (!blob) {
-                    setIsCapturing(false);
-                    return;
-                }
-
-                // Convert Blob to File for FormData compatibility
-                const file = new File([blob], `photo_${Date.now()}.jpg`, {
-                    type: 'image/jpeg',
-                    lastModified: Date.now(),
-                });
-
-                const newImage: CapturedImage = {
-                    id: generateUUID(),
-                    file,
-                    previewUrl: URL.createObjectURL(blob),
-                    capturedAt: new Date(),
-                };
-
-                onUpdate({
-                    images: [...draft.images, newImage],
-                });
-
-                setIsCapturing(false);
-
-                if (draft.images.length + 1 >= MAX_IMAGES) {
-                    stopCamera();
-                }
-            },
-            'image/jpeg',
-            0.85
-        );
     }, [draft.images, onUpdate, stopCamera]);
 
     const removeImage = useCallback((imageId: string) => {
@@ -280,68 +281,52 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
 
         const remainingSlots = MAX_IMAGES - draft.images.length;
         const filesToProcess = Array.from(files).slice(0, remainingSlots);
+        const newImages: CapturedImage[] = [];
 
         let totalOriginal = 0;
         let totalCompressed = 0;
 
         for (const file of filesToProcess) {
-            // Validate file type
             if (!file.type.startsWith('image/')) continue;
 
+            totalOriginal += file.size;
+
             try {
-                // Compress the image
-                const result = await compressImage(file, {
-                    maxWidth: 1920,
-                    maxHeight: 1920,
-                    quality: 0.75,
-                });
+                const compressedFile = await compressForReportUpload(file);
+                totalCompressed += compressedFile.size;
 
-                totalOriginal += result.originalSize;
-                totalCompressed += result.compressedSize;
-
-                // Convert Blob to File
-                const compressedFile = new File(
-                    [result.blob],
-                    file.name.replace(/\.[^.]+$/, '.jpg'),
-                    { type: 'image/jpeg', lastModified: Date.now() }
-                );
-
-                // Create preview and add to images
-                const newImage: CapturedImage = {
+                newImages.push({
                     id: generateUUID(),
                     file: compressedFile,
-                    previewUrl: URL.createObjectURL(result.blob),
+                    previewUrl: URL.createObjectURL(compressedFile),
                     capturedAt: new Date(),
-                };
-
-                onUpdate({
-                    images: [...draft.images, newImage],
                 });
             } catch (error) {
                 console.error('Failed to compress image:', error);
-                // Fallback: use original file
-                const newImage: CapturedImage = {
+                totalCompressed += file.size;
+                newImages.push({
                     id: generateUUID(),
                     file,
                     previewUrl: URL.createObjectURL(file),
                     capturedAt: new Date(),
-                };
-                onUpdate({
-                    images: [...draft.images, newImage],
                 });
             }
         }
 
-        // Show compression feedback
+        if (newImages.length > 0) {
+            onUpdate({
+                images: [...draft.images, ...newImages],
+            });
+        }
+
         if (totalOriginal > 0 && totalCompressed < totalOriginal) {
             const saved = totalOriginal - totalCompressed;
             const percent = Math.round((saved / totalOriginal) * 100);
             toast.success(
-                `Imagem otimizada: ${formatBytes(totalOriginal)} → ${formatBytes(totalCompressed)} (-${percent}%)`
+                `Imagem otimizada: ${formatBytes(totalOriginal)} -> ${formatBytes(totalCompressed)} (-${percent}%)`
             );
         }
 
-        // Reset file input
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
@@ -354,12 +339,12 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
     return (
         <div className="space-y-4 pb-48">
             <StepHeader
-                title="Adicione até 3 fotos"
+                title="Adicione atÃ© 3 fotos"
                 subtitle="Tire fotos agora ou escolha da galeria"
                 helpTitle="Dicas para boas fotos"
                 helpContent={[
                     "Fotografe de perto para mostrar detalhes do problema.",
-                    "Inclua uma foto do contexto (rua, número, ponto de referência).",
+                    "Inclua uma foto do contexto (rua, nÃºmero, ponto de referÃªncia).",
                     "Evite fotos muito escuras ou desfocadas."
                 ]}
             />
@@ -426,7 +411,7 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
                                 <div>
                                     <h3 className="font-semibold text-lg">Adicione fotos do problema</h3>
                                     <p className="text-sm text-muted-foreground mt-1">
-                                        Fotos ajudam a identificar e resolver o problema mais rápido
+                                        Fotos ajudam a identificar e resolver o problema mais rÃ¡pido
                                     </p>
                                 </div>
 
@@ -436,7 +421,7 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
                                         <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400">
                                             <ShieldAlert className="h-4 w-4 shrink-0" />
                                             <p className="text-xs text-left">
-                                                Câmera exige HTTPS. Use a galeria para adicionar fotos.
+                                                CÃ¢mera exige HTTPS. Use a galeria para adicionar fotos.
                                             </p>
                                         </div>
                                     </div>
@@ -473,7 +458,7 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
                                 </div>
 
                                 <p className="text-xs text-muted-foreground">
-                                    Você pode pular e continuar sem fotos
+                                    VocÃª pode pular e continuar sem fotos
                                 </p>
                             </div>
                         </Card>
@@ -506,7 +491,7 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
                                 whileTap={{ scale: 0.9 }}
                                 onClick={switchCamera}
                                 className="p-3 rounded-full bg-black/50 text-white backdrop-blur-sm"
-                                aria-label="Trocar câmera"
+                                aria-label="Trocar cÃ¢mera"
                             >
                                 <SwitchCamera className="h-5 w-5" />
                             </motion.button>
@@ -558,7 +543,7 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
                         <div className="p-4 rounded-full bg-primary/10 mb-4">
                             <Loader2 className="h-8 w-8 text-primary animate-spin" />
                         </div>
-                        <p className="font-medium mb-1">Iniciando câmera...</p>
+                        <p className="font-medium mb-1">Iniciando cÃ¢mera...</p>
                         <p className="text-sm text-muted-foreground">
                             Se aparecer uma mensagem, toque em "Permitir"
                         </p>
@@ -577,7 +562,7 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
                                     <ShieldAlert className="h-8 w-8 text-amber-600 dark:text-amber-400" />
                                 </div>
                                 <h3 className="font-semibold text-lg text-amber-800 dark:text-amber-300">
-                                    Câmera bloqueada
+                                    CÃ¢mera bloqueada
                                 </h3>
                                 <p className="text-sm text-amber-700 dark:text-amber-400 mt-2 mb-4">
                                     {cameraState.errorMessage}
@@ -591,19 +576,19 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
                                     <ol className="text-left text-sm space-y-2 text-muted-foreground">
                                         <li className="flex items-start gap-2">
                                             <span className="font-bold text-primary">1.</span>
-                                            <span>Olhe na barra de endereço do navegador</span>
+                                            <span>Olhe na barra de endereÃ§o do navegador</span>
                                         </li>
                                         <li className="flex items-start gap-2">
                                             <span className="font-bold text-primary">2.</span>
-                                            <span>Clique no ícone de cadeado ou câmera</span>
+                                            <span>Clique no Ã­cone de cadeado ou cÃ¢mera</span>
                                         </li>
                                         <li className="flex items-start gap-2">
                                             <span className="font-bold text-primary">3.</span>
-                                            <span>Mude "Câmera" para "Permitir"</span>
+                                            <span>Mude "CÃ¢mera" para "Permitir"</span>
                                         </li>
                                         <li className="flex items-start gap-2">
                                             <span className="font-bold text-primary">4.</span>
-                                            <span>Recarregue a página ou toque no botão abaixo</span>
+                                            <span>Recarregue a pÃ¡gina ou toque no botÃ£o abaixo</span>
                                         </li>
                                     </ol>
                                 </Card>
@@ -633,22 +618,22 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
                                     <AlertTriangle className="h-8 w-8 text-red-600 dark:text-red-400" />
                                 </div>
                                 <h3 className="font-semibold text-lg text-red-800 dark:text-red-300">
-                                    Problema com a câmera
+                                    Problema com a cÃ¢mera
                                 </h3>
                                 <p className="text-sm text-red-700 dark:text-red-400 mt-2 mb-4">
                                     {cameraState.errorMessage}
                                 </p>
 
                                 <Card className="w-full p-4 bg-white dark:bg-background border-red-200 dark:border-red-700">
-                                    <p className="font-medium text-sm mb-3">O que você pode fazer:</p>
+                                    <p className="font-medium text-sm mb-3">O que vocÃª pode fazer:</p>
                                     <ul className="text-left text-sm space-y-2 text-muted-foreground">
                                         <li className="flex items-start gap-2">
                                             <CheckCircle className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
-                                            <span>Verifique se seu dispositivo tem câmera</span>
+                                            <span>Verifique se seu dispositivo tem cÃ¢mera</span>
                                         </li>
                                         <li className="flex items-start gap-2">
                                             <CheckCircle className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
-                                            <span>Feche outros aplicativos que usam a câmera</span>
+                                            <span>Feche outros aplicativos que usam a cÃ¢mera</span>
                                         </li>
                                         <li className="flex items-start gap-2">
                                             <CheckCircle className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
@@ -656,7 +641,7 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
                                         </li>
                                         <li className="flex items-start gap-2">
                                             <CheckCircle className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
-                                            <span>Você pode continuar sem foto (opcional)</span>
+                                            <span>VocÃª pode continuar sem foto (opcional)</span>
                                         </li>
                                     </ul>
                                 </Card>
@@ -754,7 +739,7 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
                 <Card className="p-4 text-center bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800">
                     <div className="flex items-center justify-center gap-2 text-green-700 dark:text-green-300">
                         <CheckCircle className="h-5 w-5" />
-                        <span className="font-medium">Você tirou {MAX_IMAGES} fotos. Pronto para continuar!</span>
+                        <span className="font-medium">VocÃª tirou {MAX_IMAGES} fotos. Pronto para continuar!</span>
                     </div>
                 </Card>
             )}
@@ -767,7 +752,7 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
                         <div>
                             <p className="font-medium text-amber-800 dark:text-amber-300">Continuar sem foto?</p>
                             <p className="text-sm text-amber-700 dark:text-amber-400 mt-1">
-                                Fotos ajudam muito a identificar o problema, mas você pode continuar sem elas.
+                                Fotos ajudam muito a identificar o problema, mas vocÃª pode continuar sem elas.
                             </p>
                         </div>
                     </div>

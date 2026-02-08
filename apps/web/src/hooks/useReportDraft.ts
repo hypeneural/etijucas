@@ -5,7 +5,13 @@
  * and migration from localStorage on first use.
  */
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { reportDraftDB, revokeImageURLs, migrateFromLocalStorage } from '@/lib/idb/reportDraftDB';
+import {
+    reportDraftDB,
+    revokeImageURLs,
+    migrateFromLocalStorage,
+    ACTIVE_REPORT_DRAFT_STORAGE_ID,
+} from '@/lib/idb/reportDraftDB';
+import { isValidUUID } from '@/lib/uuid';
 import type { ReportDraft, WizardStep, CapturedImage } from '@/types/report';
 import { initialReportDraft, generateIdempotencyKey, REPORT_DRAFT_KEY } from '@/types/report';
 
@@ -22,8 +28,9 @@ interface UseReportDraftReturn {
     saveDraft: () => Promise<void>;
 }
 
-// Default draft ID for single active draft
-const ACTIVE_DRAFT_ID = 'active-report-draft';
+function ensureDraftIdempotencyKey(value: string | null | undefined): string {
+    return value && isValidUUID(value) ? value : generateIdempotencyKey();
+}
 
 export function useReportDraft(): UseReportDraftReturn {
     const [draft, setDraft] = useState<ReportDraft>(() => ({
@@ -44,10 +51,19 @@ export function useReportDraft(): UseReportDraftReturn {
                 await migrateFromLocalStorage();
 
                 // Load from IndexedDB
-                const savedDraft = await reportDraftDB.getDraft(ACTIVE_DRAFT_ID);
+                const savedDraft = await reportDraftDB.getDraft(ACTIVE_REPORT_DRAFT_STORAGE_ID);
 
                 if (savedDraft && isMountedRef.current) {
-                    setDraft(savedDraft);
+                    const normalizedDraft: ReportDraft = {
+                        ...savedDraft,
+                        idempotencyKey: ensureDraftIdempotencyKey(savedDraft.idempotencyKey),
+                    };
+
+                    setDraft(normalizedDraft);
+
+                    if (normalizedDraft.idempotencyKey !== savedDraft.idempotencyKey) {
+                        await reportDraftDB.saveDraft(normalizedDraft, 'draft', ACTIVE_REPORT_DRAFT_STORAGE_ID);
+                    }
                 }
             } catch (error) {
                 console.error('[useReportDraft] Error loading draft:', error);
@@ -63,7 +79,7 @@ export function useReportDraft(): UseReportDraftReturn {
                                 createdAt: new Date(parsed.createdAt || Date.now()),
                                 updatedAt: new Date(parsed.updatedAt || Date.now()),
                                 images: [], // Images can't be in localStorage
-                                idempotencyKey: parsed.idempotencyKey || generateIdempotencyKey(),
+                                idempotencyKey: ensureDraftIdempotencyKey(parsed.idempotencyKey),
                             });
                         }
                     }
@@ -97,12 +113,7 @@ export function useReportDraft(): UseReportDraftReturn {
         // Set new debounced save (500ms)
         saveTimeoutRef.current = setTimeout(async () => {
             try {
-                // Create a modified draft with the active draft ID
-                const draftToSave: ReportDraft = {
-                    ...newDraft,
-                    idempotencyKey: ACTIVE_DRAFT_ID, // Use fixed ID for active draft
-                };
-                await reportDraftDB.saveDraft(draftToSave, 'draft');
+                await reportDraftDB.saveDraft(newDraft, 'draft', ACTIVE_REPORT_DRAFT_STORAGE_ID);
             } catch (error) {
                 console.error('[useReportDraft] Error saving draft:', error);
             }
@@ -192,7 +203,7 @@ export function useReportDraft(): UseReportDraftReturn {
 
         // Delete from IndexedDB
         try {
-            await reportDraftDB.deleteDraft(ACTIVE_DRAFT_ID);
+            await reportDraftDB.deleteDraft(ACTIVE_REPORT_DRAFT_STORAGE_ID);
         } catch (error) {
             console.error('[useReportDraft] Error deleting draft:', error);
         }
@@ -213,11 +224,7 @@ export function useReportDraft(): UseReportDraftReturn {
             clearTimeout(saveTimeoutRef.current);
         }
         try {
-            const draftToSave: ReportDraft = {
-                ...draft,
-                idempotencyKey: ACTIVE_DRAFT_ID,
-            };
-            await reportDraftDB.saveDraft(draftToSave, 'draft');
+            await reportDraftDB.saveDraft(draft, 'draft', ACTIVE_REPORT_DRAFT_STORAGE_ID);
         } catch (error) {
             console.error('[useReportDraft] Error saving draft:', error);
         }

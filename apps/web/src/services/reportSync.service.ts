@@ -8,8 +8,9 @@
  * - Online/offline detection
  * - Automatic retry scheduling
  */
-import { getDraft, updateDraftStatus, getDraftsByStatus, getAllDrafts, type SyncStatus } from '@/lib/idb/reportDraftDB';
+import { getDraft, updateDraftStatus, getDraftsByStatus } from '@/lib/idb/reportDraftDB';
 import { createReport } from '@/services/report.service';
+import { ApiError } from '@/api/client';
 import type { ReportDraft, CreateReportPayload } from '@/types/report';
 
 // ============================================================
@@ -66,6 +67,7 @@ const state: SyncState = {
 // ============================================================
 
 let listenersInitialized = false;
+let bootstrapInitialized = false;
 
 function initListeners() {
     if (listenersInitialized || typeof window === 'undefined') return;
@@ -89,8 +91,20 @@ function initListeners() {
     listenersInitialized = true;
 }
 
-// Initialize on module load
-initListeners();
+/**
+ * Bootstrap reports outbox sync runtime.
+ * Should be called once on app startup.
+ */
+export function startReportSync(): void {
+    if (bootstrapInitialized) return;
+    bootstrapInitialized = true;
+
+    initListeners();
+
+    if (state.isOnline) {
+        void syncPendingReports();
+    }
+}
 
 // ============================================================
 // SYNC OPERATIONS
@@ -100,6 +114,11 @@ initListeners();
  * Queue a draft for sync
  */
 export async function queueForSync(draftId: string): Promise<void> {
+    const draft = await getDraft(draftId);
+    if (!draft) {
+        throw new Error(`[ReportSync] Draft not found for queueing: ${draftId}`);
+    }
+
     await updateDraftStatus(draftId, 'queued');
 
     // Reset retry info for this draft
@@ -222,6 +241,17 @@ function scheduleNextRetry(): void {
     }
 }
 
+function isRetryableSyncError(error: unknown): boolean {
+    if (error instanceof ApiError) {
+        // Fatal client errors should not loop indefinitely in the outbox.
+        if (error.status >= 400 && error.status < 500) {
+            return error.status === 408 || error.status === 429;
+        }
+    }
+
+    return true;
+}
+
 /**
  * Sync a single report
  */
@@ -251,20 +281,26 @@ async function syncSingleReport(draftId: string): Promise<boolean> {
     } catch (error) {
         console.error('[ReportSync] Failed to sync report:', draftId, error);
 
+        const retryable = isRetryableSyncError(error);
+
         // Update retry info with exponential backoff
         const currentInfo = state.retryInfo.get(draftId) || { attempts: 0, nextRetryAt: null, lastError: null };
-        const newAttempts = currentInfo.attempts + 1;
+        const newAttempts = retryable ? currentInfo.attempts + 1 : BACKOFF_CONFIG.maxRetries;
         const delay = calculateBackoffDelay(newAttempts);
 
         state.retryInfo.set(draftId, {
             attempts: newAttempts,
-            nextRetryAt: Date.now() + delay,
+            nextRetryAt: retryable ? Date.now() + delay : null,
             lastError: error instanceof Error ? error.message : 'Unknown error',
         });
 
         await updateDraftStatus(draftId, 'failed');
 
-        console.log(`[ReportSync] Will retry in ${Math.round(delay / 1000)}s (attempt ${newAttempts}/${BACKOFF_CONFIG.maxRetries})`);
+        if (retryable) {
+            console.log(`[ReportSync] Will retry in ${Math.round(delay / 1000)}s (attempt ${newAttempts}/${BACKOFF_CONFIG.maxRetries})`);
+        } else {
+            console.warn(`[ReportSync] Marked as failed without retry (non-retryable): ${draftId}`);
+        }
 
         return false;
     }
@@ -374,6 +410,7 @@ export async function cancelDraft(draftId: string): Promise<void> {
 
 // Export service
 export const reportSyncService = {
+    startReportSync,
     queueForSync,
     syncPendingReports,
     getSyncStatus,

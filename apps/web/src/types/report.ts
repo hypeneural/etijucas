@@ -1,6 +1,8 @@
-/**
- * Report Types - Citizen Reports (Denúncias Cidadãs)
+﻿/**
+ * Report Types - Citizen Reports (DenÃºncias CidadÃ£s)
  */
+
+import { generateUUID } from '@/lib/uuid';
 
 // ======================================================
 // API Response Types (from backend)
@@ -176,7 +178,7 @@ export interface GeocodeSuggestion {
 // ======================================================
 
 export const generateIdempotencyKey = (): string =>
-    `report-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+    generateUUID();
 
 export const initialReportDraft: ReportDraft = {
     categoryId: null,
@@ -198,3 +200,4 @@ export const REPORT_DRAFT_KEY = 'etijucas-report-draft';
 
 // Max images allowed
 export const MAX_REPORT_IMAGES = 3;
+

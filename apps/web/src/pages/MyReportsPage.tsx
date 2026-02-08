@@ -26,6 +26,7 @@ import { LoginRequired } from '@/components/auth/LoginRequired';
 import { BottomTabBar } from '@/components/layout/BottomTabBar';
 import { CategoryIcon } from '@/components/report/CategoryIcon';
 import { ReportsFilterSheet, type ReportFilters } from '@/components/report/ReportsFilterSheet';
+import { ReportSyncStatus } from '@/components/report/ReportSyncStatus';
 import type { CitizenReport } from '@/types/report';
 
 const statusConfig: Record<string, { icon: React.ComponentType<{ className?: string }>, color: string, label: string }> = {
@@ -123,6 +124,9 @@ function ReportCard({ report }: { report: CitizenReport }) {
 export default function MyReportsPage() {
     const navigate = useTenantNavigate();
     const { isAuthenticated } = useAuthStore();
+    const { reports, isLoading, error, refetch } = useMyReports();
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const [advancedFilters, setAdvancedFilters] = useState<ReportFilters>({ status: 'all' });
 
     // Auth gate - require login to view reports
     if (!isAuthenticated) {
@@ -134,10 +138,6 @@ export default function MyReportsPage() {
             />
         );
     }
-
-    const { reports, isLoading, error, refetch } = useMyReports();
-    const [isFilterOpen, setIsFilterOpen] = useState(false);
-    const [advancedFilters, setAdvancedFilters] = useState<ReportFilters>({ status: 'all' });
 
     // Apply advanced filters
     const filteredReports = reports.filter(r => {
@@ -210,6 +210,8 @@ export default function MyReportsPage() {
 
             {/* Content */}
             <main className="p-4 pb-32">
+                <ReportSyncStatus />
+
                 {/* Active Filters Display */}
                 {activeFiltersCount > 0 && (
                     <div className="flex gap-2 flex-wrap mb-4">
@@ -325,7 +327,7 @@ export default function MyReportsPage() {
                         </p>
                         <Button
                             variant="ghost"
-                            onClick={() => setFilter(null)}
+                            onClick={() => setAdvancedFilters({ status: 'all' })}
                             className="mt-2"
                         >
                             Limpar filtro

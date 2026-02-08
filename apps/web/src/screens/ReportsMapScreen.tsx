@@ -63,6 +63,8 @@ import { toast } from 'sonner';
 import { CategoryIcon } from '@/components/report/CategoryIcon';
 import { BottomTabBar } from '@/components/layout/BottomTabBar';
 import { useReportsStats } from '@/hooks/useMyReports';
+import { reportService } from '@/services/report.service';
+import { useTenantStore } from '@/store/useTenantStore';
 import 'leaflet/dist/leaflet.css';
 
 // ============================================
@@ -252,7 +254,7 @@ function ReportPreviewContent({
     onShare
 }: {
     report: MapReport;
-    statusConfig: any;
+    statusConfig: typeof statusConfig;
     onViewDetails: () => void;
     onRoutes: () => void;
     onShare: () => void;
@@ -424,6 +426,7 @@ function ReportPreviewContent({
 
 export default function ReportsMapScreen() {
     const navigate = useTenantNavigate();
+    const tenantCacheScope = useTenantStore((state) => state.tenantKey ?? state.city?.slug ?? 'global');
 
     // Map state
     const [bounds, setBounds] = useState<MapBounds | null>(null);
@@ -441,6 +444,8 @@ export default function ReportsMapScreen() {
     const [statusFilter, setStatusFilter] = useState<string[]>([]);
     const [categoryFilter, setCategoryFilter] = useState<string[]>([]);
     const [periodFilter, setPeriodFilter] = useState<string>('all');
+    const statusFilterKey = useMemo(() => [...statusFilter].sort().join(','), [statusFilter]);
+    const categoryFilterKey = useMemo(() => [...categoryFilter].sort().join(','), [categoryFilter]);
 
     // Default center (Tijucas, SC)
     const defaultCenter: [number, number] = [-27.2381, -48.6356];
@@ -450,16 +455,12 @@ export default function ReportsMapScreen() {
     const totalReports = stats?.total ?? 0;
 
     // Fetch categories
-    const { data: categoriesData } = useQuery({
-        queryKey: ['report-categories'],
-        queryFn: async () => {
-            const response = await fetch('/api/v1/report-categories');
-            if (!response.ok) throw new Error('Failed to fetch');
-            return response.json();
-        },
+    const { data: categoriesData = [] } = useQuery({
+        queryKey: ['reports', tenantCacheScope, 'categories'],
+        queryFn: () => reportService.getCategories(),
         staleTime: 5 * 60 * 1000,
     });
-    const categories: ReportCategory[] = categoriesData?.data || [];
+    const categories: ReportCategory[] = categoriesData;
 
     // Build bbox string for API
     const bboxString = bounds
@@ -477,19 +478,15 @@ export default function ReportsMapScreen() {
 
     // Fetch reports for current viewport
     const { data, isLoading, refetch, isFetching } = useQuery({
-        queryKey: ['reports', 'map', bboxString, zoom, statusFilter, categoryFilter, periodFilter],
-        queryFn: async () => {
-            const params = new URLSearchParams();
-            if (bboxString) params.set('bbox', bboxString);
-            params.set('zoom', String(zoom));
-            params.set('limit', '300');
-            if (statusFilter.length) params.set('status', statusFilter.join(','));
-            if (categoryFilter.length) params.set('category', categoryFilter.join(','));
-
-            const response = await fetch(`/api/v1/reports/map?${params.toString()}`);
-            if (!response.ok) throw new Error('Failed to fetch');
-            return response.json();
-        },
+        queryKey: ['reports', tenantCacheScope, 'map', bboxString, zoom, statusFilterKey, categoryFilterKey, periodFilter],
+        queryFn: () =>
+            reportService.getReportsMap({
+                bbox: bboxString ?? undefined,
+                zoom,
+                limit: 300,
+                status: statusFilter,
+                category: categoryFilter,
+            }),
         enabled: !!bboxString,
         staleTime: 30 * 1000,
         refetchOnWindowFocus: false,
@@ -568,7 +565,9 @@ export default function ReportsMapScreen() {
         if (navigator.share) {
             try {
                 await navigator.share({ title: selectedReport.title, url });
-            } catch { }
+            } catch (error) {
+                console.debug('[ReportsMapScreen] Share flow interrupted:', error);
+            }
         } else {
             await navigator.clipboard.writeText(url);
             toast.success('Link copiado!');

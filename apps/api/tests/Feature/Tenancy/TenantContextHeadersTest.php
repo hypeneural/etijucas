@@ -128,6 +128,8 @@ class TenantContextHeadersTest extends TestCase
         $this->assertSame('tijucas-sc', $response->headers->get('X-Tenant-City'));
         $this->assertSame('America/Sao_Paulo', $response->headers->get('X-Tenant-Timezone'));
         $this->assertNotEmpty($response->headers->get('X-Tenant-Key'));
+        $this->assertStringContainsString('Host', (string) $response->headers->get('Vary'));
+        $this->assertStringContainsString('X-City', (string) $response->headers->get('Vary'));
     }
 
     public function test_tenant_key_is_stable_for_same_city(): void

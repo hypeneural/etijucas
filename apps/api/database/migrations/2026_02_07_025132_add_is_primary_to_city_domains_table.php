@@ -25,16 +25,32 @@ return new class extends Migration {
         // MariaDB doesn't support partial indexes, so we use a trigger or app-side validation
         // For MySQL 8+, we could use: CREATE UNIQUE INDEX idx ON city_domains (city_id) WHERE is_primary = 1
 
-        // Set the first domain of each city as primary
-        DB::statement("
-            UPDATE city_domains cd1
-            SET is_primary = 1
-            WHERE cd1.id = (
-                SELECT MIN(cd2.id) 
-                FROM (SELECT * FROM city_domains) cd2 
-                WHERE cd2.city_id = cd1.city_id
-            )
-        ");
+        // Set the first domain of each city as primary.
+        if (DB::getDriverName() === 'sqlite') {
+            $primaryIds = DB::table('city_domains')
+                ->selectRaw('MIN(id) as id')
+                ->groupBy('city_id')
+                ->pluck('id')
+                ->filter()
+                ->values()
+                ->all();
+
+            if (!empty($primaryIds)) {
+                DB::table('city_domains')
+                    ->whereIn('id', $primaryIds)
+                    ->update(['is_primary' => true]);
+            }
+        } else {
+            DB::statement("
+                UPDATE city_domains cd1
+                SET is_primary = 1
+                WHERE cd1.id = (
+                    SELECT MIN(cd2.id)
+                    FROM (SELECT * FROM city_domains) cd2
+                    WHERE cd2.city_id = cd1.city_id
+                )
+            ");
+        }
     }
 
     /**
@@ -47,4 +63,3 @@ return new class extends Migration {
         });
     }
 };
-

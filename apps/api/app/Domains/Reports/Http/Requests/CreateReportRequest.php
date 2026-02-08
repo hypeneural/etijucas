@@ -32,22 +32,23 @@ class CreateReportRequest extends FormRequest
 
             // Images (multipart)
             'images' => 'nullable|array|max:3',
-            'images.*' => 'image|mimes:jpeg,png,webp|max:15360', // 15MB max
+            'images.*' => 'image|mimes:jpeg,png,webp|max:8192', // 8MB max
         ];
     }
 
     public function messages(): array
     {
         return [
-            'categoryId.required' => 'Selecione uma categoria para a denúncia.',
-            'categoryId.exists' => 'Categoria inválida.',
-            'title.required' => 'Informe um título para a denúncia.',
-            'title.min' => 'O título deve ter pelo menos 5 caracteres.',
-            'title.max' => 'O título não pode ter mais de 200 caracteres.',
-            'description.max' => 'A descrição não pode ter mais de 2000 caracteres.',
-            'images.max' => 'Você pode enviar no máximo 3 imagens.',
-            'images.*.max' => 'Cada imagem pode ter no máximo 15MB.',
-            'images.*.mimes' => 'Formato de imagem inválido. Use JPEG, PNG ou WebP.',
+            'categoryId.required' => 'Selecione uma categoria para a denÃºncia.',
+            'categoryId.exists' => 'Categoria invÃ¡lida.',
+            'title.required' => 'Informe um tÃ­tulo para a denÃºncia.',
+            'title.min' => 'O tÃ­tulo deve ter pelo menos 5 caracteres.',
+            'title.max' => 'O tÃ­tulo nÃ£o pode ter mais de 200 caracteres.',
+            'description.max' => 'A descriÃ§Ã£o nÃ£o pode ter mais de 2000 caracteres.',
+            'images.max' => 'VocÃª pode enviar no mÃ¡ximo 3 imagens.',
+            'images.*.max' => 'Cada imagem pode ter no mÃ¡ximo 8MB.',
+            'images.*.mimes' => 'Formato de imagem invÃ¡lido. Use JPEG, PNG ou WebP.',
         ];
     }
 }
+

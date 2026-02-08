@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+﻿import { useState, useCallback } from 'react';
 import { useTenantNavigate } from '@/hooks';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, X, Loader2 } from 'lucide-react';
@@ -16,12 +16,15 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { toast } from 'sonner';
 import { BottomTabBar } from '@/components/layout/BottomTabBar';
 import type { CreateReportPayload } from '@/types/report';
+import { isOfflineLikeReportError } from '@/services/report.service';
+import { enqueueReportDraft } from '@/services/reportOutbox.service';
+import { ACTIVE_REPORT_DRAFT_STORAGE_ID } from '@/lib/idb/reportDraftDB';
 
 const STEP_LABELS = [
     'Categoria',
-    'Localização',
+    'LocalizaÃ§Ã£o',
     'Fotos',
-    'Revisão'
+    'RevisÃ£o'
 ];
 
 const slideVariants = {
@@ -43,17 +46,6 @@ export default function ReportWizardPage() {
     const navigate = useTenantNavigate();
     const { isAuthenticated } = useAuthStore();
 
-    // Auth gate - require login to create reports
-    if (!isAuthenticated) {
-        return (
-            <LoginRequired
-                title="Cadastre-se ou entre"
-                message="Para enviar uma denúncia, você precisa estar cadastrado no aplicativo."
-                returnUrl="/denuncia/nova"
-            />
-        );
-    }
-
     // Draft management via IndexedDB hook
     const {
         draft,
@@ -62,13 +54,14 @@ export default function ReportWizardPage() {
         nextStep,
         prevStep,
         clearDraft,
+        saveDraft,
     } = useReportDraft();
 
     const [direction, setDirection] = useState(0);
     const [showSuccess, setShowSuccess] = useState(false);
     const [protocolNumber, setProtocolNumber] = useState<string | null>(null);
 
-    const { createReport, isCreating, error: createError } = useCreateReport();
+    const { createReport } = useCreateReport();
 
     // Wrapper for step navigation with direction tracking
     const goToStep = useCallback((step: 1 | 2 | 3 | 4) => {
@@ -89,11 +82,11 @@ export default function ReportWizardPage() {
     const handleSubmit = useCallback(async () => {
         // Validate required fields
         if (!draft.categoryId) {
-            toast.error('Selecione uma categoria para a denúncia');
+            toast.error('Selecione uma categoria para a denÃºncia');
             return;
         }
         if (!draft.title || draft.title.trim().length < 5) {
-            toast.error('O título deve ter pelo menos 5 caracteres');
+            toast.error('O tÃ­tulo deve ter pelo menos 5 caracteres');
             return;
         }
         // Description is optional - no validation needed
@@ -133,16 +126,28 @@ export default function ReportWizardPage() {
             // Clear draft after successful submit
             clearDraft();
 
-            toast.success('Denúncia enviada com sucesso!');
+            toast.success('DenÃºncia enviada com sucesso!');
         } catch (error) {
             console.error('Error submitting report:', error);
-            toast.error('Erro ao enviar denúncia. Tente novamente.');
+            if (isOfflineLikeReportError(error)) {
+                try {
+                    await saveDraft();
+                    await enqueueReportDraft(ACTIVE_REPORT_DRAFT_STORAGE_ID);
+
+                    toast.info('Denúncia salva offline. Vamos enviar quando a conexão voltar.');
+                    navigate('/minhas-denuncias');
+                    return;
+                } catch (queueError) {
+                    console.error('Error queueing report draft for sync:', queueError);
+                }
+            }
+            toast.error('Erro ao enviar denÃºncia. Tente novamente.');
         }
-    }, [draft, createReport, clearDraft]);
+    }, [draft, createReport, clearDraft, saveDraft, navigate]);
 
     const handleClose = () => {
         if (draft.categoryId || draft.location || draft.images.length > 0) {
-            if (window.confirm('Tem certeza que deseja sair? Seu rascunho será salvo.')) {
+            if (window.confirm('Tem certeza que deseja sair? Seu rascunho serÃ¡ salvo.')) {
                 navigate(-1);
             }
         } else {
@@ -153,6 +158,17 @@ export default function ReportWizardPage() {
     const handleSuccessClose = () => {
         navigate('/');
     };
+
+    // Auth gate - require login to create reports
+    if (!isAuthenticated) {
+        return (
+            <LoginRequired
+                title="Cadastre-se ou entre"
+                message="Para enviar uma denÃºncia, vocÃª precisa estar cadastrado no aplicativo."
+                returnUrl="/denuncia/nova"
+            />
+        );
+    }
 
     // Show loading while draft is being loaded from IndexedDB
     if (isDraftLoading) {
@@ -181,7 +197,7 @@ export default function ReportWizardPage() {
                     >
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
-                    <h1 className="font-semibold text-lg">Enviar Denúncia</h1>
+                    <h1 className="font-semibold text-lg">Enviar DenÃºncia</h1>
                     <Button
                         variant="ghost"
                         size="icon"
@@ -264,3 +280,5 @@ export default function ReportWizardPage() {
         </div >
     );
 }
+
+

@@ -29,17 +29,37 @@ return new class extends Migration {
             });
         }
 
-        // Backfill: derive city_id from bairro relationship
-        DB::statement("
-            UPDATE users u
-            SET city_id = (
-                SELECT b.city_id 
-                FROM bairros b 
-                WHERE b.id = u.bairro_id
-            )
-            WHERE u.bairro_id IS NOT NULL
-              AND u.city_id IS NULL
-        ");
+        // Backfill: derive city_id from bairro relationship.
+        if (DB::getDriverName() === 'sqlite') {
+            $users = DB::table('users')
+                ->select(['id', 'bairro_id'])
+                ->whereNotNull('bairro_id')
+                ->whereNull('city_id')
+                ->get();
+
+            foreach ($users as $user) {
+                $cityId = DB::table('bairros')
+                    ->where('id', $user->bairro_id)
+                    ->value('city_id');
+
+                if ($cityId) {
+                    DB::table('users')
+                        ->where('id', $user->id)
+                        ->update(['city_id' => $cityId]);
+                }
+            }
+        } else {
+            DB::statement("
+                UPDATE users u
+                SET city_id = (
+                    SELECT b.city_id
+                    FROM bairros b
+                    WHERE b.id = u.bairro_id
+                )
+                WHERE u.bairro_id IS NOT NULL
+                  AND u.city_id IS NULL
+            ");
+        }
 
         // For users without bairro, set default city (Tijucas)
         $defaultCityId = DB::table('cities')
@@ -65,4 +85,3 @@ return new class extends Migration {
         });
     }
 };
-

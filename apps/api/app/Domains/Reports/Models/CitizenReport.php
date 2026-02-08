@@ -20,6 +20,16 @@ class CitizenReport extends Model implements HasMedia
 {
     use HasUuids, SoftDeletes, InteractsWithMedia, BelongsToTenant;
 
+    /**
+     * Public report visibility policy.
+     * Keep explicit until a dedicated moderation flag is introduced.
+     *
+     * @var array<int, string>
+     */
+    public const PUBLIC_VISIBLE_STATUSES = [
+        ReportStatus::Resolvido->value,
+    ];
+
     protected $table = 'citizen_reports';
 
     protected $fillable = [
@@ -143,6 +153,28 @@ class CitizenReport extends Model implements HasMedia
     public function scopeResolved($query)
     {
         return $query->where('status', ReportStatus::Resolvido);
+    }
+
+    public function scopePublicVisible($query)
+    {
+        return $query->whereIn('status', self::publicVisibleStatuses());
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public static function publicVisibleStatuses(): array
+    {
+        return self::PUBLIC_VISIBLE_STATUSES;
+    }
+
+    public function isPubliclyVisible(): bool
+    {
+        $statusValue = $this->status instanceof ReportStatus
+            ? $this->status->value
+            : (string) $this->status;
+
+        return in_array($statusValue, self::publicVisibleStatuses(), true);
     }
 
     // =====================================================

@@ -123,6 +123,7 @@ class TenantContext
         $response->headers->set('X-Tenant-City', $city->slug);
         $response->headers->set('X-Tenant-Timezone', $tenantTimezone);
         $response->headers->set('X-Tenant-Key', $tenantKey);
+        $this->appendVaryHeaders($response, ['Host', 'X-City']);
 
         return $response;
     }
@@ -294,5 +295,24 @@ class TenantContext
         $host = preg_replace('/:\d+$/', '', $host);
 
         return strtolower($host);
+    }
+
+    /**
+     * Ensure tenant-resolving headers are part of Vary to prevent cache mixing across cities.
+     */
+    private function appendVaryHeaders(Response $response, array $headers): void
+    {
+        $existing = $response->headers->get('Vary');
+        $varyValues = collect(explode(',', (string) $existing))
+            ->map(static fn(string $value): string => trim($value))
+            ->filter(static fn(string $value): bool => $value !== '');
+
+        foreach ($headers as $header) {
+            if (!$varyValues->contains($header)) {
+                $varyValues->push($header);
+            }
+        }
+
+        $response->headers->set('Vary', $varyValues->implode(', '));
     }
 }

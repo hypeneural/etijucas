@@ -1,11 +1,83 @@
-/**
- * Image compression utility for mobile uploads
- * Compresses images before upload to reduce bandwidth and storage
- */
+import imageCompression from 'browser-image-compression';
 
-/**
- * Format bytes to human readable string (e.g., "1.2 MB")
- */
+export const REPORT_IMAGE_POLICY = {
+    maxWidthOrHeight: 1920,
+    targetSizeKB: 350,
+    preferredQuality: 0.8,
+    fallbackQuality: 0.78,
+} as const;
+
+const VALID_IMAGE_TYPES = new Set([
+    'image/jpeg',
+    'image/jpg',
+    'image/png',
+    'image/webp',
+    'image/heic',
+    'image/heif',
+]);
+
+interface CompressionAttemptConfig {
+    fileType: 'image/webp' | 'image/jpeg' | 'image/png';
+    quality: number;
+    maxWidthOrHeight: number;
+    targetSizeKB: number;
+}
+
+export interface CompressOptions {
+    maxWidth?: number;
+    maxHeight?: number;
+    quality?: number;
+    format?: 'image/webp' | 'image/jpeg' | 'image/png';
+    targetSizeKB?: number;
+}
+
+export interface CompressResult {
+    blob: Blob;
+    dataUrl: string;
+    originalSize: number;
+    compressedSize: number;
+    compressionRatio: number;
+    width: number;
+    height: number;
+}
+
+function getExtensionFromMime(mimeType: string): string {
+    switch (mimeType) {
+        case 'image/webp':
+            return 'webp';
+        case 'image/jpeg':
+            return 'jpg';
+        case 'image/png':
+            return 'png';
+        default:
+            return 'jpg';
+    }
+}
+
+function replaceExtension(fileName: string, nextExtension: string): string {
+    const baseName = fileName.replace(/\.[^/.]+$/, '');
+    return `${baseName}.${nextExtension}`;
+}
+
+function toOutputFile(blobLike: Blob | File, originalName: string, mimeType: string): File {
+    const extension = getExtensionFromMime(mimeType);
+    const outputName = replaceExtension(originalName, extension);
+
+    return new File([blobLike], outputName, {
+        type: mimeType,
+        lastModified: Date.now(),
+    });
+}
+
+async function fileToDataUrl(file: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve((reader.result as string) ?? '');
+        reader.onerror = () => reject(new Error('Failed to convert file to data URL'));
+        reader.readAsDataURL(file);
+    });
+}
+
 export function formatBytes(bytes: number): string {
     if (bytes === 0) return '0 B';
     const k = 1024;
@@ -14,184 +86,148 @@ export function formatBytes(bytes: number): string {
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
 }
 
-interface CompressOptions {
-    /** Maximum width in pixels (default: 1200) */
-    maxWidth?: number;
-    /** Maximum height in pixels (default: 1200) */
-    maxHeight?: number;
-    /** Quality from 0 to 1 (default: 0.8) */
-    quality?: number;
-    /** Output format (default: 'image/webp', fallback to 'image/jpeg') */
-    format?: 'image/webp' | 'image/jpeg' | 'image/png';
+export function isValidImage(file: File): boolean {
+    return VALID_IMAGE_TYPES.has(file.type.toLowerCase()) || file.type.startsWith('image/');
 }
 
-interface CompressResult {
-    /** Compressed image as Blob */
-    blob: Blob;
-    /** Data URL for preview */
-    dataUrl: string;
-    /** Original file size in bytes */
-    originalSize: number;
-    /** Compressed file size in bytes */
-    compressedSize: number;
-    /** Compression ratio (0-1) */
-    compressionRatio: number;
-    /** Final width */
-    width: number;
-    /** Final height */
-    height: number;
+export function getImageDimensions(file: File): Promise<{ width: number; height: number }> {
+    return new Promise((resolve, reject) => {
+        const objectUrl = URL.createObjectURL(file);
+        const img = new Image();
+
+        img.onload = () => {
+            resolve({ width: img.width, height: img.height });
+            URL.revokeObjectURL(objectUrl);
+        };
+
+        img.onerror = () => {
+            URL.revokeObjectURL(objectUrl);
+            reject(new Error('Failed to load image for dimensions'));
+        };
+
+        img.src = objectUrl;
+    });
+}
+
+async function runCompressionAttempt(file: File, config: CompressionAttemptConfig): Promise<File> {
+    const compressed = await imageCompression(file, {
+        maxSizeMB: config.targetSizeKB / 1024,
+        maxWidthOrHeight: config.maxWidthOrHeight,
+        useWebWorker: true,
+        initialQuality: config.quality,
+        fileType: config.fileType,
+        preserveExif: false,
+    });
+
+    return toOutputFile(compressed, file.name, config.fileType);
+}
+
+async function compressWithWebpFallback(
+    file: File,
+    config: Omit<CompressionAttemptConfig, 'fileType'>
+): Promise<File> {
+    try {
+        return await runCompressionAttempt(file, {
+            ...config,
+            fileType: 'image/webp',
+        });
+    } catch (webpError) {
+        console.warn('[imageCompression] WebP compression failed, falling back to JPEG', webpError);
+        return runCompressionAttempt(file, {
+            ...config,
+            fileType: 'image/jpeg',
+            quality: REPORT_IMAGE_POLICY.fallbackQuality,
+        });
+    }
 }
 
 /**
- * Compresses an image file for mobile upload
- * @param file - The image file to compress
- * @param options - Compression options
- * @returns Promise with compressed result
+ * Compression policy for report uploads:
+ * - resize to 1920px max
+ * - target around 350KB
+ * - prefer WebP with JPEG fallback
+ * - strip EXIF metadata
  */
+export async function compressForReportUpload(file: File): Promise<File> {
+    if (!isValidImage(file)) {
+        throw new Error('Invalid image file');
+    }
+
+    return compressWithWebpFallback(file, {
+        maxWidthOrHeight: REPORT_IMAGE_POLICY.maxWidthOrHeight,
+        targetSizeKB: REPORT_IMAGE_POLICY.targetSizeKB,
+        quality: REPORT_IMAGE_POLICY.preferredQuality,
+    });
+}
+
+export async function compressImagesForReportUpload(files: File[]): Promise<File[]> {
+    const compressed: File[] = [];
+
+    for (const file of files) {
+        compressed.push(await compressForReportUpload(file));
+    }
+
+    return compressed;
+}
+
 export async function compressImage(
     file: File,
     options: CompressOptions = {}
 ): Promise<CompressResult> {
-    const {
-        maxWidth = 1200,
-        maxHeight = 1200,
-        quality = 0.8,
-        format = 'image/webp',
-    } = options;
-
-    return new Promise((resolve, reject) => {
-        const img = new Image();
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-
-        if (!ctx) {
-            reject(new Error('Canvas context not available'));
-            return;
-        }
-
-        img.onload = () => {
-            // Calculate new dimensions maintaining aspect ratio
-            let { width, height } = img;
-
-            if (width > maxWidth) {
-                height = (height * maxWidth) / width;
-                width = maxWidth;
-            }
-
-            if (height > maxHeight) {
-                width = (width * maxHeight) / height;
-                height = maxHeight;
-            }
-
-            // Round to integers
-            width = Math.round(width);
-            height = Math.round(height);
-
-            // Set canvas size
-            canvas.width = width;
-            canvas.height = height;
-
-            // Draw image with smoothing
-            ctx.imageSmoothingEnabled = true;
-            ctx.imageSmoothingQuality = 'high';
-            ctx.drawImage(img, 0, 0, width, height);
-
-            // Try to use WebP, fallback to JPEG if not supported
-            const outputFormat = canvas.toDataURL(format).startsWith('data:' + format)
-                ? format
-                : 'image/jpeg';
-
-            canvas.toBlob(
-                (blob) => {
-                    if (!blob) {
-                        reject(new Error('Failed to compress image'));
-                        return;
-                    }
-
-                    const dataUrl = canvas.toDataURL(outputFormat, quality);
-
-                    resolve({
-                        blob,
-                        dataUrl,
-                        originalSize: file.size,
-                        compressedSize: blob.size,
-                        compressionRatio: blob.size / file.size,
-                        width,
-                        height,
-                    });
-                },
-                outputFormat,
-                quality
-            );
-        };
-
-        img.onerror = () => {
-            reject(new Error('Failed to load image'));
-        };
-
-        // Load image from file
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            img.src = e.target?.result as string;
-        };
-        reader.onerror = () => {
-            reject(new Error('Failed to read file'));
-        };
-        reader.readAsDataURL(file);
-    });
-}
-
-/**
- * Compresses an image and returns a data URL suitable for storage
- * Limits output to approximately 1MB
- */
-export async function compressForStorage(
-    file: File,
-    maxSizeKB: number = 500
-): Promise<string> {
-    let quality = 0.9;
-    const maxWidth = 1200;
-    const maxHeight = 1200;
-
-    // First compression attempt
-    let result = await compressImage(file, { maxWidth, maxHeight, quality });
-
-    // Reduce quality iteratively if still too large
-    while (result.compressedSize > maxSizeKB * 1024 && quality > 0.3) {
-        quality -= 0.1;
-        result = await compressImage(file, { maxWidth, maxHeight, quality });
+    if (!isValidImage(file)) {
+        throw new Error('Invalid image file');
     }
 
-    // If still too large, reduce dimensions
-    if (result.compressedSize > maxSizeKB * 1024) {
-        result = await compressImage(file, {
-            maxWidth: 800,
-            maxHeight: 800,
-            quality: 0.7,
+    const maxWidthOrHeight = Math.max(
+        options.maxWidth ?? REPORT_IMAGE_POLICY.maxWidthOrHeight,
+        options.maxHeight ?? REPORT_IMAGE_POLICY.maxWidthOrHeight
+    );
+    const targetSizeKB = options.targetSizeKB ?? REPORT_IMAGE_POLICY.targetSizeKB;
+    const format = options.format ?? 'image/webp';
+    const quality = options.quality ?? REPORT_IMAGE_POLICY.preferredQuality;
+
+    let compressedFile: File;
+    if (format === 'image/webp') {
+        compressedFile = await compressWithWebpFallback(file, {
+            maxWidthOrHeight,
+            targetSizeKB,
+            quality,
+        });
+    } else {
+        compressedFile = await runCompressionAttempt(file, {
+            fileType: format,
+            maxWidthOrHeight,
+            targetSizeKB,
+            quality,
         });
     }
+
+    const dataUrl = await fileToDataUrl(compressedFile);
+    const dimensions = await getImageDimensions(compressedFile).catch(() => ({ width: 0, height: 0 }));
+
+    return {
+        blob: compressedFile,
+        dataUrl,
+        originalSize: file.size,
+        compressedSize: compressedFile.size,
+        compressionRatio: file.size > 0 ? compressedFile.size / file.size : 1,
+        width: dimensions.width,
+        height: dimensions.height,
+    };
+}
+
+export async function compressForStorage(
+    file: File,
+    maxSizeKB: number = REPORT_IMAGE_POLICY.targetSizeKB
+): Promise<string> {
+    const result = await compressImage(file, {
+        maxWidth: REPORT_IMAGE_POLICY.maxWidthOrHeight,
+        maxHeight: REPORT_IMAGE_POLICY.maxWidthOrHeight,
+        targetSizeKB: maxSizeKB,
+        format: 'image/webp',
+        quality: REPORT_IMAGE_POLICY.preferredQuality,
+    });
 
     return result.dataUrl;
 }
 
-/**
- * Validates if a file is an acceptable image
- */
-export function isValidImage(file: File): boolean {
-    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-    return validTypes.includes(file.type);
-}
-
-/**
- * Gets image dimensions from a file
- */
-export function getImageDimensions(file: File): Promise<{ width: number; height: number }> {
-    return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => {
-            resolve({ width: img.width, height: img.height });
-        };
-        img.onerror = reject;
-        img.src = URL.createObjectURL(file);
-    });
-}

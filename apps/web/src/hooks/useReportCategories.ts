@@ -5,14 +5,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { reportService } from '@/services/report.service';
 import type { ReportCategory } from '@/types/report';
-
-const QUERY_KEYS = {
-    categories: ['report', 'categories'] as const,
-};
+import { useTenantStore } from '@/store/useTenantStore';
 
 export function useReportCategories() {
+    const tenantCacheScope = useTenantStore((state) => state.tenantKey ?? state.city?.slug ?? 'global');
+
     const query = useQuery({
-        queryKey: QUERY_KEYS.categories,
+        queryKey: ['reports', tenantCacheScope, 'categories'],
         queryFn: () => reportService.getCategories(),
         staleTime: 30 * 60 * 1000, // 30 minutes
         gcTime: 60 * 60 * 1000, // 1 hour

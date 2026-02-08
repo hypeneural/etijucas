@@ -5,10 +5,12 @@ namespace App\Domains\Reports\Http\Controllers;
 use App\Domains\Reports\Actions\UpdateReportStatusAction;
 use App\Domains\Reports\Enums\ReportStatus;
 use App\Domains\Reports\Http\Requests\CreateReportRequest;
+use App\Domains\Reports\Http\Resources\PublicReportResource;
 use App\Domains\Reports\Http\Requests\UpdateReportStatusRequest;
 use App\Domains\Reports\Http\Resources\ReportResource;
 use App\Domains\Reports\Models\CitizenReport;
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -23,6 +25,7 @@ class ReportController extends Controller
     {
         // Public reports query
         $query = CitizenReport::with(['category', 'media', 'bairro', 'statusHistory'])
+            ->publicVisible()
             ->orderByDesc('created_at');
 
         // Filter by status
@@ -52,7 +55,7 @@ class ReportController extends Controller
         $perPage = min($request->integer('perPage', 10), 50);
         $reports = $query->paginate($perPage);
 
-        return ReportResource::collection($reports);
+        return PublicReportResource::collection($reports);
     }
 
     /**
@@ -182,12 +185,22 @@ class ReportController extends Controller
      */
     public function show(Request $request, string $id): JsonResponse
     {
+        $user = $this->resolveAuthenticatedUser($request);
         $report = CitizenReport::with(['category', 'bairro', 'statusHistory.createdBy', 'media'])
             ->findOrFail($id);
 
+        $canViewPrivate = $this->canViewPrivateReport($user, $report);
+        if (!$canViewPrivate && !$report->isPubliclyVisible()) {
+            abort(404);
+        }
+
+        $resource = $canViewPrivate
+            ? new ReportResource($report)
+            : new PublicReportResource($report);
+
         return response()->json([
             'success' => true,
-            'data' => new ReportResource($report),
+            'data' => $resource,
         ]);
     }
 
@@ -219,7 +232,7 @@ class ReportController extends Controller
 
         $request->validate([
             'images' => 'required|array|max:' . (3 - $currentCount),
-            'images.*' => 'image|mimes:jpeg,png,webp|max:15360',
+            'images.*' => 'image|mimes:jpeg,png,webp|max:8192',
         ]);
 
         // Add images
@@ -337,6 +350,30 @@ class ReportController extends Controller
         $reports = $query->paginate($perPage);
 
         return ReportResource::collection($reports);
+    }
+
+    private function resolveAuthenticatedUser(Request $request): ?User
+    {
+        $requestUser = $request->user();
+        if ($requestUser instanceof User) {
+            return $requestUser;
+        }
+
+        $sanctumUser = auth('sanctum')->user();
+        return $sanctumUser instanceof User ? $sanctumUser : null;
+    }
+
+    private function canViewPrivateReport(?User $user, CitizenReport $report): bool
+    {
+        if (!$user) {
+            return false;
+        }
+
+        if ($user->id === $report->user_id) {
+            return true;
+        }
+
+        return $user->hasAnyRole(['admin', 'moderator']);
     }
 }
 

@@ -351,7 +351,7 @@ Route::prefix('v1')->group(function () {
         Route::prefix('reports')->middleware(['throttle:5,1', 'module:reports'])->group(function () {
             // Create report (with rate limiting)
             Route::post('/', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'store'])
-                ->middleware('restrict:reports,block_uploads');
+                ->middleware(['idempotent', 'restrict:reports,block_uploads']);
 
             // My reports
             Route::get('/me', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'myReports']);
@@ -362,7 +362,7 @@ Route::prefix('v1')->group(function () {
 
             // Add/remove media
             Route::post('/{id}/media', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'addMedia'])
-                ->middleware('restrict:reports,block_uploads')
+                ->middleware(['idempotent', 'restrict:reports,block_uploads'])
                 ->whereUuid('id');
             Route::delete('/{id}/media/{mediaId}', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'removeMedia'])
                 ->whereUuid(['id', 'mediaId']);

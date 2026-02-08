@@ -3,15 +3,15 @@
  * Uses multipart/form-data for image uploads
  */
 
-import { apiClient } from '@/api/client';
+import { ApiError, apiClient } from '@/api/client';
 import { ENDPOINTS } from '@/api/config';
-import { reportsDB, syncQueueDB } from '@/lib/localDatabase';
+import { compressForReportUpload } from '@/lib/imageCompression';
+import { reportsDB } from '@/lib/localDatabase';
 import type {
     CitizenReport,
     ReportCategory,
     CreateReportPayload,
     GeocodeSuggestion,
-    generateIdempotencyKey,
 } from '@/types/report';
 
 // ======================================================
@@ -33,6 +33,27 @@ export async function getCategories(): Promise<ReportCategory[]> {
 // ======================================================
 // Create Report (Multipart)
 // ======================================================
+
+const MAX_BACKEND_IMAGE_SIZE_BYTES = 8 * 1024 * 1024; // 8MB guardrail aligned with API
+
+async function compressImagesForUpload(images: File[]): Promise<File[]> {
+    const optimized: File[] = [];
+
+    for (const image of images) {
+        try {
+            const compressed = await compressForReportUpload(image);
+            optimized.push(compressed);
+        } catch (error) {
+            console.warn(
+                `[ReportService] Failed to compress image "${image.name}", using original file`,
+                error
+            );
+            optimized.push(image);
+        }
+    }
+
+    return optimized;
+}
 
 export async function createReport(
     payload: CreateReportPayload,
@@ -68,9 +89,16 @@ export async function createReport(
         formData.append('bairroId', payload.bairroId);
     }
 
-    // Images (multipart)
+    // Images (multipart) with upload-time compression safeguard.
     if (payload.images && payload.images.length > 0) {
-        payload.images.forEach((file) => {
+        const optimizedImages = await compressImagesForUpload(payload.images);
+
+        optimizedImages.forEach((file) => {
+            if (file.size > MAX_BACKEND_IMAGE_SIZE_BYTES) {
+                throw new Error(
+                    `Imagem "${file.name}" excede o limite de 8MB mesmo apos a otimizacao.`
+                );
+            }
             formData.append('images[]', file);
         });
     }
@@ -98,23 +126,98 @@ export async function createReport(
         return response.data;
     } catch (error) {
         console.error('[ReportService] Failed to create report:', error);
-
-        // Queue for offline sync
-        const exists = await syncQueueDB.exists(idempotencyKey);
-        if (!exists) {
-            await syncQueueDB.add({
-                type: 'report',
-                data: {
-                    ...payload,
-                    // Store images as base64 for offline (temporary)
-                    images: [], // Note: images can't be easily stored offline
-                },
-                idempotencyKey,
-            });
-        }
-
         throw error;
     }
+}
+
+// ======================================================
+// Reports Map (viewport query)
+// ======================================================
+
+export interface ReportsMapFilters {
+    bbox?: string;
+    zoom?: number;
+    limit?: number;
+    status?: string[];
+    category?: string[];
+}
+
+export interface ReportMapCategory {
+    slug: string;
+    name: string;
+    icon: string;
+    color: string;
+}
+
+export interface ReportMapImage {
+    url: string;
+    thumb: string;
+}
+
+export interface ReportMapItem {
+    id: string;
+    lat: number;
+    lon: number;
+    category: ReportMapCategory | null;
+    status: string;
+    title: string;
+    description: string | null;
+    protocol: string | null;
+    address: string | null;
+    addressShort: string;
+    images: ReportMapImage[];
+    thumbUrl: string | null;
+    createdAt: string;
+}
+
+export interface ReportsMapResponse {
+    bbox?: string | null;
+    zoom?: number | null;
+    reports: ReportMapItem[];
+    total: number;
+}
+
+export async function getReportsMap(
+    filters: ReportsMapFilters = {}
+): Promise<ReportsMapResponse> {
+    const params: Record<string, string | number | boolean | undefined> = {
+        bbox: filters.bbox,
+        zoom: filters.zoom,
+        limit: filters.limit ?? 300,
+        status: filters.status?.length ? filters.status.join(',') : undefined,
+        category: filters.category?.length ? filters.category.join(',') : undefined,
+    };
+
+    try {
+        return await apiClient.get<ReportsMapResponse>(ENDPOINTS.reports.map, params);
+    } catch (error) {
+        console.error('[ReportService] Failed to fetch reports map:', error);
+        throw error;
+    }
+}
+
+/**
+ * Detects network/offline errors that should be routed to the reports outbox.
+ */
+export function isOfflineLikeReportError(error: unknown): boolean {
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+        return true;
+    }
+
+    if (error instanceof ApiError) {
+        return error.code === 'OFFLINE' || error.status === 0 || error.status === 408;
+    }
+
+    if (error instanceof TypeError) {
+        return true;
+    }
+
+    if (error instanceof Error) {
+        const message = error.message.toLowerCase();
+        return message.includes('failed to fetch') || message.includes('network');
+    }
+
+    return false;
 }
 
 // ======================================================
@@ -369,6 +472,7 @@ export async function geocodeReverse(
 
 export const reportService = {
     getCategories,
+    getReportsMap,
     createReport,
     getMyReports,
     getPublicReports,

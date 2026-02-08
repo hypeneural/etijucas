@@ -43,13 +43,15 @@ export function useOnlineSync() {
     const processMutation = useCallback(async (item: SyncQueueItem): Promise<boolean> => {
         try {
             let endpoint = '';
-            let method = 'POST';
+            const method = 'POST';
             let body: unknown = item.data;
 
             switch (item.type) {
                 case 'report':
-                    endpoint = ENDPOINTS.reports.create;
-                    break;
+                    // Reports now use reportDraftDB + reportOutbox service.
+                    // Returning true removes legacy queue items to avoid duplicate flows.
+                    console.warn('[Sync] Legacy report queue item skipped - handled by report outbox service');
+                    return true;
                 case 'topic':
                     endpoint = ENDPOINTS.topics.create;
                     break;

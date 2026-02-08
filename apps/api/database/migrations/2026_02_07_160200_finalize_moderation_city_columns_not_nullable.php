@@ -7,6 +7,10 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         $defaultCityId = DB::table('cities')
             ->orderByDesc('active')
             ->orderBy('created_at')
@@ -31,6 +35,10 @@ return new class extends Migration {
 
     public function down(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         if (!Schema::hasTable('topic_reports') || !Schema::hasColumn('topic_reports', 'city_id')) {
             return;
         }

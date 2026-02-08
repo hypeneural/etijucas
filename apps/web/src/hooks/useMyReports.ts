@@ -3,16 +3,18 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { reportService, type MyReportsFilters, type PublicReportsFilters, type ReportsStats } from '@/services/report.service';
+import { reportService, type MyReportsFilters, type PublicReportsFilters } from '@/services/report.service';
 import { useAuthStore } from '@/store/useAuthStore';
-import { QUERY_KEYS } from '@/api/config';
 import type { CitizenReport, ReportStatus, CreateReportPayload } from '@/types/report';
+import { useTenantStore } from '@/store/useTenantStore';
 
 export function useMyReports(filters?: MyReportsFilters) {
     const { isAuthenticated } = useAuthStore();
+    const tenantCacheScope = useTenantStore((state) => state.tenantKey ?? state.city?.slug ?? 'global');
+    const reportsTenantKey = ['reports', tenantCacheScope] as const;
 
     const query = useQuery({
-        queryKey: [...QUERY_KEYS.myReports, filters],
+        queryKey: [...reportsTenantKey, 'mine', filters],
         queryFn: () => reportService.getMyReports(filters),
         staleTime: 30 * 1000, // 30 seconds - more dynamic
         gcTime: 5 * 60 * 1000, // 5 minutes - keep in cache for offline
@@ -30,8 +32,10 @@ export function useMyReports(filters?: MyReportsFilters) {
 }
 
 export function useReportDetail(id: string | undefined) {
+    const tenantCacheScope = useTenantStore((state) => state.tenantKey ?? state.city?.slug ?? 'global');
+
     const query = useQuery({
-        queryKey: QUERY_KEYS.reports.detail(id ?? ''),
+        queryKey: ['reports', tenantCacheScope, 'detail', id ?? ''],
         queryFn: () => reportService.getReportById(id!),
         enabled: !!id,
         staleTime: 30 * 1000, // 30 seconds
@@ -49,15 +53,15 @@ export function useReportDetail(id: string | undefined) {
 
 export function useCreateReport() {
     const queryClient = useQueryClient();
+    const tenantCacheScope = useTenantStore((state) => state.tenantKey ?? state.city?.slug ?? 'global');
+    const reportsTenantKey = ['reports', tenantCacheScope] as const;
 
     const mutation = useMutation({
         mutationFn: ({ payload, idempotencyKey }: { payload: CreateReportPayload; idempotencyKey: string }) =>
             reportService.createReport(payload, idempotencyKey),
         onSuccess: () => {
-            // Invalidate ALL reports caches - my reports, public reports, and stats
-            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.myReports });
-            queryClient.invalidateQueries({ queryKey: ['reports', 'public'] });
-            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.reports.stats() });
+            // Invalidate report caches only for current tenant scope.
+            queryClient.invalidateQueries({ queryKey: reportsTenantKey });
         },
     });
 
@@ -71,14 +75,15 @@ export function useCreateReport() {
 
 export function useAddReportMedia() {
     const queryClient = useQueryClient();
+    const tenantCacheScope = useTenantStore((state) => state.tenantKey ?? state.city?.slug ?? 'global');
+    const reportsTenantKey = ['reports', tenantCacheScope] as const;
 
     const mutation = useMutation({
         mutationFn: ({ reportId, images }: { reportId: string; images: File[] }) =>
             reportService.addReportMedia(reportId, images),
         onSuccess: (_, variables) => {
-            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.reports.detail(variables.reportId) });
-            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.myReports });
-            queryClient.invalidateQueries({ queryKey: ['reports', 'public'] });
+            queryClient.invalidateQueries({ queryKey: [...reportsTenantKey, 'detail', variables.reportId] });
+            queryClient.invalidateQueries({ queryKey: reportsTenantKey });
         },
     });
 
@@ -91,12 +96,14 @@ export function useAddReportMedia() {
 
 export function useRemoveReportMedia() {
     const queryClient = useQueryClient();
+    const tenantCacheScope = useTenantStore((state) => state.tenantKey ?? state.city?.slug ?? 'global');
+    const reportsTenantKey = ['reports', tenantCacheScope] as const;
 
     const mutation = useMutation({
         mutationFn: ({ reportId, mediaId }: { reportId: string; mediaId: string }) =>
             reportService.removeReportMedia(reportId, mediaId),
         onSuccess: (_, variables) => {
-            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.reports.detail(variables.reportId) });
+            queryClient.invalidateQueries({ queryKey: [...reportsTenantKey, 'detail', variables.reportId] });
         },
     });
 
@@ -112,8 +119,10 @@ export function useRemoveReportMedia() {
 // ======================================================
 
 export function usePublicReports(filters?: PublicReportsFilters) {
+    const tenantCacheScope = useTenantStore((state) => state.tenantKey ?? state.city?.slug ?? 'global');
+
     const query = useQuery({
-        queryKey: ['reports', 'public', filters],
+        queryKey: ['reports', tenantCacheScope, 'public', filters],
         queryFn: () => reportService.getPublicReports(filters),
         staleTime: 30 * 1000, // 30 seconds - more dynamic
         gcTime: 5 * 60 * 1000, // 5 minutes - keep in cache for offline
@@ -134,8 +143,10 @@ export function usePublicReports(filters?: PublicReportsFilters) {
 // ======================================================
 
 export function useReportsStats() {
+    const tenantCacheScope = useTenantStore((state) => state.tenantKey ?? state.city?.slug ?? 'global');
+
     const query = useQuery({
-        queryKey: QUERY_KEYS.reports.stats(),
+        queryKey: ['reports', tenantCacheScope, 'stats'],
         queryFn: () => reportService.getReportsStats(),
         staleTime: 60 * 1000, // 1 minute - more dynamic
         gcTime: 5 * 60 * 1000, // 5 minutes

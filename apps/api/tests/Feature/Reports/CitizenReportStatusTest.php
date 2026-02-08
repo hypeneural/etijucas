@@ -5,6 +5,7 @@ namespace Tests\Feature\Reports;
 use App\Domains\Reports\Enums\ReportStatus;
 use App\Domains\Reports\Models\CitizenReport;
 use App\Domains\Reports\Models\ReportCategory;
+use App\Models\City;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -15,7 +16,20 @@ class CitizenReportStatusTest extends TestCase
 
     public function test_update_status_creates_history_and_sets_resolved_at(): void
     {
+        $city = City::create([
+            'ibge_code' => 4218203,
+            'name' => 'Tijucas',
+            'uf' => 'SC',
+            'slug' => 'tijucas-sc',
+            'status' => 'active',
+            'active' => true,
+            'timezone' => 'America/Sao_Paulo',
+        ]);
+
+        app()->instance('tenant.city', $city);
+
         $user = User::create([
+            'city_id' => $city->id,
             'phone' => '48999999996',
             'nome' => 'Reporter',
             'email' => 'reporter@test.local',

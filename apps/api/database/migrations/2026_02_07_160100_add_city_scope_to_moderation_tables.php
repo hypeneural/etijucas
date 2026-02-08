@@ -83,6 +83,22 @@ return new class extends Migration {
             return;
         }
 
+        if (DB::getDriverName() === 'sqlite') {
+            $rows = DB::table('topic_reports as tr')
+                ->join('topics as t', 't.id', '=', 'tr.topic_id')
+                ->whereNull('tr.city_id')
+                ->select(['tr.id', 't.city_id'])
+                ->get();
+
+            foreach ($rows as $row) {
+                DB::table('topic_reports')
+                    ->where('id', $row->id)
+                    ->update(['city_id' => $row->city_id]);
+            }
+
+            return;
+        }
+
         DB::statement('
             UPDATE topic_reports tr
             JOIN topics t ON t.id = tr.topic_id
@@ -97,6 +113,22 @@ return new class extends Migration {
             return;
         }
 
+        if (DB::getDriverName() === 'sqlite') {
+            $rows = DB::table('comment_reports as cr')
+                ->join('comments as c', 'c.id', '=', 'cr.comment_id')
+                ->whereNull('cr.city_id')
+                ->select(['cr.id', 'c.city_id'])
+                ->get();
+
+            foreach ($rows as $row) {
+                DB::table('comment_reports')
+                    ->where('id', $row->id)
+                    ->update(['city_id' => $row->city_id]);
+            }
+
+            return;
+        }
+
         DB::statement('
             UPDATE comment_reports cr
             JOIN comments c ON c.id = cr.comment_id
@@ -108,6 +140,39 @@ return new class extends Migration {
     private function backfillContentFlagsCityId(): void
     {
         if (!Schema::hasTable('content_flags') || !Schema::hasColumn('content_flags', 'city_id')) {
+            return;
+        }
+
+        if (DB::getDriverName() === 'sqlite') {
+            $flags = DB::table('content_flags')
+                ->whereNull('city_id')
+                ->select(['id', 'content_type', 'content_id', 'reported_by'])
+                ->get();
+
+            foreach ($flags as $flag) {
+                $cityId = null;
+
+                if ($flag->content_type === 'topic') {
+                    $cityId = DB::table('topics')->where('id', $flag->content_id)->value('city_id');
+                } elseif ($flag->content_type === 'comment') {
+                    $cityId = DB::table('comments')->where('id', $flag->content_id)->value('city_id');
+                } elseif ($flag->content_type === 'report') {
+                    $cityId = DB::table('citizen_reports')->where('id', $flag->content_id)->value('city_id');
+                } elseif ($flag->content_type === 'user') {
+                    $cityId = DB::table('users')->where('id', $flag->content_id)->value('city_id');
+                }
+
+                if (!$cityId && $flag->reported_by) {
+                    $cityId = DB::table('users')->where('id', $flag->reported_by)->value('city_id');
+                }
+
+                if ($cityId) {
+                    DB::table('content_flags')
+                        ->where('id', $flag->id)
+                        ->update(['city_id' => $cityId]);
+                }
+            }
+
             return;
         }
 
@@ -158,6 +223,29 @@ return new class extends Migration {
     private function backfillUserRestrictionsScopeCityId(): void
     {
         if (!Schema::hasTable('user_restrictions') || !Schema::hasColumn('user_restrictions', 'scope_city_id')) {
+            return;
+        }
+
+        if (DB::getDriverName() === 'sqlite') {
+            $restrictions = DB::table('user_restrictions')
+                ->whereNull('scope_city_id')
+                ->select(['id', 'user_id', 'scope'])
+                ->get();
+
+            foreach ($restrictions as $restriction) {
+                $scopeCityId = null;
+
+                if ($restriction->scope !== 'global') {
+                    $scopeCityId = DB::table('users')
+                        ->where('id', $restriction->user_id)
+                        ->value('city_id');
+                }
+
+                DB::table('user_restrictions')
+                    ->where('id', $restriction->id)
+                    ->update(['scope_city_id' => $scopeCityId]);
+            }
+
             return;
         }
 

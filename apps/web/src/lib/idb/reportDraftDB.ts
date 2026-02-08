@@ -10,6 +10,8 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import type { ReportDraft, CapturedImage, LocationData, ReportCategory } from '@/types/report';
 
+export const ACTIVE_REPORT_DRAFT_STORAGE_ID = 'active-report-draft';
+
 // Database schema
 interface ReportDraftDBSchema extends DBSchema {
     drafts: {
@@ -147,11 +149,15 @@ function generateId(): string {
  */
 export async function saveDraft(
     draft: ReportDraft,
-    syncStatus: SyncStatus = 'draft'
+    syncStatus: SyncStatus = 'draft',
+    draftStorageId?: string
 ): Promise<string> {
     const db = await getDB();
-    const draftId = draft.idempotencyKey || generateId();
+    const draftId = draftStorageId || draft.idempotencyKey || generateId();
     const now = Date.now();
+    const existingDraft = await db.get('drafts', draftId);
+    const createdAt = existingDraft?.createdAt ?? draft.createdAt.getTime() ?? now;
+    const idempotencyKey = draft.idempotencyKey || generateId();
 
     // Convert draft to storable format (without File objects)
     const storedDraft: StoredDraft = {
@@ -163,9 +169,9 @@ export async function saveDraft(
         description: draft.description,
         confirmed: draft.confirmed,
         currentStep: draft.currentStep,
-        createdAt: draft.createdAt.getTime(),
+        createdAt,
         updatedAt: now,
-        idempotencyKey: draft.idempotencyKey,
+        idempotencyKey,
     };
 
     // Save draft metadata
@@ -173,7 +179,7 @@ export async function saveDraft(
         id: draftId,
         draft: storedDraft,
         syncStatus,
-        createdAt: now,
+        createdAt,
         updatedAt: now,
     });
 

@@ -27,6 +27,7 @@ class ReportMapController
         $limit = min($request->input('limit', 200), 500);
 
         $query = CitizenReport::with(['category:id,name,slug,icon,color', 'media'])
+            ->publicVisible()
             ->whereNotNull('latitude')
             ->whereNotNull('longitude')
             ->orderBy('created_at', 'desc');
@@ -78,12 +79,12 @@ class ReportMapController
                     'icon' => $report->category->icon,
                     'color' => $report->category->color,
                 ] : null,
-                'status' => $report->status,
+                'status' => $report->status->value,
                 'title' => $report->title,
                 'description' => $report->description ? mb_substr($report->description, 0, 200) : null,
                 'protocol' => $report->protocol,
-                'address' => $report->address,
-                'addressShort' => $this->shortenAddress($report->address),
+                'address' => $report->address_text,
+                'addressShort' => $this->shortenAddress($report->address_text),
                 'images' => $images,
                 'thumbUrl' => $images[0]['thumb'] ?? null,
                 'createdAt' => $report->created_at->toISOString(),

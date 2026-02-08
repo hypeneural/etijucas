@@ -1,29 +1,30 @@
-/**
- * ESLint Rule: no-direct-fetch
- * 
- * Proíbe uso direto de fetch() para chamadas de API.
- * Força o uso de @repo/sdk ou core/api.
- * 
- * Adicione ao .eslintrc.js:
- * 
- * rules: {
- *   'local-rules/no-direct-fetch': 'error'
- * }
- * 
- * E configure em eslint.config.js para usar regras locais.
- */
+const API_PREFIX_PATTERN = /(?:^|\/)(api|v1)(?:\/|$)/i;
 
-module.exports = {
+function extractLiteralString(node) {
+    if (!node) {
+        return null;
+    }
+
+    if (node.type === 'Literal' && typeof node.value === 'string') {
+        return node.value;
+    }
+
+    if (node.type === 'TemplateLiteral' && node.expressions.length === 0) {
+        return node.quasis.map((quasi) => quasi.value.cooked ?? quasi.value.raw).join('');
+    }
+
+    return null;
+}
+
+const noDirectFetchRule = {
     meta: {
         type: 'problem',
         docs: {
-            description: 'Proíbe fetch direto para APIs. Use @repo/sdk.',
-            category: 'Best Practices',
-            recommended: true,
+            description: 'Block direct fetch calls to API routes. Use apiClient/reportService.',
         },
         messages: {
             noDirectFetch:
-                'Não use fetch() diretamente para APIs. Use @repo/sdk ou core/api.',
+                'Direct fetch() to API routes is blocked in reports module. Use apiClient/reportService.',
         },
         schema: [],
     },
@@ -31,33 +32,24 @@ module.exports = {
     create(context) {
         return {
             CallExpression(node) {
-                // Check if it's a fetch call
-                if (
-                    node.callee.type === 'Identifier' &&
-                    node.callee.name === 'fetch'
-                ) {
-                    // Check if the first argument looks like an API call
-                    const firstArg = node.arguments[0];
-                    if (firstArg) {
-                        let urlValue = '';
+                if (node.callee.type !== 'Identifier' || node.callee.name !== 'fetch') {
+                    return;
+                }
 
-                        if (firstArg.type === 'Literal' && typeof firstArg.value === 'string') {
-                            urlValue = firstArg.value;
-                        } else if (firstArg.type === 'TemplateLiteral') {
-                            // Check template literal quasis
-                            urlValue = firstArg.quasis.map(q => q.value.raw).join('');
-                        }
+                const urlLiteral = extractLiteralString(node.arguments[0]);
+                if (!urlLiteral) {
+                    return;
+                }
 
-                        // Check if it's an API URL
-                        if (urlValue.includes('/api/') || urlValue.includes('/v1/')) {
-                            context.report({
-                                node,
-                                messageId: 'noDirectFetch',
-                            });
-                        }
-                    }
+                if (API_PREFIX_PATTERN.test(urlLiteral)) {
+                    context.report({
+                        node,
+                        messageId: 'noDirectFetch',
+                    });
                 }
             },
         };
     },
 };
+
+export default noDirectFetchRule;

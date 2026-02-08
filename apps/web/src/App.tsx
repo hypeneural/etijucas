@@ -13,6 +13,7 @@ import { PersistGate } from "./components/providers/PersistGate";
 // Tenant Management
 import { resolveCityFromUrl, useTenantStore } from "./store/useTenantStore";
 import { ModuleRoute } from "./components/ModuleRoute";
+import { startReportSync } from "./services/reportOutbox.service";
 
 // ======================================================
 // Lazy-loaded pages for smaller initial bundle
@@ -142,6 +143,14 @@ function TenantBootstrap({ children }: { children: React.ReactNode }) {
       bootstrap(urlCitySlug);
     }
   }, [bootstrap, city?.slug, isBootstrapped, isLoading]);
+
+  useEffect(() => {
+    if (!isBootstrapped) {
+      return;
+    }
+
+    startReportSync();
+  }, [isBootstrapped]);
 
   // Show loading only on first load (not on subsequent renders)
   if (!isBootstrapped && isLoading) {

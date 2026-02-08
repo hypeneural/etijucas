@@ -13,8 +13,10 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        // Modify ENUM to include 'passwordless'
-        DB::statement("ALTER TABLE otp_codes MODIFY COLUMN type ENUM('login', 'register', 'password_reset', 'passwordless') DEFAULT 'login'");
+        // SQLite does not support ALTER COLUMN ... MODIFY ENUM.
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE otp_codes MODIFY COLUMN type ENUM('login', 'register', 'password_reset', 'passwordless') DEFAULT 'login'");
+        }
 
         // Add session_id column for magic link support
         Schema::table('otp_codes', function (Blueprint $table) {
@@ -32,7 +34,9 @@ return new class extends Migration {
             $table->dropColumn('session_id');
         });
 
-        // Revert ENUM (will lose any 'passwordless' records)
-        DB::statement("ALTER TABLE otp_codes MODIFY COLUMN type ENUM('login', 'register', 'password_reset') DEFAULT 'login'");
+        // SQLite does not support ALTER COLUMN ... MODIFY ENUM.
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE otp_codes MODIFY COLUMN type ENUM('login', 'register', 'password_reset') DEFAULT 'login'");
+        }
     }
 };

@@ -29,7 +29,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { useQuery } from '@tanstack/react-query';
 import { reportService } from '@/services/report.service';
-import { QUERY_KEYS } from '@/api/config';
 import { formatDistanceToNow, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -37,7 +36,7 @@ import { cn } from '@/lib/utils';
 import { LocationMap } from '@/components/report/LocationMap';
 import { CategoryIcon } from '@/components/report/CategoryIcon';
 import { BottomTabBar, TabId } from '@/components/layout/BottomTabBar';
-import { useAppStore } from '@/store/useAppStore';
+import { useTenantStore } from '@/store/useTenantStore';
 
 // ============================================
 // TYPES
@@ -294,12 +293,13 @@ function LoadingSkeleton() {
 export default function ReportDetailPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useTenantNavigate();
+    const tenantCacheScope = useTenantStore((state) => state.tenantKey ?? state.city?.slug ?? 'global');
     const [galleryOpen, setGalleryOpen] = useState(false);
     const [galleryIndex, setGalleryIndex] = useState(0);
 
     // Fetch report details
     const { data: report, isLoading, error } = useQuery({
-        queryKey: QUERY_KEYS.reports.detail(id || ''),
+        queryKey: ['reports', tenantCacheScope, 'detail', id || ''],
         queryFn: () => reportService.getReportById(id || ''),
         enabled: !!id,
         staleTime: 1000 * 60 * 5, // 5 minutes
