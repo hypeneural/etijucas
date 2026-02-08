@@ -21,12 +21,12 @@ import { CityGate, saveLastCity } from "./components/CityGate";
 // ======================================================
 
 // Auth pages
-const LoginPage = lazy(() => import("./pages/LoginPage"));
-const WhatsAppLoginPage = lazy(() => import("./pages/WhatsAppLoginPage"));
-const AuthPage = lazy(() => import("./pages/AuthPage")); // Unified auth entry point
-const RegisterPage = lazy(() => import("./pages/RegisterPage")); // Legacy - redirects to AuthPage
-const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
+const UnifiedAuthPage = lazy(() => import("./pages/UnifiedAuthPage")); // Primary auth entry
+const LoginPage = lazy(() => import("./pages/LoginPage")); // Legacy password login
+const WhatsAppLoginPage = lazy(() => import("./pages/WhatsAppLoginPage")); // Legacy OTP
+const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage")); // Legacy
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
+
 
 // Feature pages
 const MassesPage = lazy(() => import("./pages/MassesPage"));
@@ -199,11 +199,15 @@ const App = () => {
       <BrowserRouter>
         <Suspense fallback={<PageLoader />}>
           <Routes>
-            {/* Auth routes (no footer) */}
-            <Route path="/auth" element={<AuthPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/login/otp" element={<WhatsAppLoginPage />} />
+            {/* Auth routes (no footer) - UnifiedAuthPage is primary */}
+            <Route path="/auth" element={<UnifiedAuthPage />} />
+            <Route path="/auth/magic" element={<UnifiedAuthPage />} />
+            <Route path="/login" element={<UnifiedAuthPage />} />
+            <Route path="/entrar" element={<Navigate to="/auth" replace />} />
             <Route path="/cadastro" element={<Navigate to="/auth" replace />} />
+            {/* Legacy routes (keep for backwards compatibility) */}
+            <Route path="/login/senha" element={<LoginPage />} />
+            <Route path="/login/otp" element={<WhatsAppLoginPage />} />
             <Route path="/esqueci-senha" element={<ForgotPasswordPage />} />
 
             {/* Main Layout routes (with footer) */}

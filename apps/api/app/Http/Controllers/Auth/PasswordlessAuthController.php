@@ -223,4 +223,71 @@ class PasswordlessAuthController extends Controller
             'user' => new UserResource($user->fresh()->load('bairro', 'roles', 'homeCity')),
         ]);
     }
+
+    // ==========================================
+    // Magic Link Endpoints
+    // ==========================================
+
+    /**
+     * Create a magic link for authenticated user.
+     * Used to generate instant login URL for WhatsApp button.
+     *
+     * POST /api/v1/auth/magic-link
+     */
+    public function createMagicLink(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $magicToken = \App\Models\MagicLinkToken::createForUser($user, 5);
+
+        return response()->json([
+            'success' => true,
+            'magic_url' => $magicToken->getMagicLinkUrl(),
+            'expires_in' => 300,
+        ]);
+    }
+
+    /**
+     * Verify magic link token and login user.
+     * Called when user clicks "Login Fácil" button from WhatsApp.
+     *
+     * POST /api/v1/auth/magic-link/verify
+     */
+    public function verifyMagicLink(Request $request): JsonResponse
+    {
+        $request->validate([
+            'token' => 'required|string|size:64',
+        ]);
+
+        $magicToken = \App\Models\MagicLinkToken::findValidToken($request->token);
+
+        if (!$magicToken) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Link expirado ou inválido',
+                'code' => 'MAGIC_LINK_INVALID',
+            ], 410);
+        }
+
+        // Mark as used with security info
+        $magicToken->markAsUsed(
+            $request->ip(),
+            $request->userAgent()
+        );
+
+        $user = $magicToken->user;
+
+        // Generate tokens
+        $token = $user->createToken('magic-link-login')->plainTextToken;
+        $refreshToken = $user->createToken('refresh-token', ['refresh'])->plainTextToken;
+
+        return response()->json([
+            'success' => true,
+            'token' => $token,
+            'refreshToken' => $refreshToken,
+            'user' => new UserResource($user->load('bairro', 'roles', 'homeCity')),
+            'expiresIn' => config('sanctum.expiration', 60) * 60,
+        ]);
+    }
 }
+

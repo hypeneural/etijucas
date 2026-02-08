@@ -34,6 +34,11 @@ export * from './useOnlineSync';
 export * from './useCityRoute';
 export * from './useTenantNavigate';
 
+// ============================================
+// PROFILE / AUTH HOOKS
+// ============================================
+export * from './useProfileLevel';
+
 
 // ============================================
 // LEGACY QUERIES - DEPRECATED

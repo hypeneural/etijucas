@@ -71,9 +71,14 @@ Route::prefix('v1')->group(function () {
                     ->middleware('throttle:10,1');
             });
 
+            // Magic Link (instant login via WhatsApp button)
+            Route::post('magic-link/verify', [\App\Http\Controllers\Auth\PasswordlessAuthController::class, 'verifyMagicLink'])
+                ->middleware('throttle:10,1');
+
             // Authenticated profile completion (requires token from OTP verify)
             Route::middleware('auth:sanctum')->group(function () {
                 Route::post('profile/complete', [\App\Http\Controllers\Auth\PasswordlessAuthController::class, 'completeProfile']);
+                Route::post('magic-link', [\App\Http\Controllers\Auth\PasswordlessAuthController::class, 'createMagicLink']);
             });
         });
 

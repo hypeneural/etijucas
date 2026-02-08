@@ -349,6 +349,31 @@ export const authService = {
         });
         return response;
     },
+
+    /**
+     * Verify magic link token for instant login
+     * Called when user clicks "Login Fácil" button in WhatsApp
+     */
+    async verifyMagicLink(token: string): Promise<{
+        success: boolean;
+        token: string;
+        refreshToken: string;
+        user: User;
+    }> {
+        const response = await apiClient.post<{
+            success: boolean;
+            token: string;
+            refreshToken: string;
+            user: User;
+        }>('/auth/magic-link/verify', { token });
+
+        // Store tokens on successful verification
+        if (response.token && response.refreshToken) {
+            tokenService.setTokens(response.token, response.refreshToken);
+        }
+
+        return response;
+    },
 };
 
 export default authService;
