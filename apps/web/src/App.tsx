@@ -14,6 +14,7 @@ import { PersistGate } from "./components/providers/PersistGate";
 import { resolveCityFromUrl, useTenantStore } from "./store/useTenantStore";
 import { ModuleRoute } from "./components/ModuleRoute";
 import { startReportSync } from "./services/reportOutbox.service";
+import { CityGate, saveLastCity } from "./components/CityGate";
 
 // ======================================================
 // Lazy-loaded pages for smaller initial bundle
@@ -22,7 +23,8 @@ import { startReportSync } from "./services/reportOutbox.service";
 // Auth pages
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const WhatsAppLoginPage = lazy(() => import("./pages/WhatsAppLoginPage"));
-const RegisterPage = lazy(() => import("./pages/RegisterPage"));
+const AuthPage = lazy(() => import("./pages/AuthPage")); // Unified auth entry point
+const RegisterPage = lazy(() => import("./pages/RegisterPage")); // Legacy - redirects to AuthPage
 const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 
@@ -109,14 +111,16 @@ function AppProviders({ children }: { children: React.ReactNode }) {
       persistOptions={persistOptions}
     >
       <PersistGate>
-        <TenantBootstrap>
-          <TooltipProvider>
-            <OfflineIndicator />
-            <Toaster />
-            <Sonner />
-            {children}
-          </TooltipProvider>
-        </TenantBootstrap>
+        <CityGate>
+          <TenantBootstrap>
+            <TooltipProvider>
+              <OfflineIndicator />
+              <Toaster />
+              <Sonner />
+              {children}
+            </TooltipProvider>
+          </TenantBootstrap>
+        </CityGate>
       </PersistGate>
     </PersistQueryClientProvider>
   );
@@ -141,6 +145,14 @@ function TenantBootstrap({ children }: { children: React.ReactNode }) {
     if (!isBootstrapped || currentCitySlug !== urlCitySlug) {
       console.log('[TenantBootstrap] Bootstrapping city:', urlCitySlug);
       bootstrap(urlCitySlug);
+    }
+
+    // Persist last city for CityGate (only if not fallback)
+    if (urlCitySlug && urlCitySlug !== 'tijucas-sc') {
+      const match = window.location.pathname.match(/^\/([a-z]{2})\/([a-z0-9-]+)/i);
+      if (match) {
+        saveLastCity(match[1].toLowerCase(), match[2].toLowerCase());
+      }
     }
   }, [bootstrap, city?.slug, isBootstrapped, isLoading]);
 
@@ -188,9 +200,10 @@ const App = () => {
         <Suspense fallback={<PageLoader />}>
           <Routes>
             {/* Auth routes (no footer) */}
+            <Route path="/auth" element={<AuthPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/login/otp" element={<WhatsAppLoginPage />} />
-            <Route path="/cadastro" element={<RegisterPage />} />
+            <Route path="/cadastro" element={<Navigate to="/auth" replace />} />
             <Route path="/esqueci-senha" element={<ForgotPasswordPage />} />
 
             {/* Main Layout routes (with footer) */}

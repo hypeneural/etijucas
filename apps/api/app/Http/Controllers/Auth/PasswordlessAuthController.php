@@ -159,16 +159,21 @@ class PasswordlessAuthController extends Controller
         $token = $user->createToken('app', ['*'], now()->addDays(7))->plainTextToken;
         $refreshToken = $user->createToken('refresh', ['refresh'], now()->addDays(30))->plainTextToken;
 
-        // Determine next step
+        // Determine next step and flags
         $nextStep = $user->profile_completed ? 'home' : 'onboarding';
+        $currentCityId = \App\Support\Tenant::cityId();
+        $localProfile = $currentCityId ? $user->getProfileForCity($currentCityId) : null;
 
         return response()->json([
             'success' => true,
             'next_step' => $nextStep,
             'isNewUser' => $isNewUser,
+            'needs_home_city' => empty($user->home_city_id),
+            'has_local_profile' => $localProfile !== null,
+            'local_profile_completed' => $localProfile?->profile_completed ?? false,
             'token' => $token,
             'refreshToken' => $refreshToken,
-            'user' => new UserResource($user->load('bairro', 'roles')),
+            'user' => new UserResource($user->load('bairro', 'roles', 'homeCity')),
             'expiresIn' => 604800,
         ]);
     }
@@ -176,30 +181,46 @@ class PasswordlessAuthController extends Controller
     /**
      * Complete user profile after passwordless login.
      *
+     * Sets user's home city (residence) and creates a local profile
+     * for the current tenant city if bairro is provided.
+     *
      * POST /api/v1/auth/profile/complete
      */
     public function completeProfile(Request $request): JsonResponse
     {
         $request->validate([
             'nome' => 'required|string|min:2|max:100',
+            'home_city_id' => 'nullable|uuid|exists:cities,id',
             'bairro_id' => 'nullable|uuid|exists:bairros,id',
             'terms_accepted' => 'required|boolean|accepted',
         ]);
 
         $user = $request->user();
+        $currentCityId = \App\Support\Tenant::cityId();
 
+        // Update user's global profile
         $user->update([
             'nome' => $request->nome,
-            'bairro_id' => $request->bairro_id,
+            'home_city_id' => $request->home_city_id ?? $currentCityId,
             'terms_accepted' => $request->terms_accepted,
             'terms_accepted_at' => now(),
             'profile_completed' => true,
+            // Keep bairro_id for backwards compatibility
+            'bairro_id' => $request->bairro_id,
         ]);
+
+        // If bairro_id provided and we have a tenant context, create local profile
+        if ($currentCityId && $request->bairro_id) {
+            $user->upsertCityProfile($currentCityId, [
+                'bairro_id' => $request->bairro_id,
+                'profile_completed' => true,
+            ]);
+        }
 
         return response()->json([
             'success' => true,
             'next_step' => 'home',
-            'user' => new UserResource($user->fresh()->load('bairro', 'roles')),
+            'user' => new UserResource($user->fresh()->load('bairro', 'roles', 'homeCity')),
         ]);
     }
 }

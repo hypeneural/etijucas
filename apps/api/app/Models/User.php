@@ -55,6 +55,7 @@ class User extends Authenticatable implements HasMedia, FilamentUser, HasName, H
      */
     protected $fillable = [
         'city_id',
+        'home_city_id',
         'phone',
         'email',
         'password',
@@ -110,11 +111,46 @@ class User extends Authenticatable implements HasMedia, FilamentUser, HasName, H
     }
 
     /**
-     * Get the city that the user belongs to.
+     * Get the city that the user belongs to (current context city).
      */
     public function city(): BelongsTo
     {
         return $this->belongsTo(City::class);
+    }
+
+    /**
+     * Get the user's home city (residence).
+     */
+    public function homeCity(): BelongsTo
+    {
+        return $this->belongsTo(City::class, 'home_city_id');
+    }
+
+    /**
+     * Get all city profiles for this user.
+     */
+    public function cityProfiles(): HasMany
+    {
+        return $this->hasMany(UserCityProfile::class);
+    }
+
+    /**
+     * Get or create profile for a specific city.
+     */
+    public function getProfileForCity(string $cityId): ?UserCityProfile
+    {
+        return $this->cityProfiles()->forCityId($cityId)->first();
+    }
+
+    /**
+     * Create or update profile for a specific city.
+     */
+    public function upsertCityProfile(string $cityId, array $data = []): UserCityProfile
+    {
+        return UserCityProfile::updateOrCreate(
+            ['user_id' => $this->id, 'city_id' => $cityId],
+            $data
+        );
     }
 
     /**
