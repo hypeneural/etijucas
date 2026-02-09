@@ -86,9 +86,13 @@ export interface Topic {
   bairroId: string;
   likesCount: number;
   commentsCount: number;
+  confirmsCount?: number;  // "Eu vi também" count
+  supportsCount?: number;  // "Apoiar" count
   status?: TopicStatus;
   liked?: boolean | null;       // null = not authenticated
   isSaved?: boolean | null;     // null = not authenticated
+  confirmed?: boolean | null;   // null = not authenticated
+  supported?: boolean | null;   // null = not authenticated
   autor?: TopicAutor;
   bairro?: {
     id: string;

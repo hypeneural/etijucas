@@ -133,8 +133,8 @@ export function BocaNoTromboneVivo({ data, isLoading, hasError, className }: Boc
                         <MessageCircle className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                     </div>
                     <div>
-                        <h3 className="text-sm font-semibold text-foreground">Boca no Trombone</h3>
-                        <p className="text-xs text-muted-foreground">Fórum da comunidade</p>
+                        <h3 className="text-sm font-semibold text-foreground">Papo dos Observadores</h3>
+                        <p className="text-xs text-muted-foreground">O fórum da cidade</p>
                     </div>
                 </div>
                 <ChevronRight className="h-5 w-5 text-muted-foreground" />

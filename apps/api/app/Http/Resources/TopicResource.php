@@ -29,6 +29,8 @@ class TopicResource extends JsonResource
             'fotoUrl' => $this->foto_url,
             'likesCount' => $this->likes_count,
             'commentsCount' => $this->comments_count,
+            'confirmsCount' => $this->confirms_count ?? 0,
+            'supportsCount' => $this->supports_count ?? 0,
             'status' => $this->status->value,
 
             // User-specific fields (computed if user is authenticated)
@@ -40,6 +42,18 @@ class TopicResource extends JsonResource
             'isSaved' => $this->when(
                 $user,
                 fn() => $this->is_saved ?? $this->saves()->where('user_id', $user?->id)->exists(),
+                null
+            ),
+
+            // User's reactions (if authenticated)
+            'confirmed' => $this->when(
+                $user,
+                fn() => $this->confirmed ?? $this->reactions()->where('user_id', $user?->id)->where('type', 'confirm')->exists(),
+                null
+            ),
+            'supported' => $this->when(
+                $user,
+                fn() => $this->supported ?? $this->reactions()->where('user_id', $user?->id)->where('type', 'support')->exists(),
                 null
             ),
 

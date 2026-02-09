@@ -303,6 +303,10 @@ Route::prefix('v1')->group(function () {
                 Route::post('topics/{topic}/report', [\App\Http\Controllers\Api\Forum\ReportController::class, 'reportTopic'])
                     ->middleware('restrict:forum,mute_forum|shadowban_forum|rate_limit_forum');
 
+                // Topic reactions (confirm/support)
+                Route::post('topics/{topic}/react', [\App\Http\Controllers\Api\Forum\TopicReactionController::class, 'toggle']);
+                Route::get('topics/{topic}/reactions', [\App\Http\Controllers\Api\Forum\TopicReactionController::class, 'show']);
+
                 // Comments
                 Route::post('topics/{topic}/comments', [\App\Http\Controllers\Api\Forum\CommentController::class, 'store'])
                     ->middleware('restrict:forum,mute_forum|shadowban_forum|rate_limit_forum');

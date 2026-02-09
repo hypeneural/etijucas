@@ -23,7 +23,6 @@ import {
   ForumFiltersChips,
   ForumCategoryTabs,
   getCategoriesForTab,
-  TopicCard,
   TopicSkeletonList,
   ForumEmptyState,
   TopicComposerSheet,
@@ -34,6 +33,7 @@ import {
   type NewTopicData,
   type CategoryTab,
 } from '@/components/forum';
+import { TopicCardWithReactions } from '@/components/forum/TopicCardWithReactions';
 
 interface ForumScreenProps {
   scrollRef?: (el: HTMLDivElement | null) => void;
@@ -81,7 +81,7 @@ export default function ForumScreen({ scrollRef }: ForumScreenProps) {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => navigate('/login')}
+              onClick={() => navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`)}
             >
               Entrar
             </Button>
@@ -395,12 +395,13 @@ export default function ForumScreen({ scrollRef }: ForumScreenProps) {
             className="h-full"
             getItemKey={(topic) => topic.id}
             renderItem={(topic) => (
-              <TopicCard
+              <TopicCardWithReactions
                 topic={topic}
                 onPress={() => handleOpenDetail(topic.id)}
                 onLike={() => handleLike(topic.id)}
                 onComment={() => handleOpenCommentDirect(topic.id)}
                 onShare={() => handleShare(topic)}
+                onRequireAuth={requireAuth}
               />
             )}
           />

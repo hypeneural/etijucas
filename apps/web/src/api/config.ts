@@ -77,6 +77,10 @@ export const ENDPOINTS = {
         reportTopic: (id: string) => `/forum/topics/${id}/report`,
         savedTopics: '/forum/saved',
 
+        // Reactions (confirm/support)
+        react: (topicId: string) => `/forum/topics/${topicId}/react`,
+        reactions: (topicId: string) => `/forum/topics/${topicId}/reactions`,
+
         // Comments
         comments: (topicId: string) => `/forum/topics/${topicId}/comments`,
         deleteComment: (topicId: string, commentId: string) => `/forum/topics/${topicId}/comments/${commentId}`,
@@ -85,18 +89,6 @@ export const ENDPOINTS = {
 
         // Upload
         upload: '/forum/upload',
-    },
-
-    // ==================== TOPICS (Legacy - deprecated) ====================
-    topics: {
-        list: '/forum/topics',
-        get: (id: string) => `/forum/topics/${id}`,
-        create: '/forum/topics',
-        update: (id: string) => `/forum/topics/${id}`,
-        delete: (id: string) => `/forum/topics/${id}`,
-        like: (id: string) => `/forum/topics/${id}/like`,
-        unlike: (id: string) => `/forum/topics/${id}/like`,
-        comments: (id: string) => `/forum/topics/${id}/comments`,
     },
 
 

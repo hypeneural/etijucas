@@ -269,6 +269,11 @@ const App = () => {
             {/* City-prefixed routes: /:uf/:cidade/* */}
             <Route path="/:uf/:cidade" element={<MainLayout />}>
               <Route index element={<HomeScreen />} />
+
+              {/* Auth routes under city context */}
+              <Route path="auth" element={<UnifiedAuthPage />} />
+              <Route path="login" element={<UnifiedAuthPage />} />
+
               <Route path="mais" element={<MoreScreen />} />
               <Route path="perfil" element={<ProfilePage />} />
 

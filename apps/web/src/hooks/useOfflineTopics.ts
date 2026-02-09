@@ -20,6 +20,16 @@ import { toast } from 'sonner';
 const TOPICS_KEY = ['offline', 'topics'] as const;
 const TOPIC_KEY = (id: string) => ['offline', 'topics', id] as const;
 
+/**
+ * Invalidate all topics caches - call after creating a new topic
+ * or any action that should refresh the feed.
+ */
+export function invalidateTopicsCache(queryClient: ReturnType<typeof useQueryClient>) {
+    queryClient.invalidateQueries({ queryKey: TOPICS_KEY });
+    // Also invalidate react-query's default topics key if used elsewhere
+    queryClient.invalidateQueries({ queryKey: ['topics'] });
+}
+
 interface UseOfflineTopicsOptions {
     categoria?: TopicCategory | 'all';
     search?: string;
@@ -180,8 +190,45 @@ export function useCreateOfflineTopic() {
                 throw error; // Let the UI handle the error properly
             }
         },
+        onMutate: async (newTopicData) => {
+            // Cancel any outgoing refetches
+            await queryClient.cancelQueries({ queryKey: TOPICS_KEY });
+
+            // Snapshot the previous value
+            const previousTopics = queryClient.getQueryData<Topic[]>(TOPICS_KEY);
+
+            // Optimistically add the new topic to the list
+            const optimisticTopic: Topic = {
+                id: `temp-${Date.now()}`,
+                titulo: newTopicData.titulo,
+                texto: newTopicData.texto,
+                categoria: newTopicData.categoria,
+                bairroId: newTopicData.bairroId,
+                fotoUrl: newTopicData.fotoUrl,
+                isAnon: newTopicData.isAnon ?? false,
+                likesCount: 0,
+                commentsCount: 0,
+                confirmsCount: 0,
+                supportsCount: 0,
+                createdAt: new Date().toISOString(),
+                syncStatus: 'pending',
+            };
+
+            if (previousTopics) {
+                queryClient.setQueryData<Topic[]>(TOPICS_KEY, [optimisticTopic, ...previousTopics]);
+            }
+
+            return { previousTopics };
+        },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: TOPICS_KEY });
+            // Invalidate both caches for fresh data
+            invalidateTopicsCache(queryClient);
+        },
+        onError: (_err, _variables, context) => {
+            // Rollback on error
+            if (context?.previousTopics) {
+                queryClient.setQueryData(TOPICS_KEY, context.previousTopics);
+            }
         },
     });
 }
@@ -424,5 +471,6 @@ export default {
     useLikeOfflineTopic,
     useAddOfflineComment,
     useLikeComment,
+    invalidateTopicsCache,
 };
 

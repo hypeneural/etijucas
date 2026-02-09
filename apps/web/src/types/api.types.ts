@@ -383,6 +383,20 @@ export interface TopicSaveResponse {
     saved: boolean;
 }
 
+// Topic Reactions (confirm/support)
+export type TopicReactionType = 'confirm' | 'support';
+
+export interface TopicReactionDTO {
+    type: TopicReactionType;
+}
+
+export interface TopicReactionResponse {
+    reacted: boolean;
+    type: TopicReactionType;
+    confirmsCount: number;
+    supportsCount: number;
+}
+
 export interface CommentLikeResponse {
     liked: boolean;
     likesCount: number;

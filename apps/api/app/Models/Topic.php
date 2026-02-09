@@ -34,6 +34,8 @@ class Topic extends Model implements HasMedia
         'status',
         'likes_count',
         'comments_count',
+        'confirms_count',
+        'supports_count',
     ];
 
     protected function casts(): array
@@ -44,6 +46,8 @@ class Topic extends Model implements HasMedia
             'is_anon' => 'boolean',
             'likes_count' => 'integer',
             'comments_count' => 'integer',
+            'confirms_count' => 'integer',
+            'supports_count' => 'integer',
         ];
     }
 
@@ -86,6 +90,11 @@ class Topic extends Model implements HasMedia
     public function reports(): HasMany
     {
         return $this->hasMany(TopicReport::class);
+    }
+
+    public function reactions(): HasMany
+    {
+        return $this->hasMany(TopicReaction::class);
     }
 
     // =====================================================
@@ -141,7 +150,9 @@ class Topic extends Model implements HasMedia
 
         return $query
             ->withExists(['likes as liked' => fn($q) => $q->where('user_id', $userId)])
-            ->withExists(['saves as is_saved' => fn($q) => $q->where('user_id', $userId)]);
+            ->withExists(['saves as is_saved' => fn($q) => $q->where('user_id', $userId)])
+            ->withExists(['reactions as confirmed' => fn($q) => $q->where('user_id', $userId)->where('type', 'confirm')])
+            ->withExists(['reactions as supported' => fn($q) => $q->where('user_id', $userId)->where('type', 'support')]);
     }
 
     public function scopeOrderByHotScore($query)
