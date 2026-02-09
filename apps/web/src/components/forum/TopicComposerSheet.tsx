@@ -76,7 +76,7 @@ export function TopicComposerSheet({
     const [categoria, setCategoria] = useState<TopicCategory | null>(null);
     const [titulo, setTitulo] = useState('');
     const [texto, setTexto] = useState('');
-    const [bairroId, setBairroId] = useState(defaultBairroId || '');
+    const [bairroId, setBairroId] = useState(defaultBairroId || 'none');
     const [isAnon, setIsAnon] = useState(false);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -166,7 +166,7 @@ export function TopicComposerSheet({
         setCategoria(null);
         setTitulo('');
         setTexto('');
-        setBairroId(defaultBairroId || '');
+        setBairroId(defaultBairroId || 'none');
         setIsAnon(false);
         setImagePreview(null);
         setSelectedFile(null);

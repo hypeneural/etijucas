@@ -23,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'require-tenant' => \App\Http\Middleware\RequireTenant::class,
             'module' => \App\Http\Middleware\ModuleEnabled::class,
             'restrict' => \App\Http\Middleware\EnforceRestriction::class,
+            'optional-auth' => \App\Http\Middleware\OptionalAuth::class,
         ]);
 
         // Exclude public API auth routes from CSRF verification

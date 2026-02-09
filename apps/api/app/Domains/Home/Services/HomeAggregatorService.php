@@ -503,9 +503,21 @@ class HomeAggregatorService
                 'resolvidos' => $resolvidos,
                 'hoje' => $hoje,
                 'novas_bairro' => $novasBairro,
-                'resolvidas_semana' => $resolvidasSemana,
                 'pendentes_bairro' => $pendentesBairro,
                 'frases' => $frases,
+                'recent_reports' => CitizenReport::when($bairroId, fn($q) => $q->where('bairro_id', $bairroId))
+                    ->publicVisible()
+                    ->with('category')
+                    ->latest()
+                    ->take(3)
+                    ->get()
+                    ->map(fn($report) => [
+                        'id' => $report->id,
+                        'lat' => $report->latitude,
+                        'lng' => $report->longitude,
+                        'tipo' => $report->category->name ?? 'Outros',
+                        'status' => $report->status->value,
+                    ]),
             ],
         ];
     }

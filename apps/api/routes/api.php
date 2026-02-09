@@ -194,7 +194,7 @@ Route::prefix('v1')->group(function () {
         Route::get('report-categories', [\App\Domains\Reports\Http\Controllers\ReportCategoryController::class, 'index'])
             ->middleware('cache.headers:static');
 
-        Route::prefix('reports')->middleware('module:reports')->group(function () {
+        Route::prefix('reports')->middleware(['module:reports', 'optional-auth'])->group(function () {
             Route::get('/', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'index']);
             Route::get('/stats', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'stats']);
             Route::get('/map', [\App\Domains\Reports\Http\Controllers\ReportMapController::class, 'index']);

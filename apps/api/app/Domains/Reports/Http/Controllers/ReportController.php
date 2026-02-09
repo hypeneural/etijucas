@@ -77,6 +77,18 @@ class ReportController extends Controller
             'resolvedThisMonth' => CitizenReport::byStatus(ReportStatus::Resolvido)
                 ->whereMonth('updated_at', now()->month)
                 ->count(),
+            'recent_reports' => CitizenReport::publicVisible()
+                ->with('category')
+                ->latest()
+                ->take(3)
+                ->get()
+                ->map(fn($report) => [
+                    'id' => $report->id,
+                    'lat' => $report->latitude,
+                    'lng' => $report->longitude,
+                    'tipo' => $report->category->name ?? 'Outros',
+                    'status' => $report->status->value,
+                ]),
         ];
 
         return response()->json(['data' => $stats]);
