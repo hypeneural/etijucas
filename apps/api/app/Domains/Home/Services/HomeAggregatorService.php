@@ -279,15 +279,17 @@ class HomeAggregatorService
         $progress = max(0, min(1, $progress));
 
         // Motivational message based on tier
+        $cityName = Tenant::city()?->name ?? 'sua cidade';
+
         $message = match (true) {
-            $n < 10 => 'Seja um dos primeiros! Ajude a cidade a crescer.',
-            $n < 50 => 'Estamos ganhando tração — convide 1 amigo!',
-            $n < 100 => 'Quase 100 cidadãos — bora bater essa meta!',
-            $n < 500 => 'Crescendo rápido! Compartilhe com vizinhos.',
-            $n < 1000 => 'Quase mil! A cidade está acordando.',
-            $n < 5000 => 'A cidade está usando! Compartilhe com seu bairro.',
-            $n < 10000 => 'Rumo aos 10 mil cidadãos conectados!',
-            default => 'Cidade conectada! Continue convidando.',
+            $n < 10 => "Seja um dos primeiros Observadores de {$cityName}. Convide 1 amigo.",
+            $n < 50 => "A {$cityName} está ganhando tração. Traga mais 1 Observador.",
+            $n < 100 => "Rumo a 100 Observadores em {$cityName}. Bora bater essa meta!",
+            $n < 500 => "Comunidade crescendo! Compartilhe com seu bairro em {$cityName}.",
+            $n < 1000 => "Quase 1.000 Observadores — a {$cityName} está acordando.",
+            $n < 5000 => "A {$cityName} está usando de verdade. Puxa seu bairro pra cá.",
+            $n < 10000 => "Rumo a 10 mil Observadores conectados em {$cityName}!",
+            default => "Cidade conectada! Vamos escalar para {$goal}.",
         };
 
         return [

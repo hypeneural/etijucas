@@ -24,18 +24,22 @@ interface MetaShareCardProps {
     goalName?: string;
     verified?: number;
     newToday?: number;
+    cityName: string;
+    uf: string;
+    citySlug: string;
     className?: string;
 }
 
 // Tier names based on goal
 function getTierName(goal: number): string {
-    if (goal <= 100) return 'Início';
-    if (goal <= 500) return 'Crescendo';
-    if (goal <= 1000) return 'Comunidade';
-    if (goal <= 2500) return 'Movimento';
-    if (goal <= 5000) return 'Força';
-    if (goal <= 10000) return 'Revolução';
-    return 'Cidade Conectada';
+    if (goal <= 100) return 'Primeiros Observadores';
+    if (goal <= 500) return 'Cidade Acordando';
+    if (goal <= 1000) return 'Comunidade Ativa';
+    if (goal <= 2500) return 'Movimento Local';
+    if (goal <= 5000) return 'Força da Cidade';
+    if (goal <= 10000) return 'Cidade em Ação';
+    if (goal <= 20000) return 'Cidade Conectada';
+    return 'Expansão';
 }
 
 // Tier colors
@@ -54,6 +58,9 @@ export function MetaShareCard({
     goalName,
     verified = 0,
     newToday = 0,
+    cityName,
+    uf,
+    citySlug,
     className,
 }: MetaShareCardProps) {
     const cardRef = useRef<HTMLDivElement>(null);
@@ -64,6 +71,8 @@ export function MetaShareCard({
     const remaining = Math.max(goal - total, 0);
     const tierName = goalName || getTierName(goal);
     const tierColor = getTierColor(goal);
+
+    const shareUrl = `https://observada.com.br/${uf.toLowerCase()}/${citySlug}`;
 
     const handleShare = useCallback(async () => {
         hapticFeedback('medium');
@@ -77,19 +86,21 @@ export function MetaShareCard({
 
             const canvas = await html2canvas(cardRef.current, {
                 backgroundColor: null,
-                scale: 2,
+                scale: 1.5, // Optimized for size
                 useCORS: true,
             });
 
             const blob = await new Promise<Blob>((resolve) => {
-                canvas.toBlob((b) => resolve(b!), 'image/png', 0.9);
+                canvas.toBlob((b) => resolve(b!), 'image/jpeg', 0.85); // JPG 0.85 quality
             });
 
+            const fileName = `meta-observadores-${citySlug}.jpg`;
+
             if (navigator.share && navigator.canShare) {
-                const file = new File([blob], 'meta-cidadaos.png', { type: 'image/png' });
+                const file = new File([blob], fileName, { type: 'image/jpeg' });
                 const shareData = {
-                    title: 'Meta Cidadãos',
-                    text: `🎯 Somos ${total.toLocaleString('pt-BR')} cidadãos! Faltam ${remaining} para a meta de ${goal.toLocaleString('pt-BR')}.\n\nJunte-se a nós em observada.com.br`,
+                    title: `Meta de Observadores — ${cityName}/${uf}`,
+                    text: `🎯 Meta de Observadores — ${cityName}/${uf}\n\nJá somos ${total.toLocaleString('pt-BR')} Observadores.\nFaltam ${remaining.toLocaleString('pt-BR')} para chegar em ${goal.toLocaleString('pt-BR')}.\n\nVem fortalecer a cidade 👇\n${shareUrl}`,
                     files: [file],
                 };
 
@@ -104,7 +115,7 @@ export function MetaShareCard({
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'meta-cidadaos.png';
+            a.download = fileName;
             a.click();
             URL.revokeObjectURL(url);
 
@@ -123,27 +134,27 @@ export function MetaShareCard({
         } finally {
             setIsGenerating(false);
         }
-    }, [total, goal, remaining, toast]);
+    }, [total, goal, remaining, toast, citySlug, cityName, uf, shareUrl]);
 
     const handleInvite = useCallback(() => {
         hapticFeedback('medium');
 
-        const inviteText = `🏙️ Junte-se a ${total.toLocaleString('pt-BR')} cidadãos no Observada!\n\nA cidade na palma da mão: eventos, denúncias, fórum e muito mais.\n\nobservada.com.br`;
+        const inviteText = `👁️ Estou no Observada como Observador de ${cityName}/${uf}.\n\nAjude a cidade a crescer: entra por aqui 👇\n${shareUrl}`;
 
         if (navigator.share) {
             navigator.share({
-                title: 'eTijucas - Convite',
+                title: `Observada — ${cityName}/${uf}`,
                 text: inviteText,
-                url: 'https://observada.com.br',
+                url: shareUrl,
             });
         } else {
-            navigator.clipboard.writeText(inviteText + '\nhttps://observada.com.br');
+            navigator.clipboard.writeText(inviteText);
             toast({
                 title: 'Link copiado!',
                 description: 'Cole e envie para seus amigos',
             });
         }
-    }, [total, toast]);
+    }, [total, toast, cityName, uf, shareUrl]);
 
     return (
         <div className={cn('px-4', className)}>
@@ -172,11 +183,11 @@ export function MetaShareCard({
                 <div className="relative flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                         <Target className="h-5 w-5" />
-                        <h3 className="text-lg font-bold">Meta Cidadãos</h3>
+                        <h3 className="text-lg font-bold">Meta de Observadores</h3>
                     </div>
                     <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/20 text-xs font-medium">
                         <Sparkles className="h-3 w-3" />
-                        {tierName}
+                        Fase: {tierName}
                     </div>
                 </div>
 
@@ -206,22 +217,32 @@ export function MetaShareCard({
                     </div>
 
                     {/* Stats row */}
-                    <div className="flex justify-between mt-2 text-xs text-white/80">
-                        <span>✅ {verified} verificados</span>
-                        <span>📈 +{newToday} hoje</span>
-                        <span>🎯 Faltam {remaining}</span>
+                    <div className="flex justify-between items-center mt-2 text-xs text-white/80">
+                        <div className="flex flex-col gap-0.5">
+                            <span>✅ {verified} verificados</span>
+                            <span>⚡ +{newToday} hoje</span>
+                        </div>
+
+                        {/* Chip for Remaining */}
+                        <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/20 text-white font-medium text-xs">
+                            <Target className="h-3 w-3" />
+                            Restam {remaining}
+                        </div>
                     </div>
                 </div>
 
                 {/* CTA */}
-                <div className="relative text-center text-sm text-white/90">
-                    <p>Convide 1 amigo e ajude a bater a meta!</p>
+                <div className="relative text-center text-white/90">
+                    <p className="text-sm font-medium">Convide 1 amigo para virar Observador de {cityName}!</p>
+                    <p className="mt-1 text-[11px] text-white/70">
+                        Mais Observadores = mais melhorias na cidade.
+                    </p>
                 </div>
 
                 {/* Footer */}
-                <div className="relative flex items-center justify-center gap-1 mt-2 text-[10px] text-white/50">
+                <div className="relative flex items-center justify-center gap-1 mt-3 text-[10px] text-white/50 font-medium">
                     <Users className="h-3 w-3" />
-                    observada.com.br
+                    observada.com.br/{uf.toLowerCase()}/{citySlug}
                 </div>
             </motion.div>
 
@@ -233,7 +254,7 @@ export function MetaShareCard({
                     className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-medium text-sm bg-primary text-primary-foreground min-h-[44px]"
                 >
                     <UserPlus className="h-4 w-4" />
-                    Convidar amigo
+                    Convidar Observador
                 </motion.button>
 
                 <motion.button

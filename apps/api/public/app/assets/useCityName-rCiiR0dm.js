@@ -1,0 +1,1 @@
+import{b as t}from"./index-AdUPd3ED.js";const e={name:"Cidade",uf:"",fullName:"Sua cidade"};function l(){const a=t(n=>n.city);return{name:a?.name??e.name,fullName:a?.fullName??e.fullName,uf:a?.uf??e.uf,slug:a?.slug??null}}function s(){const a=t(u=>u.brand),n=t(u=>u.city);return a?.appName??`e${n?.name??e.name}`}export{l as a,s as u};

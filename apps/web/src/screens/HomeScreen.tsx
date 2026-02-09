@@ -19,6 +19,7 @@ import { MetaShareCard } from '@/components/home/MetaShareCard';
 
 // Hooks & Store
 import { useHomeData } from '@/hooks/useHomeData';
+import { useCityName } from '@/hooks/useCityName';
 import { useCheckIn } from '@/hooks/useCheckIn';
 import { useAppStore } from '@/store/useAppStore';
 import { useTenantStore } from '@/store/useTenantStore';
@@ -101,6 +102,8 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
 
   console.log('[HomeScreen] DEBUG: Hook 5 - useToast');
   const { toast } = useToast();
+  const { name: cityName, uf, slug: rawSlug } = useCityName();
+  const citySlug = rawSlug || 'tijucas-sc';
 
   console.log('[HomeScreen] DEBUG: Hook 6 - useState isPulling');
   const [isPulling, setIsPulling] = useState(false);
@@ -521,9 +524,11 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
           <MetaShareCard
             total={blocks.stats.payload.total}
             goal={blocks.stats.payload.goal.target}
-            goalName={blocks.stats.payload.goal.message}
             verified={blocks.stats.payload.verified}
             newToday={blocks.stats.payload.new_today}
+            cityName={cityName}
+            uf={uf}
+            citySlug={citySlug}
           />
         )}
       </div>
