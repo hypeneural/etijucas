@@ -65,7 +65,10 @@ export default function MoreScreen({ scrollRef }: MoreScreenProps) {
   const citySlug = useTenantStore((state) => state.city?.slug);
 
   const menuItems = [
-    { id: 'perfil' as const, label: 'Meu Perfil', icon: User, color: 'bg-primary/10 text-primary', isLink: true },
+    // Show profile for logged users, login for guests
+    isAuthenticated
+      ? { id: 'perfil' as const, label: 'Meu Perfil', icon: User, color: 'bg-primary/10 text-primary', isLink: true }
+      : { id: 'login' as const, label: 'Entrar / Cadastrar', icon: User, color: 'bg-green-100 text-green-600', isLink: true },
     { id: 'lixo' as ScreenView, label: 'Coleta de Lixo', icon: Trash2, color: 'bg-emerald-100 text-emerald-600', badge: 'Novo' },
     { id: 'veiculos' as const, label: 'Consultar Veículos', icon: Car, color: 'bg-blue-100 text-blue-600', isLink: true, badge: 'Novo' },
     { id: 'votacoes' as const, label: 'Votações da Câmara', icon: Vote, color: 'bg-indigo-100 text-indigo-600', isLink: true, badge: 'Novo' },
@@ -395,7 +398,8 @@ export default function MoreScreen({ scrollRef }: MoreScreenProps) {
                   navigate('/denuncias');
                 } else if (item.id === 'vereadores') {
                   navigate('/vereadores');
-                } else if (item.id === 'trocar-cidade') {
+                } else if (item.id === 'login') {
+                  navigate('/auth');
                   // Clear city state and localStorage, then navigate to trigger CityGate
                   useTenantStore.getState().clear();
                   localStorage.removeItem('etijucas_last_city');

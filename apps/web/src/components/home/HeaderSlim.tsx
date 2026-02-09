@@ -147,46 +147,6 @@ export default function HeaderSlim({
 
                 {/* Right: Actions */}
                 <div className="flex items-center gap-2">
-                    {/* Bairro selector - compact */}
-                    <Sheet open={bairroSheetOpen} onOpenChange={setBairroSheetOpen}>
-                        <SheetTrigger asChild>
-                            <motion.button
-                                style={{ opacity: bairroOpacity }}
-                                whileTap={{ scale: 0.95 }}
-                                className="flex items-center gap-1 px-2 py-1 rounded-full bg-white/10 text-primary-foreground text-xs font-medium"
-                            >
-                                <MapPin className="w-3 h-3" />
-                                <span className="max-w-[60px] truncate">{selectedBairro?.nome ?? 'Bairro'}</span>
-                                <ChevronDown className="w-3 h-3" />
-                            </motion.button>
-                        </SheetTrigger>
-                        <SheetContent side="bottom" className="rounded-t-3xl">
-                            <SheetHeader>
-                                <SheetTitle>Selecione seu bairro</SheetTitle>
-                            </SheetHeader>
-                            <div className="grid grid-cols-2 gap-2 mt-4 pb-8">
-                                {bairros.map((bairro) => (
-                                    <motion.button
-                                        key={bairro.id}
-                                        whileTap={{ scale: 0.95 }}
-                                        onClick={() => {
-                                            setSelectedBairro(bairro);
-                                            setBairroSheetOpen(false);
-                                        }}
-                                        className={cn(
-                                            'p-3 rounded-xl text-left font-medium transition-colors',
-                                            selectedBairro?.id === bairro.id
-                                                ? 'bg-primary text-primary-foreground'
-                                                : 'bg-muted text-foreground hover:bg-muted/80'
-                                        )}
-                                    >
-                                        {bairro.nome}
-                                    </motion.button>
-                                ))}
-                            </div>
-                        </SheetContent>
-                    </Sheet>
-
                     {/* Notifications */}
                     <motion.button
                         whileTap={{ scale: 0.9 }}
@@ -222,6 +182,6 @@ export default function HeaderSlim({
                     </motion.button>
                 </div>
             </div>
-        </motion.header>
+        </motion.header >
     );
 }

@@ -22,12 +22,20 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { useAppName, useCityName } from '@/hooks/useCityName';
+import { useTenantStore } from '@/store/useTenantStore';
 
 export default function LoginPage() {
     const navigate = useTenantNavigate();
     const setAuth = useAuthStore((state) => state.setAuth);
     const appName = useAppName();
     const { name: cityName } = useCityName();
+    const city = useTenantStore((state) => state.city);
+
+    const handleSwitchCity = () => {
+        useTenantStore.getState().clear();
+        localStorage.removeItem('etijucas_last_city');
+        window.location.href = '/';
+    };
 
     // Form data
     const [phone, setPhone] = useState('');
@@ -104,14 +112,26 @@ export default function LoginPage() {
                     {appName}
                 </motion.h1>
 
-                <motion.p
+                <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.4 }}
-                    className="text-muted-foreground mt-1"
+                    className="flex flex-col items-center justify-center mt-1"
                 >
-                    Seu dia a dia em {cityName}
-                </motion.p>
+                    <p className="text-muted-foreground">
+                        Seu dia a dia em {cityName}
+                    </p>
+
+                    {city && (
+                        <button
+                            onClick={handleSwitchCity}
+                            className="text-xs text-primary mt-1 font-medium hover:underline flex items-center gap-1"
+                        >
+                            <MapPin className="w-3 h-3" />
+                            Trocar cidade
+                        </button>
+                    )}
+                </motion.div>
             </motion.div>
 
             {/* Login Form */}

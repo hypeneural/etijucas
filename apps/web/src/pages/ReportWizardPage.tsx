@@ -163,8 +163,8 @@ export default function ReportWizardPage() {
     if (!isAuthenticated) {
         return (
             <LoginRequired
-                title="Cadastre-se ou entre"
-                message="Para enviar uma denúncia, você precisa estar cadastrado no aplicativo."
+                actionLabel="Entre para denunciar"
+                message="É rápido! Basta confirmar seu número de WhatsApp."
                 returnUrl="/denuncia/nova"
             />
         );
