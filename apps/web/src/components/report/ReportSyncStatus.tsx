@@ -89,9 +89,9 @@ export function ReportSyncStatus() {
                     <p className="text-xs text-muted-foreground">
                         {status.isOnline
                             ? status.isSyncing
-                                ? 'Sincronizando denúncias em segundo plano.'
-                                : 'Denúncias salvas offline aguardando sincronização.'
-                            : 'Sem conexão. As denúncias serão enviadas quando a internet voltar.'}
+                                ? 'Sincronizando observações em segundo plano.'
+                                : 'Observações salvas offline aguardando sincronização.'
+                            : 'Sem conexão. As observações serão enviadas quando a internet voltar.'}
                     </p>
 
                     {failedCount > 0 && (

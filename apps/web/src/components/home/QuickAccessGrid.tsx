@@ -20,7 +20,7 @@ const getServices = (cityName: string): ServiceItem[] => [
   { id: 'missas', label: 'Horários das Missas', icon: Church, color: 'bg-primary/10 text-primary', route: '/missas' },
   { id: 'telefones', label: 'Telefones Úteis', icon: Phone, color: 'bg-accent/10 text-accent', route: '/telefones' },
   { id: 'coleta', label: 'Coleta de Lixo', icon: Trash2, color: 'bg-emerald-100 text-emerald-600', route: '/coleta-lixo' },
-  { id: 'envios', label: `Fiscaliza ${cityName}`, icon: FileText, color: 'bg-purple-100 text-purple-600', route: '/denuncias', moduleKey: 'reports' },
+  { id: 'envios', label: `Observa ${cityName}`, icon: FileText, color: 'bg-purple-100 text-purple-600', route: '/denuncias', moduleKey: 'reports' },
 ];
 
 // Map service IDs to module keys for filtering

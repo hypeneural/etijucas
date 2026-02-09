@@ -694,8 +694,8 @@ export default function ProfilePage() {
                                             <MapPin className="h-5 w-5 text-green-500" />
                                         </div>
                                         <div>
-                                            <p className="font-medium">Minhas denúncias</p>
-                                            <p className="text-xs text-muted-foreground">Atualizações sobre suas denúncias</p>
+                                            <p className="font-medium">Minhas observações</p>
+                                            <p className="text-xs text-muted-foreground">Atualizações sobre suas observações</p>
                                         </div>
                                     </div>
                                     <Switch

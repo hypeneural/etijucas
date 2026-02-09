@@ -79,7 +79,7 @@ export function StepReview({
             <div className="space-y-2">
                 <label className="text-sm font-medium flex items-center gap-2">
                     <FileText className="h-4 w-4 text-muted-foreground" />
-                    Título da denúncia *
+                    Título da observação *
                 </label>
                 <Input
                     placeholder="Ex: Buraco grande na Rua Principal"
@@ -249,7 +249,7 @@ export function StepReview({
                         <p className="text-xs text-muted-foreground mt-1">
                             {draft.confirmed
                                 ? 'Você confirmou que as informações são verdadeiras'
-                                : 'Marque para poder enviar a denúncia'}
+                                : 'Marque para poder enviar a observação'}
                         </p>
                     </div>
                 </label>
@@ -306,7 +306,7 @@ export function StepReview({
                         ) : (
                             <>
                                 <Send className="h-5 w-5 mr-2" />
-                                Enviar denúncia
+                                Enviar observação
                             </>
                         )}
                     </Button>

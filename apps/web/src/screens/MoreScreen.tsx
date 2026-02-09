@@ -76,7 +76,7 @@ export default function MoreScreen({ scrollRef }: MoreScreenProps) {
     { id: 'missas' as ScreenView, label: 'Horários das Missas', icon: Church, color: 'bg-primary/10 text-primary' },
     { id: 'telefones' as ScreenView, label: 'Telefones Úteis', icon: Phone, color: 'bg-accent/10 text-accent' },
     { id: 'vereadores' as const, label: 'Vereadores', icon: User, color: 'bg-blue-100 text-blue-600', isLink: true },
-    { id: 'envios' as ScreenView, label: `Fiscaliza ${cityName}`, icon: FileText, color: 'bg-purple-100 text-purple-600', moduleKey: 'reports' },
+    { id: 'envios' as ScreenView, label: `Observa ${cityName}`, icon: FileText, color: 'bg-purple-100 text-purple-600', moduleKey: 'reports' },
     { id: 'trocar-cidade' as const, label: 'Trocar de Cidade', icon: Globe, color: 'bg-slate-100 text-slate-600', isLink: true },
   ];
 
@@ -345,7 +345,7 @@ export default function MoreScreen({ scrollRef }: MoreScreenProps) {
                 {reports.length === 0 && (
                   <div className="text-center py-12">
                     <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                    <p className="text-muted-foreground">Você ainda não fez nenhum envio.</p>
+                    <p className="text-muted-foreground">Você ainda não fez nenhuma observação.</p>
                   </div>
                 )}
               </motion.div>

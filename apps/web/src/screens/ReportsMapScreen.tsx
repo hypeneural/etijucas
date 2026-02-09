@@ -730,7 +730,7 @@ export default function ReportsMapScreen() {
                         >
                             <div className="flex flex-col items-center gap-3 p-6 bg-card rounded-2xl shadow-lg">
                                 <Loader2 className="w-10 h-10 animate-spin text-primary" />
-                                <span className="text-sm font-medium">Carregando denúncias...</span>
+                                <span className="text-sm font-medium">Carregando observações...</span>
                             </div>
                         </motion.div>
                     )}

@@ -183,7 +183,7 @@ export default function ReportCTA({ onNavigate }: ReportCTAProps) {
               <Zap className="w-5 h-5" />
             </motion.div>
             <div>
-              <h3 className="text-xl font-bold">Fiscaliza {cityName}</h3>
+              <h3 className="text-xl font-bold">Observa {cityName}</h3>
               <p className="text-xs opacity-80">Reporte problemas na cidade</p>
             </div>
           </div>
@@ -261,7 +261,7 @@ export default function ReportCTA({ onNavigate }: ReportCTAProps) {
             >
               <TrendingUp className="w-4 h-4" />
               <span className="text-sm">
-                <span className="font-bold">{stats.thisMonth}</span> denúncias este mês
+                <span className="font-bold">{stats.thisMonth}</span> observações este mês
                 {stats.resolvedThisMonth && stats.resolvedThisMonth > 0 && (
                   <span className="opacity-80">
                     {' '}• {stats.resolvedThisMonth} resolvidas

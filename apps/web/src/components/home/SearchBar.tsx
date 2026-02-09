@@ -39,17 +39,17 @@ export default function SearchBar({ onNavigate }: SearchBarProps) {
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
         <Input
           type="text"
-          placeholder="Buscar denúncias, eventos, missas, lugares…"
+          placeholder="Buscar observações, eventos, missas, lugares…"
           className="pl-12 pr-4 h-12 rounded-2xl bg-card border-0 shadow-card text-base placeholder:text-muted-foreground/60"
         />
       </div>
-      
+
       {/* Smart chips */}
       <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 -mx-4 px-4">
         {smartChips.map((chip, index) => {
           const Icon = chip.icon;
           const isAccent = chip.color === 'accent';
-          
+
           return (
             <motion.button
               key={chip.id}
@@ -58,11 +58,10 @@ export default function SearchBar({ onNavigate }: SearchBarProps) {
               transition={{ delay: index * 0.05 }}
               whileTap={{ scale: 0.92 }}
               onClick={() => handleChipClick(chip)}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-full whitespace-nowrap text-sm font-medium transition-colors ${
-                isAccent 
-                  ? 'bg-accent text-accent-foreground' 
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-full whitespace-nowrap text-sm font-medium transition-colors ${isAccent
+                  ? 'bg-accent text-accent-foreground'
                   : 'bg-card text-foreground shadow-card'
-              }`}
+                }`}
             >
               <Icon className="w-4 h-4" />
               {chip.label}

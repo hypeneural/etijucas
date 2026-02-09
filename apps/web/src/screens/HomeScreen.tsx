@@ -234,7 +234,7 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
       items.push({
         type: 'fiscaliza',
         id: 'fiscaliza-near',
-        title: 'denúncias pendentes',
+        title: 'observações pendentes',
         count: fiscalizaData.pendentes_bairro,
         route: '/denuncias',
       });

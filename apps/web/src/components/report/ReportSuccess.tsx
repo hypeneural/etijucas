@@ -97,8 +97,8 @@ export function ReportSuccess({ protocolNumber, onClose }: ReportSuccessProps) {
         if (navigator.share) {
             try {
                 await navigator.share({
-                    title: 'Denúncia Enviada - eTijucas',
-                    text: `Minha denúncia foi registrada com sucesso! Protocolo: ${protocolNumber}`,
+                    title: 'Observação Enviada - eTijucas',
+                    text: `Minha observação foi registrada com sucesso! Código: ${protocolNumber}`,
                 });
             } catch (error) {
                 console.log('Share cancelled');
@@ -185,7 +185,7 @@ export function ReportSuccess({ protocolNumber, onClose }: ReportSuccessProps) {
                     transition={{ delay: 0.3 }}
                     className="text-3xl font-bold text-green-700 dark:text-green-400 mb-2"
                 >
-                    Denúncia Enviada!
+                    Observação Enviada!
                 </motion.h1>
 
                 <motion.p
@@ -208,7 +208,7 @@ export function ReportSuccess({ protocolNumber, onClose }: ReportSuccessProps) {
                         <div className="flex items-center justify-center gap-2 mb-3">
                             <FileCheck className="h-5 w-5 text-primary" />
                             <span className="text-sm text-muted-foreground font-medium">
-                                Número do Protocolo
+                                Código de acompanhamento
                             </span>
                         </div>
 
@@ -250,7 +250,7 @@ export function ReportSuccess({ protocolNumber, onClose }: ReportSuccessProps) {
                     transition={{ delay: 0.7 }}
                     className="text-xs text-muted-foreground mt-4 max-w-xs"
                 >
-                    Guarde este número para acompanhar o andamento da sua denúncia.
+                    Guarde este número para acompanhar o andamento da sua observação.
                     Nossa equipe irá analisar e tomar as providências necessárias.
                 </motion.p>
 
@@ -278,7 +278,7 @@ export function ReportSuccess({ protocolNumber, onClose }: ReportSuccessProps) {
                             onClick={() => navigate('/minhas-denuncias')}
                         >
                             <List className="h-4 w-4 mr-2" />
-                            Minhas Denúncias
+                            Minhas Observações
                         </Button>
                         <Button
                             variant="outline"
@@ -298,7 +298,7 @@ export function ReportSuccess({ protocolNumber, onClose }: ReportSuccessProps) {
                         onClick={() => navigate('/denuncias')}
                     >
                         <FileText className="h-5 w-5 mr-2" />
-                        Todas as Denúncias
+                        Todas as Observações
                     </Button>
                 </motion.div>
             </motion.div>

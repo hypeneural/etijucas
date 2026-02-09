@@ -75,7 +75,7 @@ const defaultItems: QuickAccessItem[] = [
     { id: 'missas', label: 'Missas', icon: 'church', route: '/missas', module_key: 'masses', badge: null },
     { id: 'telefones', label: 'Telefones', icon: 'phone', route: '/telefones', module_key: 'phones', badge: null },
     { id: 'coleta', label: 'Coleta', icon: 'trash', route: '/coleta-lixo', module_key: 'trash', badge: null },
-    { id: 'fiscaliza', label: 'Fiscaliza', icon: 'alert-triangle', route: '/denuncias', module_key: 'reports', badge: null },
+    { id: 'fiscaliza', label: 'Observa', icon: 'alert-triangle', route: '/denuncias', module_key: 'reports', badge: null },
     { id: 'tempo', label: 'Tempo', icon: 'cloud-sun', route: '/previsao', module_key: 'weather', badge: null },
     { id: 'forum', label: 'Forum', icon: 'message-circle', route: '/forum', module_key: 'forum', badge: null },
 ];

@@ -161,7 +161,7 @@ export function HojeShareCard({
                     <div className="flex flex-col items-center p-2 rounded-xl bg-white/10">
                         <AlertTriangle className="h-4 w-4 mb-1" />
                         <span className="text-lg font-bold">{denuncias}</span>
-                        <span className="text-[9px] text-white/70">denúncias</span>
+                        <span className="text-[9px] text-white/70">observações</span>
                     </div>
                     <div className="flex flex-col items-center p-2 rounded-xl bg-white/10">
                         <MessageCircle className="h-4 w-4 mb-1" />

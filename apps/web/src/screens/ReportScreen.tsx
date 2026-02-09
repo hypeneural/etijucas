@@ -84,7 +84,7 @@ export default function ReportScreen({ scrollRef }: ReportScreenProps) {
           <div className="px-4 pt-4 pb-2 flex items-start justify-between">
             <div>
               <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-                Fiscaliza {cityName}
+                Observa {cityName}
               </h1>
               <p className="text-sm text-muted-foreground">
                 Acompanhe as melhorias na cidade
@@ -112,7 +112,7 @@ export default function ReportScreen({ scrollRef }: ReportScreenProps) {
                 <span className="text-2xl font-bold text-slate-900 dark:text-slate-100">
                   {statsLoading ? '...' : stats.total}
                 </span>
-                <span className="text-[10px] text-blue-600/80 mb-1 font-medium">denúncias</span>
+                <span className="text-[10px] text-blue-600/80 mb-1 font-medium">observações</span>
               </div>
             </Card>
 
@@ -181,7 +181,7 @@ export default function ReportScreen({ scrollRef }: ReportScreenProps) {
             >
               <span className="flex items-center gap-2">
                 <Plus className="w-6 h-6" />
-                Nova Denúncia
+                Nova Observação
               </span>
               <div className="bg-white/20 p-1.5 rounded-lg">
                 <ChevronRight className="w-5 h-5" />
@@ -225,7 +225,7 @@ export default function ReportScreen({ scrollRef }: ReportScreenProps) {
           {reportsLoading && (
             <div className="flex flex-col items-center justify-center py-12">
               <Loader2 className="w-8 h-8 text-primary animate-spin mb-3" />
-              <p className="text-sm text-muted-foreground">Carregando denúncias...</p>
+              <p className="text-sm text-muted-foreground">Carregando observações...</p>
             </div>
           )}
 
@@ -236,10 +236,10 @@ export default function ReportScreen({ scrollRef }: ReportScreenProps) {
                 <Search className="w-8 h-8 text-slate-400" />
               </div>
               <h3 className="text-base font-medium text-slate-900 dark:text-slate-100">
-                Nenhuma denúncia encontrada
+                Nenhuma observação encontrada
               </h3>
               <p className="text-sm text-slate-500 mt-1">
-                Tente mudar os filtros ou faça uma nova denúncia.
+                Tente mudar os filtros ou faça uma nova observação.
               </p>
             </div>
           )}
@@ -288,7 +288,7 @@ export default function ReportScreen({ scrollRef }: ReportScreenProps) {
                         <div className="shrink-0">
                           <img
                             src={report.media[0].thumbUrl || report.media[0].url}
-                            alt="Foto da denúncia"
+                            alt="Foto da observação"
                             className="w-16 h-16 rounded-lg object-cover bg-slate-100 dark:bg-slate-800"
                             loading="lazy"
                           />
