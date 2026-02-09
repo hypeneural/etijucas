@@ -190,7 +190,7 @@ export function QuickAccessGridVivo({ data, className }: QuickAccessGridVivoProp
                             </div>
 
                             <span className="text-sm font-medium text-foreground leading-tight">
-                                {item.label}
+                                {item.id === 'fiscaliza' || item.label === 'Fiscaliza' ? 'Observa' : item.label}
                             </span>
 
                             <AnimatePresence>

@@ -130,12 +130,12 @@ export function NearYouBento({ bairroName, items, isLoading, className }: NearYo
                                         {item.count}
                                     </span>
                                     <span className="text-[10px] leading-tight opacity-80 line-clamp-2">
-                                        {item.title}
+                                        {item.title.replace('Fiscaliza', 'Observa')}
                                     </span>
                                 </>
                             ) : (
                                 <span className="text-xs font-medium leading-tight line-clamp-2">
-                                    {item.title}
+                                    {item.title.replace('Fiscaliza', 'Observa')}
                                 </span>
                             )}
 

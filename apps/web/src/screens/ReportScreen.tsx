@@ -134,6 +134,7 @@ export default function ReportScreen({ scrollRef }: ReportScreenProps) {
           <div className="flex gap-2 px-4 mt-4 overflow-x-auto pb-2 scrollbar-none">
             <button
               onClick={() => setFilterStatus('em_analise')}
+              title="A comunidade está confirmando as informações."
               className={cn(
                 "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all whitespace-nowrap",
                 filterStatus === 'em_analise'
@@ -142,20 +143,21 @@ export default function ReportScreen({ scrollRef }: ReportScreenProps) {
               )}
             >
               <div className="w-2 h-2 rounded-full bg-amber-500" />
-              Em Análise ({statsLoading ? '-' : stats.byStatus.em_analise})
+              Em verificação ({statsLoading ? '-' : stats.byStatus.em_analise})
             </button>
 
             <button
               onClick={() => setFilterStatus('rejeitado')}
+              title="Faltaram detalhes, era duplicado, ou não foi possível confirmar."
               className={cn(
                 "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all whitespace-nowrap",
                 filterStatus === 'rejeitado'
-                  ? "bg-red-100 border-red-200 text-red-700"
+                  ? "bg-slate-100 border-slate-200 text-slate-700"
                   : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
               )}
             >
-              <div className="w-2 h-2 rounded-full bg-red-500" />
-              Rejeitado ({statsLoading ? '-' : stats.byStatus.rejeitado})
+              <div className="w-2 h-2 rounded-full bg-slate-500" />
+              Arquivado ({statsLoading ? '-' : stats.byStatus.rejeitado})
             </button>
 
             <button
@@ -169,6 +171,19 @@ export default function ReportScreen({ scrollRef }: ReportScreenProps) {
             >
               <div className="w-2 h-2 rounded-full bg-blue-500" />
               Recebidos ({statsLoading ? '-' : stats.byStatus.recebido})
+            </button>
+
+            <button
+              onClick={() => setFilterStatus('resolvido')}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all whitespace-nowrap",
+                filterStatus === 'resolvido'
+                  ? "bg-green-100 border-green-200 text-green-700"
+                  : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+              )}
+            >
+              <div className="w-2 h-2 rounded-full bg-green-500" />
+              Melhoria concluída ({statsLoading ? '-' : stats.byStatus.resolvido})
             </button>
           </div>
 

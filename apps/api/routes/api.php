@@ -369,9 +369,9 @@ Route::prefix('v1')->group(function () {
                 // My reports
                 Route::get('/me', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'myReports']);
 
-                // Report details
-                Route::get('/{id}', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'show'])
-                    ->whereUuid('id');
+                // Report details (handled in public routes with optional-auth)
+                // Route::get('/{id}', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'show'])
+                //    ->whereUuid('id');
 
                 // Add/remove media
                 Route::post('/{id}/media', [\App\Domains\Reports\Http\Controllers\ReportController::class, 'addMedia'])
