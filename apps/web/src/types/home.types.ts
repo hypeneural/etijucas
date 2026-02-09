@@ -46,7 +46,8 @@ export type HomeBlockType =
     | 'quick_access'
     | 'events_carousel'
     | 'tourism_carousel'
-    | 'tijucanos_counter';
+    | 'tijucanos_counter'
+    | 'fiscaliza_carousel';
 
 // ========================================
 // Alert Banner
@@ -115,6 +116,34 @@ export interface FiscalizaVivoPayload {
         tipo: string;
         status: 'recebido' | 'em_analise' | 'resolvido';
     }>;
+}
+
+// ========================================
+// Fiscaliza Carousel (Photos)
+// ========================================
+
+export interface FiscalizaCarouselItem {
+    id: string;
+    title: string;
+    bairro: string;
+    status: 'recebido' | 'em_analise' | 'resolvido' | 'rejeitado';
+    category: {
+        name: string;
+        icon: string;
+        color: string;
+    };
+    image: {
+        thumb: string;
+        full: string;
+    };
+    created_at_human: string;
+    created_at: string;
+}
+
+export interface FiscalizaCarouselPayload {
+    title: string;
+    subtitle: string;
+    items: FiscalizaCarouselItem[];
 }
 
 // ========================================
@@ -253,6 +282,7 @@ export type QuickAccessBlock = HomeBlock<QuickAccessPayload>;
 export type EventsCarouselBlock = HomeBlock<EventsCarouselPayload>;
 export type TourismCarouselBlock = HomeBlock<TourismCarouselPayload>;
 export type TijucanosCounterBlock = HomeBlock<TijucanosCounterPayload>;
+export type FiscalizaCarouselBlock = HomeBlock<FiscalizaCarouselPayload>;
 
 // ========================================
 // Helper to get typed block
@@ -299,4 +329,8 @@ export function getTourismCarousel(data: HomeDataResponse | undefined) {
 
 export function getTijucanosCounter(data: HomeDataResponse | undefined) {
     return getBlock<TijucanosCounterPayload>(data, 'tijucanos_counter');
+}
+
+export function getFiscalizaCarousel(data: HomeDataResponse | undefined) {
+    return getBlock<FiscalizaCarouselPayload>(data, 'fiscaliza_carousel');
 }

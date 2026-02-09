@@ -26,6 +26,7 @@ import {
     getEventsCarousel,
     getTourismCarousel,
     getTijucanosCounter,
+    getFiscalizaCarousel,
 } from '@/types/home.types';
 
 // Query keys
@@ -90,6 +91,7 @@ export function useHomeData(options?: { enabled?: boolean }) {
     const events = getEventsCarousel(query.data);
     const tourism = getTourismCarousel(query.data);
     const stats = getTijucanosCounter(query.data);
+    const fiscalizaCarousel = getFiscalizaCarousel(query.data);
 
     return {
         // Query state
@@ -111,6 +113,7 @@ export function useHomeData(options?: { enabled?: boolean }) {
             events,
             tourism,
             stats,
+            fiscalizaCarousel,
         },
     };
 }

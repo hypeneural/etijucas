@@ -183,25 +183,50 @@ class CitizenReport extends Model implements HasMedia
     // Protocol Generation
     // =====================================================
 
-    public static function generateProtocol(): string
+    public static function generateProtocol(?self $report = null): string
     {
         $year = date('Y');
+        $prefix = 'ETJ'; // Default fallback
+
+        // Determine city to generate prefix
+        $cityId = $report?->city_id ?? \App\Support\Tenant::cityId();
+
+        if ($cityId) {
+            // Try to avoid DB query if it matches tenant context
+            if ($cityId === \App\Support\Tenant::cityId()) {
+                $city = \App\Support\Tenant::city();
+            } else {
+                $city = \App\Models\City::find($cityId);
+            }
+
+            if ($city) {
+                // Use first 3 letters of the slug (normalized) for the prefix
+                // e.g., "tijucas-sc" -> "TIJ", "balneario-camboriu" -> "BAL"
+                $prefix = strtoupper(substr($city->slug, 0, 3));
+            }
+        }
+
         $maxRetries = 10;
 
         for ($attempt = 0; $attempt < $maxRetries; $attempt++) {
-            // Get the max protocol number for this year, with lock
+            // Get the max protocol number for this year AND prefix
+            // We lock rows to prevent race conditions as best as possible
             $lastReport = self::whereYear('created_at', $year)
+                ->where('protocol', 'like', "{$prefix}-%")
                 ->orderByRaw("CAST(SUBSTRING(protocol, -6) AS UNSIGNED) DESC")
                 ->lockForUpdate()
                 ->first();
 
-            if ($lastReport && preg_match('/ETJ-\d{4}-(\d{6})/', $lastReport->protocol, $matches)) {
+            if ($lastReport && preg_match('/' . $prefix . '-\d{4}-(\d{6})/', $lastReport->protocol, $matches)) {
                 $nextNum = (int) $matches[1] + 1;
             } else {
-                $nextNum = self::whereYear('created_at', $year)->count() + 1;
+                // Count existing for this prefix/year to start sequence
+                $nextNum = self::whereYear('created_at', $year)
+                    ->where('protocol', 'like', "{$prefix}-%")
+                    ->count() + 1;
             }
 
-            $protocol = sprintf('ETJ-%s-%06d', $year, $nextNum);
+            $protocol = sprintf('%s-%s-%06d', $prefix, $year, $nextNum);
 
             // Check if it already exists (race condition check)
             if (!self::where('protocol', $protocol)->exists()) {
@@ -212,8 +237,8 @@ class CitizenReport extends Model implements HasMedia
             usleep(50000 * ($attempt + 1)); // 50ms, 100ms, 150ms...
         }
 
-        // Fallback: use timestamp-based unique protocol
-        return sprintf('ETJ-%s-%06d', $year, (int) (microtime(true) * 1000) % 1000000);
+        // Fallback: use timestamp-based unique protocol with prefix
+        return sprintf('%s-%s-%06d', $prefix, $year, (int) (microtime(true) * 1000) % 1000000);
     }
 
     // =====================================================
@@ -250,7 +275,7 @@ class CitizenReport extends Model implements HasMedia
         // Generate protocol on creation
         static::creating(function (CitizenReport $report) {
             if (empty($report->protocol)) {
-                $report->protocol = self::generateProtocol();
+                $report->protocol = self::generateProtocol($report);
             }
         });
 
