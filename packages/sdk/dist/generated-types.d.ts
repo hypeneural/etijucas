@@ -48,4 +48,45 @@ export interface PaginatedResponse<T> {
     data: T[];
     meta: PaginationMeta;
 }
+export interface ApiResponse<T> {
+    success: boolean;
+    data: T;
+    message?: string;
+    errors?: Record<string, string[]>;
+}
+export interface EventTag {
+    id: string;
+    name: string;
+    slug: string;
+}
+export interface Topic {
+    id: string;
+    title: string;
+    content: string;
+    category: string;
+    bairro_id?: string;
+    user_id: string;
+    created_at: string;
+    updated_at: string;
+    comments_count: number;
+    likes_count: number;
+    is_liked: boolean;
+    is_saved: boolean;
+    user?: User;
+    bairro?: Bairro;
+    images?: string[];
+}
+export interface Comment {
+    id: string;
+    content: string;
+    topic_id: string;
+    user_id: string;
+    parent_id?: string;
+    created_at: string;
+    updated_at: string;
+    user?: User;
+    likes_count: number;
+    is_liked: boolean;
+    replies?: Comment[];
+}
 //# sourceMappingURL=generated-types.d.ts.map

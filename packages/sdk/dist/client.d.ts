@@ -18,7 +18,7 @@
  * const topics = await api.forum.topics.list();
  * ```
  */
-import type { User, Event, EventCategory, Bairro, PaginatedResponse } from './generated-types';
+import type { User, Event, EventCategory, Bairro, Topic, Comment, PaginatedResponse, ApiResponse } from './generated-types';
 import type { TenantCitiesResponse, TenantCityDetectResponse, TenantConfigResponse } from './tenant-config';
 export interface ClientConfig {
     baseUrl: string;
