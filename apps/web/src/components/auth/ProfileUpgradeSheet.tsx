@@ -154,7 +154,8 @@ export function ProfileUpgradeSheet({
                 termsAccepted: true,
             });
 
-            updateUser(response.user);
+            // Explicitly set profileCompleted to prevent re-showing onboarding
+            updateUser({ ...response.user, profileCompleted: true });
 
             if ('vibrate' in navigator) {
                 navigator.vibrate(50);

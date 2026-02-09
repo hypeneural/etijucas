@@ -173,28 +173,11 @@ export function useCreateOfflineTopic() {
                 toast.success('✅ Tópico publicado com sucesso!');
                 return created;
             } catch (error) {
-                // Service already created local backup
+                // Don't save locally on API error - let the mutation fail cleanly
                 const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
                 console.error('[useCreateOfflineTopic] Failed:', errorMessage);
-                toast.error(`❌ Falha ao publicar: ${errorMessage}. Tópico salvo localmente.`);
-
-                // Return optimistic topic so UI updates
-                const fallbackTopic: Topic = {
-                    id: `temp-${Date.now()}`,
-                    titulo: data.titulo,
-                    texto: data.texto,
-                    categoria: data.categoria,
-                    bairroId: data.bairroId,
-                    fotoUrl: data.fotoUrl,
-                    isAnon: data.isAnon ?? false,
-                    autorNome: data.isAnon ? 'Anônimo' : 'Você',
-                    likesCount: 0,
-                    commentsCount: 0,
-                    liked: false,
-                    createdAt: new Date(),
-                    syncStatus: 'pending',
-                };
-                return fallbackTopic;
+                toast.error(`❌ Falha ao publicar: ${errorMessage}`);
+                throw error; // Let the UI handle the error properly
             }
         },
         onSuccess: () => {

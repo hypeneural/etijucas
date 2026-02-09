@@ -22,11 +22,13 @@ class CitizenReport extends Model implements HasMedia
 
     /**
      * Public report visibility policy.
-     * Keep explicit until a dedicated moderation flag is introduced.
+     * Shows all reports except rejected ones.
      *
      * @var array<int, string>
      */
     public const PUBLIC_VISIBLE_STATUSES = [
+        ReportStatus::Recebido->value,
+        ReportStatus::EmAnalise->value,
         ReportStatus::Resolvido->value,
     ];
 

@@ -63,7 +63,6 @@ class StoreTopicRequest extends FormRequest
             'texto.max' => 'O texto deve ter no máximo 5000 caracteres.',
             'categoria.required' => 'A categoria é obrigatória.',
             'categoria.in' => 'Categoria inválida.',
-            'bairroId.required' => 'O bairro é obrigatório.',
             'bairroId.exists' => 'O bairro selecionado não existe.',
             'fotoUrl.url' => 'A URL da foto é inválida.',
         ];

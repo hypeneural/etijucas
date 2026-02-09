@@ -12,6 +12,7 @@ import { VirtualList } from '@/components/ui/VirtualList';
 import { useAppStore } from '@/store/useAppStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
+import { useTenantNavigate } from '@/hooks';
 import { useOfflineTopics, useLikeOfflineTopic, useCreateOfflineTopic } from '@/hooks/useOfflineTopics';
 import { useToast } from '@/hooks/use-toast';
 import { Topic, TopicCategory } from '@/types';
@@ -40,6 +41,7 @@ export default function ForumScreen({ scrollRef }: ForumScreenProps) {
   const { isAuthenticated } = useAuthStore();
   const { isOnline } = useNetworkStatus();
   const { toast } = useToast();
+  const navigate = useTenantNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Use new offline-first hooks
@@ -258,15 +260,15 @@ export default function ForumScreen({ scrollRef }: ForumScreenProps) {
   }, [toast]);
 
   const handleOpenDetail = useCallback((topicId: string) => {
-    // Navigate to topic detail
-    window.location.href = `/topico/${topicId}`;
-  }, []);
+    // Navigate to topic detail with tenant prefix
+    navigate(`/topico/${topicId}`);
+  }, [navigate]);
 
   const handleOpenCommentDirect = useCallback((topicId: string) => {
     if (!requireAuth('comentar')) return;
-    // Navigate to topic with comment focus
-    window.location.href = `/topico/${topicId}?comment=true`;
-  }, [requireAuth]);
+    // Navigate to topic with comment focus using tenant prefix
+    navigate(`/topico/${topicId}?comment=true`);
+  }, [requireAuth, navigate]);
 
   const handleSubmitTopic = useCallback(async (data: NewTopicData) => {
     try {

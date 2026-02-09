@@ -1,10 +1,8 @@
 // CEP Lookup Service
 // Uses internal API endpoint that handles ViaCEP + bairro matching
 
+import { apiClient, ApiError } from '@/api/client';
 import type { CepLookupResponse, BairroOption } from '@/types/auth.types';
-
-// Base API URL for backend (already includes /v1)
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
 /**
  * Validates CEP format (8 digits)
@@ -51,10 +49,17 @@ export const cepService = {
         }
 
         try {
-            const response = await fetch(`${API_BASE_URL}/cep/${cleanedCEP}`);
-            const data: CepLookupResponse = await response.json();
+            // Uses apiClient to automatically include X-City header
+            const data = await apiClient.get<CepLookupResponse>(`/cep/${cleanedCEP}`);
             return data;
-        } catch {
+        } catch (error) {
+            if (error instanceof ApiError) {
+                return {
+                    success: false,
+                    error: error.code || 'API_ERROR',
+                    message: error.message,
+                };
+            }
             return {
                 success: false,
                 error: 'Erro de conexão',
@@ -68,8 +73,8 @@ export const cepService = {
      */
     async getBairros(): Promise<BairroOption[]> {
         try {
-            const response = await fetch(`${API_BASE_URL}/bairros`);
-            const data = await response.json();
+            // Uses apiClient to automatically include X-City header
+            const data = await apiClient.get<{ data: BairroOption[] }>('/bairros');
             return data.data || [];
         } catch {
             return [];
@@ -80,3 +85,4 @@ export const cepService = {
 // Legacy exports for backward compatibility
 export { validateCEP as isValidCep };
 export default cepService;
+

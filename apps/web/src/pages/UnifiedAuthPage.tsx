@@ -158,7 +158,7 @@ export default function UnifiedAuthPage() {
             }
 
             // Check if needs profile completion
-            if (!response.user.profile_completed) {
+            if (!response.user.profileCompleted) {
                 setIsNewUser(true);
                 setStep('profile');
             } else {
@@ -226,7 +226,7 @@ export default function UnifiedAuthPage() {
             clearDetectedCode();
 
             // Check if new user needs profile
-            const needsProfile = response.is_new_user || !response.user.profile_completed;
+            const needsProfile = response.isNewUser || !response.user.profileCompleted;
             setIsNewUser(needsProfile);
 
             if (needsProfile) {
@@ -267,7 +267,8 @@ export default function UnifiedAuthPage() {
                 termsAccepted: true,
             });
 
-            updateUser(response.user);
+            // Explicitly set profileCompleted to prevent re-showing onboarding
+            updateUser({ ...response.user, profileCompleted: true });
 
             // Haptic feedback
             if ('vibrate' in navigator) {

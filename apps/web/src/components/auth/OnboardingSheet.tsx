@@ -111,8 +111,8 @@ export function OnboardingSheet({
                 termsAccepted: true,
             });
 
-            // Update local state
-            updateUser(response.user);
+            // Update local state - explicitly set profileCompleted to prevent re-showing onboarding
+            updateUser({ ...response.user, profileCompleted: true });
 
             // Haptic feedback
             if ('vibrate' in navigator) {

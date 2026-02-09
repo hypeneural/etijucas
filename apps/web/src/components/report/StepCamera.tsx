@@ -53,7 +53,7 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
             setCameraState(prev => ({
                 ...prev,
                 status: 'error',
-                errorMessage: 'Seu navegador nÃ£o suporta acesso Ã  cÃ¢mera. Tente usar Chrome, Safari ou Firefox.',
+                errorMessage: 'Seu navegador não suporta acesso à câmera. Tente usar Chrome, Safari ou Firefox.',
             }));
             return;
         }
@@ -89,25 +89,25 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
                     setCameraState(prev => ({
                         ...prev,
                         status: 'denied',
-                        errorMessage: 'VocÃª nÃ£o permitiu o acesso Ã  cÃ¢mera.',
+                        errorMessage: 'Você não permitiu o acesso à câmera.',
                     }));
                 } else if (error.name === 'NotFoundError') {
                     setCameraState(prev => ({
                         ...prev,
                         status: 'error',
-                        errorMessage: 'Nenhuma cÃ¢mera foi encontrada no seu dispositivo.',
+                        errorMessage: 'Nenhuma câmera foi encontrada no seu dispositivo.',
                     }));
                 } else if (error.name === 'NotReadableError') {
                     setCameraState(prev => ({
                         ...prev,
                         status: 'error',
-                        errorMessage: 'A cÃ¢mera estÃ¡ sendo usada por outro aplicativo. Feche outros apps e tente novamente.',
+                        errorMessage: 'A câmera está sendo usada por outro aplicativo. Feche outros apps e tente novamente.',
                     }));
                 } else if (error.name === 'OverconstrainedError') {
                     setCameraState(prev => ({
                         ...prev,
                         status: 'error',
-                        errorMessage: 'Sua cÃ¢mera nÃ£o atende aos requisitos. Tentando configuraÃ§Ã£o alternativa...',
+                        errorMessage: 'Sua câmera não atende aos requisitos. Tentando configuração alternativa...',
                     }));
                     // Try with less constraints
                     try {
@@ -129,21 +129,21 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
                         setCameraState(prev => ({
                             ...prev,
                             status: 'error',
-                            errorMessage: 'NÃ£o foi possÃ­vel acessar sua cÃ¢mera.',
+                            errorMessage: 'Não foi possível acessar sua câmera.',
                         }));
                     }
                 } else {
                     setCameraState(prev => ({
                         ...prev,
                         status: 'error',
-                        errorMessage: 'Ocorreu um erro ao acessar a cÃ¢mera. Tente novamente.',
+                        errorMessage: 'Ocorreu um erro ao acessar a câmera. Tente novamente.',
                     }));
                 }
             } else {
                 setCameraState(prev => ({
                     ...prev,
                     status: 'error',
-                    errorMessage: 'Erro desconhecido ao acessar a cÃ¢mera.',
+                    errorMessage: 'Erro desconhecido ao acessar a câmera.',
                 }));
             }
         }
@@ -339,12 +339,12 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
     return (
         <div className="space-y-4 pb-48">
             <StepHeader
-                title="Adicione atÃ© 3 fotos"
+                title="Adicione até 3 fotos"
                 subtitle="Tire fotos agora ou escolha da galeria"
                 helpTitle="Dicas para boas fotos"
                 helpContent={[
                     "Fotografe de perto para mostrar detalhes do problema.",
-                    "Inclua uma foto do contexto (rua, nÃºmero, ponto de referÃªncia).",
+                    "Inclua uma foto do contexto (rua, número, ponto de referência).",
                     "Evite fotos muito escuras ou desfocadas."
                 ]}
             />
@@ -411,7 +411,7 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
                                 <div>
                                     <h3 className="font-semibold text-lg">Adicione fotos do problema</h3>
                                     <p className="text-sm text-muted-foreground mt-1">
-                                        Fotos ajudam a identificar e resolver o problema mais rÃ¡pido
+                                        Fotos ajudam a identificar e resolver o problema mais rápido
                                     </p>
                                 </div>
 
@@ -421,7 +421,7 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
                                         <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400">
                                             <ShieldAlert className="h-4 w-4 shrink-0" />
                                             <p className="text-xs text-left">
-                                                CÃ¢mera exige HTTPS. Use a galeria para adicionar fotos.
+                                                Câmera exige HTTPS. Use a galeria para adicionar fotos.
                                             </p>
                                         </div>
                                     </div>
@@ -458,7 +458,7 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
                                 </div>
 
                                 <p className="text-xs text-muted-foreground">
-                                    VocÃª pode pular e continuar sem fotos
+                                    Você pode pular e continuar sem fotos
                                 </p>
                             </div>
                         </Card>
@@ -491,7 +491,7 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
                                 whileTap={{ scale: 0.9 }}
                                 onClick={switchCamera}
                                 className="p-3 rounded-full bg-black/50 text-white backdrop-blur-sm"
-                                aria-label="Trocar cÃ¢mera"
+                                aria-label="Trocar câmera"
                             >
                                 <SwitchCamera className="h-5 w-5" />
                             </motion.button>
@@ -543,7 +543,7 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
                         <div className="p-4 rounded-full bg-primary/10 mb-4">
                             <Loader2 className="h-8 w-8 text-primary animate-spin" />
                         </div>
-                        <p className="font-medium mb-1">Iniciando cÃ¢mera...</p>
+                        <p className="font-medium mb-1">Iniciando câmera...</p>
                         <p className="text-sm text-muted-foreground">
                             Se aparecer uma mensagem, toque em "Permitir"
                         </p>
@@ -562,7 +562,7 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
                                     <ShieldAlert className="h-8 w-8 text-amber-600 dark:text-amber-400" />
                                 </div>
                                 <h3 className="font-semibold text-lg text-amber-800 dark:text-amber-300">
-                                    CÃ¢mera bloqueada
+                                    Câmera bloqueada
                                 </h3>
                                 <p className="text-sm text-amber-700 dark:text-amber-400 mt-2 mb-4">
                                     {cameraState.errorMessage}
@@ -576,19 +576,19 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
                                     <ol className="text-left text-sm space-y-2 text-muted-foreground">
                                         <li className="flex items-start gap-2">
                                             <span className="font-bold text-primary">1.</span>
-                                            <span>Olhe na barra de endereÃ§o do navegador</span>
+                                            <span>Olhe na barra de endereço do navegador</span>
                                         </li>
                                         <li className="flex items-start gap-2">
                                             <span className="font-bold text-primary">2.</span>
-                                            <span>Clique no Ã­cone de cadeado ou cÃ¢mera</span>
+                                            <span>Clique no ícone de cadeado ou câmera</span>
                                         </li>
                                         <li className="flex items-start gap-2">
                                             <span className="font-bold text-primary">3.</span>
-                                            <span>Mude "CÃ¢mera" para "Permitir"</span>
+                                            <span>Mude "Câmera" para "Permitir"</span>
                                         </li>
                                         <li className="flex items-start gap-2">
                                             <span className="font-bold text-primary">4.</span>
-                                            <span>Recarregue a pÃ¡gina ou toque no botÃ£o abaixo</span>
+                                            <span>Recarregue a página ou toque no botão abaixo</span>
                                         </li>
                                     </ol>
                                 </Card>
@@ -618,22 +618,22 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
                                     <AlertTriangle className="h-8 w-8 text-red-600 dark:text-red-400" />
                                 </div>
                                 <h3 className="font-semibold text-lg text-red-800 dark:text-red-300">
-                                    Problema com a cÃ¢mera
+                                    Problema com a câmera
                                 </h3>
                                 <p className="text-sm text-red-700 dark:text-red-400 mt-2 mb-4">
                                     {cameraState.errorMessage}
                                 </p>
 
                                 <Card className="w-full p-4 bg-white dark:bg-background border-red-200 dark:border-red-700">
-                                    <p className="font-medium text-sm mb-3">O que vocÃª pode fazer:</p>
+                                    <p className="font-medium text-sm mb-3">O que você pode fazer:</p>
                                     <ul className="text-left text-sm space-y-2 text-muted-foreground">
                                         <li className="flex items-start gap-2">
                                             <CheckCircle className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
-                                            <span>Verifique se seu dispositivo tem cÃ¢mera</span>
+                                            <span>Verifique se seu dispositivo tem câmera</span>
                                         </li>
                                         <li className="flex items-start gap-2">
                                             <CheckCircle className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
-                                            <span>Feche outros aplicativos que usam a cÃ¢mera</span>
+                                            <span>Feche outros aplicativos que usam a câmera</span>
                                         </li>
                                         <li className="flex items-start gap-2">
                                             <CheckCircle className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
@@ -641,7 +641,7 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
                                         </li>
                                         <li className="flex items-start gap-2">
                                             <CheckCircle className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
-                                            <span>VocÃª pode continuar sem foto (opcional)</span>
+                                            <span>Você pode continuar sem foto (opcional)</span>
                                         </li>
                                     </ul>
                                 </Card>
@@ -739,7 +739,7 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
                 <Card className="p-4 text-center bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800">
                     <div className="flex items-center justify-center gap-2 text-green-700 dark:text-green-300">
                         <CheckCircle className="h-5 w-5" />
-                        <span className="font-medium">VocÃª tirou {MAX_IMAGES} fotos. Pronto para continuar!</span>
+                        <span className="font-medium">Você tirou {MAX_IMAGES} fotos. Pronto para continuar!</span>
                     </div>
                 </Card>
             )}
@@ -752,7 +752,7 @@ export function StepCamera({ draft, onUpdate, onNext, onBack }: StepCameraProps)
                         <div>
                             <p className="font-medium text-amber-800 dark:text-amber-300">Continuar sem foto?</p>
                             <p className="text-sm text-amber-700 dark:text-amber-400 mt-1">
-                                Fotos ajudam muito a identificar o problema, mas vocÃª pode continuar sem elas.
+                                Fotos ajudam muito a identificar o problema, mas você pode continuar sem elas.
                             </p>
                         </div>
                     </div>

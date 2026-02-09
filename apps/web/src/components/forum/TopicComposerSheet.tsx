@@ -298,9 +298,16 @@ export function TopicComposerSheet({
                                 {errors.texto}
                             </p>
                         )}
-                        <p className="text-xs text-muted-foreground mt-1 text-right">
-                            {texto.length}/500
-                        </p>
+                        <div className="flex justify-between mt-1">
+                            <p className={`text-xs ${texto.length > 0 && texto.length < 10 ? 'text-amber-500' : 'text-muted-foreground'}`}>
+                                {texto.length > 0 && texto.length < 10
+                                    ? `Mínimo 10 caracteres (${10 - texto.length} restantes)`
+                                    : ''}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                                {texto.length}/500
+                            </p>
+                        </div>
                     </div>
 
                     {/* Image preview */}
