@@ -42,7 +42,7 @@ export function FiscalizaMiniMap({ pins = [], className }: FiscalizaMiniMapProps
 
     const handleClick = () => {
         hapticFeedback('selection');
-        navigate('/denuncias/mapa');
+        navigate('/observacoes/mapa');
     };
 
     // Convert lat/lng to percentage position on the mock map

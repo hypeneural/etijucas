@@ -97,7 +97,9 @@ export function FiscalizaVivo({ data, isLoading, hasError, className }: Fiscaliz
     const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
     const [showMap, setShowMap] = useState(false);
 
-    const phrases = data?.frases?.length ? data.frases : defaultPhrases;
+    const phrases = (data?.frases?.length ? data.frases : defaultPhrases).map(p =>
+        p.replace('{cidade}', cityName)
+    );
 
     // Rotate phrases every 4 seconds
     useEffect(() => {
@@ -117,7 +119,7 @@ export function FiscalizaVivo({ data, isLoading, hasError, className }: Fiscaliz
 
     const handleClick = () => {
         haptic.trigger('light');
-        navigate('/denuncias');
+        navigate('/observacoes');
     };
 
     const handleNewReport = (e: React.MouseEvent) => {
@@ -125,9 +127,9 @@ export function FiscalizaVivo({ data, isLoading, hasError, className }: Fiscaliz
         haptic.trigger('medium');
 
         if (isAuthenticated) {
-            navigate('/denuncia/nova');
+            navigate('/observacao/nova');
         } else {
-            navigate('/denuncias');
+            navigate('/observacoes');
         }
     };
 

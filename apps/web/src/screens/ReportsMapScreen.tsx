@@ -115,7 +115,7 @@ const statusConfig: Record<string, { label: string; color: string; bgClass: stri
     recebido: { label: 'Recebido', color: '#3b82f6', bgClass: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' },
     em_analise: { label: 'Em verificação', color: '#f59e0b', bgClass: 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300' },
     resolvido: { label: 'Melhoria concluída', color: '#10b981', bgClass: 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300' },
-    rejeitado: { label: 'Arquivado', color: '#ef4444', bgClass: 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300' },
+    rejeitado: { label: 'Arquivado', color: '#64748b', bgClass: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300' },
 };
 
 // ============================================
@@ -553,14 +553,14 @@ export default function ReportsMapScreen() {
     // Handle view details
     const handleViewDetails = () => {
         if (selectedReport) {
-            navigate(`/denuncia/${selectedReport.id}`);
+            navigate(`/observacao/${selectedReport.id}`);
         }
     };
 
     // Handle share
     const handleShare = async () => {
         if (!selectedReport) return;
-        const url = `${window.location.origin}/denuncia/${selectedReport.id}`;
+        const url = `${window.location.origin}/observacao/${selectedReport.id}`;
 
         if (navigator.share) {
             try {
@@ -713,7 +713,7 @@ export default function ReportsMapScreen() {
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ delay: 0.3, type: 'spring', stiffness: 200 }}
                     whileTap={{ scale: 0.9 }}
-                    onClick={() => navigate('/denuncia/nova')}
+                    onClick={() => navigate('/observacao/nova')}
                     className="absolute bottom-24 right-4 z-20 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-xl flex items-center justify-center"
                 >
                     <Plus className="w-7 h-7" />

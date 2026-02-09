@@ -38,7 +38,7 @@ export default function MainLayout() {
         const normalizedPath = normalizeTenantPath(path);
 
         if (normalizedPath === '/') return 'home';
-        if (normalizedPath.startsWith('/denuncia') || normalizedPath.startsWith('/minhas-denuncias') || normalizedPath.startsWith('/denuncias')) return 'reportar';
+        if (normalizedPath.startsWith('/observacao') || normalizedPath.startsWith('/minhas-observacoes') || normalizedPath.startsWith('/observacoes')) return 'reportar';
         if (normalizedPath.startsWith('/forum') || normalizedPath.startsWith('/topico')) return 'forum';
         if (normalizedPath.startsWith('/agenda') || normalizedPath.startsWith('/evento')) return 'agenda';
         if (
@@ -68,7 +68,7 @@ export default function MainLayout() {
                 navigate('/');
                 break;
             case 'reportar':
-                navigate('/denuncias');
+                navigate('/observacoes');
                 break;
             case 'forum':
                 navigate('/forum');

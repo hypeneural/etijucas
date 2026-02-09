@@ -251,7 +251,7 @@ export function ReportSuccess({ protocolNumber, onClose }: ReportSuccessProps) {
                     className="text-xs text-muted-foreground mt-4 max-w-xs"
                 >
                     Guarde este número para acompanhar o andamento da sua observação.
-                    Nossa equipe irá analisar e tomar as providências necessárias.
+                    Sua observação está visível para a comunidade.
                 </motion.p>
 
                 {/* Action buttons */}
@@ -275,7 +275,7 @@ export function ReportSuccess({ protocolNumber, onClose }: ReportSuccessProps) {
                             variant="outline"
                             size="lg"
                             className="h-12 rounded-2xl text-sm"
-                            onClick={() => navigate('/minhas-denuncias')}
+                            onClick={() => navigate('/minhas-observacoes')}
                         >
                             <List className="h-4 w-4 mr-2" />
                             Minhas Observações
@@ -284,7 +284,7 @@ export function ReportSuccess({ protocolNumber, onClose }: ReportSuccessProps) {
                             variant="outline"
                             size="lg"
                             className="h-12 rounded-2xl text-sm"
-                            onClick={() => navigate('/denuncias/mapa')}
+                            onClick={() => navigate('/observacoes/mapa')}
                         >
                             <Map className="h-4 w-4 mr-2" />
                             Mapa
@@ -295,7 +295,7 @@ export function ReportSuccess({ protocolNumber, onClose }: ReportSuccessProps) {
                         variant="ghost"
                         size="lg"
                         className="w-full h-12 rounded-2xl text-base"
-                        onClick={() => navigate('/denuncias')}
+                        onClick={() => navigate('/observacoes')}
                     >
                         <FileText className="h-5 w-5 mr-2" />
                         Todas as Observações

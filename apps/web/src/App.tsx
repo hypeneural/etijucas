@@ -226,11 +226,18 @@ const App = () => {
               <Route path="/boca-no-trombone" element={<Navigate to="/forum" replace />} />
               <Route path="/topico/:id" element={<ModuleRoute module="forum"><TopicDetailPage /></ModuleRoute>} />
 
-              <Route path="/denuncias" element={<ModuleRoute module="reports"><ReportScreen /></ModuleRoute>} />
-              <Route path="/denuncias/mapa" element={<ModuleRoute module="reports"><ReportsMapScreen /></ModuleRoute>} />
-              <Route path="/denuncia/nova" element={<ModuleRoute module="reports"><ReportWizardPage /></ModuleRoute>} />
-              <Route path="/denuncia/:id" element={<ModuleRoute module="reports"><ReportDetailPage /></ModuleRoute>} />
-              <Route path="/minhas-denuncias" element={<ModuleRoute module="reports"><MyReportsPage /></ModuleRoute>} />
+              <Route path="/observacoes" element={<ModuleRoute module="reports"><ReportScreen /></ModuleRoute>} />
+              <Route path="/observacoes/mapa" element={<ModuleRoute module="reports"><ReportsMapScreen /></ModuleRoute>} />
+              <Route path="/observacao/nova" element={<ModuleRoute module="reports"><ReportWizardPage /></ModuleRoute>} />
+              <Route path="/observacao/:id" element={<ModuleRoute module="reports"><ReportDetailPage /></ModuleRoute>} />
+              <Route path="/minhas-observacoes" element={<ModuleRoute module="reports"><MyReportsPage /></ModuleRoute>} />
+
+              {/* Backwards compatibility redirects */}
+              <Route path="/denuncias" element={<Navigate to="/observacoes" replace />} />
+              <Route path="/denuncias/mapa" element={<Navigate to="/observacoes/mapa" replace />} />
+              <Route path="/denuncia/nova" element={<Navigate to="/observacao/nova" replace />} />
+              <Route path="/denuncia/:id" element={<Navigate to="/observacao/:id" replace />} />
+              <Route path="/minhas-denuncias" element={<Navigate to="/minhas-observacoes" replace />} />
 
               <Route path="/coleta-lixo" element={<ModuleRoute module="trash"><TrashScheduleScreen /></ModuleRoute>} />
               <Route path="/coleta" element={<Navigate to="/coleta-lixo" replace />} />
@@ -272,11 +279,18 @@ const App = () => {
               <Route path="forum" element={<ModuleRoute module="forum"><ForumScreen /></ModuleRoute>} />
               <Route path="topico/:id" element={<ModuleRoute module="forum"><TopicDetailPage /></ModuleRoute>} />
 
-              <Route path="denuncias" element={<ModuleRoute module="reports"><ReportScreen /></ModuleRoute>} />
-              <Route path="denuncias/mapa" element={<ModuleRoute module="reports"><ReportsMapScreen /></ModuleRoute>} />
-              <Route path="denuncia/nova" element={<ModuleRoute module="reports"><ReportWizardPage /></ModuleRoute>} />
-              <Route path="denuncia/:id" element={<ModuleRoute module="reports"><ReportDetailPage /></ModuleRoute>} />
-              <Route path="minhas-denuncias" element={<ModuleRoute module="reports"><MyReportsPage /></ModuleRoute>} />
+              <Route path="observacoes" element={<ModuleRoute module="reports"><ReportScreen /></ModuleRoute>} />
+              <Route path="observacoes/mapa" element={<ModuleRoute module="reports"><ReportsMapScreen /></ModuleRoute>} />
+              <Route path="observacao/nova" element={<ModuleRoute module="reports"><ReportWizardPage /></ModuleRoute>} />
+              <Route path="observacao/:id" element={<ModuleRoute module="reports"><ReportDetailPage /></ModuleRoute>} />
+              <Route path="minhas-observacoes" element={<ModuleRoute module="reports"><MyReportsPage /></ModuleRoute>} />
+
+              {/* Backwards compatibility redirects */}
+              <Route path="denuncias" element={<Navigate to="observacoes" replace />} />
+              <Route path="denuncias/mapa" element={<Navigate to="observacoes/mapa" replace />} />
+              <Route path="denuncia/nova" element={<Navigate to="observacao/nova" replace />} />
+              <Route path="denuncia/:id" element={<Navigate to="observacao/:id" replace />} />
+              <Route path="minhas-denuncias" element={<Navigate to="minhas-observacoes" replace />} />
 
               <Route path="coleta-lixo" element={<ModuleRoute module="trash"><TrashScheduleScreen /></ModuleRoute>} />
 

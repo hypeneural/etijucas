@@ -122,12 +122,12 @@ export default function ReportCTA({ onNavigate }: ReportCTAProps) {
 
   // Navigate to wizard
   const handleCreateReport = () => {
-    navigate('/denuncia/nova');
+    navigate('/observacao/nova');
   };
 
   // Navigate to list
   const handleViewAll = () => {
-    navigate('/denuncias');
+    navigate('/observacoes');
   };
 
   return (

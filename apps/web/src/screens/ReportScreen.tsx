@@ -41,9 +41,9 @@ import { useCityName } from '@/hooks/useCityName';
 
 const statusConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
   recebido: { label: 'Recebido', color: 'bg-blue-100 text-blue-700', icon: Clock },
-  em_analise: { label: 'Em Análise', color: 'bg-amber-100 text-amber-700', icon: AlertCircle },
-  resolvido: { label: 'Resolvido', color: 'bg-green-100 text-green-700', icon: CheckCircle2 },
-  rejeitado: { label: 'Rejeitado', color: 'bg-red-100 text-red-700', icon: XCircle },
+  em_analise: { label: 'Em verificação', color: 'bg-amber-100 text-amber-700', icon: AlertCircle },
+  resolvido: { label: 'Melhoria concluída', color: 'bg-green-100 text-green-700', icon: CheckCircle2 },
+  rejeitado: { label: 'Arquivado', color: 'bg-slate-100 text-slate-700', icon: XCircle },
 };
 
 interface ReportScreenProps {
@@ -64,12 +64,12 @@ export default function ReportScreen({ scrollRef }: ReportScreenProps) {
   });
 
   const handleCreateReport = () => {
-    navigate('/denuncia/nova');
+    navigate('/observacao/nova');
   };
 
   const handleReportClick = (id: string) => {
     // Navigate to public report detail
-    navigate(`/denuncia/${id}`);
+    navigate(`/observacao/${id}`);
   };
 
   const handleTabChange = (tab: string) => {
@@ -93,7 +93,7 @@ export default function ReportScreen({ scrollRef }: ReportScreenProps) {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => navigate('/denuncias/mapa')}
+              onClick={() => navigate('/observacoes/mapa')}
               className="shrink-0 gap-1.5"
             >
               <Map className="w-4 h-4" />
