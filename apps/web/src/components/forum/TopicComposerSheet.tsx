@@ -138,7 +138,7 @@ export function TopicComposerSheet({
                 titulo: titulo.trim(),
                 texto: texto.trim(),
                 categoria,
-                bairroId: bairroId && bairroId !== 'none' ? bairroId : undefined,
+                bairroId: bairroId && bairroId !== 'none' ? bairroId : null,
                 isAnon,
                 fotoUrl, // Now it's a URL from API, not base64!
             });

@@ -463,7 +463,7 @@ export default function UnifiedAuthPage() {
                                     size="lg"
                                     disabled={!isPhoneValid || isLoading || cooldown > 0}
                                     className={cn(
-                                        'w-full h-13 text-base font-semibold rounded-2xl',
+                                        'w-full h-14 text-base font-semibold rounded-2xl',
                                         'bg-gradient-to-r from-green-500 to-green-600',
                                         'shadow-lg shadow-green-500/30',
                                         isPhoneValid && 'hover:shadow-xl hover:shadow-green-500/40'
@@ -531,7 +531,7 @@ export default function UnifiedAuthPage() {
 
                                 {/* OTP Input boxes */}
                                 <div
-                                    className="flex justify-center gap-3"
+                                    className="flex justify-center gap-2"
                                     onPaste={handleOtpPaste}
                                 >
                                     {[0, 1, 2, 3, 4, 5].map((index) => (
@@ -549,7 +549,7 @@ export default function UnifiedAuthPage() {
                                                 }
                                             }}
                                             className={cn(
-                                                'w-14 h-16 text-center text-2xl font-bold rounded-xl border-2 transition-all touch-manipulation',
+                                                'w-12 h-14 text-center text-2xl font-bold rounded-xl border-2 transition-all touch-manipulation',
                                                 'focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none',
                                                 code[index] ? 'border-primary bg-primary/5' : 'border-border bg-muted/50'
                                             )}

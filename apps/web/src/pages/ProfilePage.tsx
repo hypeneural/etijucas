@@ -334,7 +334,14 @@ export default function ProfilePage() {
                                         <div className="text-left">
                                             <p className="font-medium">Endereço</p>
                                             <p className="text-xs text-muted-foreground">
-                                                {(user.address as unknown as { localidade?: string; uf?: string }) ? `${(user.address as unknown as { localidade?: string }).localidade || ''}, ${(user.address as unknown as { uf?: string }).uf || ''}` : 'Não cadastrado'}
+                                                {(() => {
+                                                    const addr = user.address as unknown as { localidade?: string; uf?: string; bairro?: string } | null;
+                                                    if (!addr || (!addr.localidade && !addr.bairro)) {
+                                                        return 'Cadastre seu endereço';
+                                                    }
+                                                    const parts = [addr.bairro, addr.localidade, addr.uf].filter(Boolean);
+                                                    return parts.join(', ') || 'Cadastre seu endereço';
+                                                })()}
                                             </p>
                                         </div>
                                     </div>
