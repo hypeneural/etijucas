@@ -1,5 +1,5 @@
 // ======================================================
-// ForumPreview - Boca no Trombone on Home with animations
+// ForumPreview - Papo dos Observadores on Home with animations
 // ======================================================
 
 import React, { useMemo, useState, useCallback } from 'react';
@@ -28,14 +28,18 @@ import { useToast } from '@/hooks/use-toast';
 import { TabId } from '@/components/layout/BottomTabBar';
 import { formatTimeAgo } from '@/lib/formatTimeAgo';
 import { useOfflineTopics, useLikeOfflineTopic } from '@/hooks/useOfflineTopics';
+import { useCityName } from '@/hooks/useCityName';
 
 const categoryLabels: Record<TopicCategory, { label: string; color: string; bg: string }> = {
-  reclamacao: { label: 'Reclamação', color: 'text-red-700', bg: 'bg-red-100' },
-  sugestao: { label: 'Sugestão', color: 'text-blue-700', bg: 'bg-blue-100' },
-  duvida: { label: 'Dúvida', color: 'text-purple-700', bg: 'bg-purple-100' },
+  reclamacao: { label: 'Relato', color: 'text-red-700', bg: 'bg-red-100' },
+  sugestao: { label: 'Ideia', color: 'text-blue-700', bg: 'bg-blue-100' },
+  duvida: { label: 'Pergunta', color: 'text-purple-700', bg: 'bg-purple-100' },
   alerta: { label: 'Alerta', color: 'text-orange-700', bg: 'bg-orange-100' },
   elogio: { label: 'Elogio', color: 'text-green-700', bg: 'bg-green-100' },
   outros: { label: 'Outros', color: 'text-gray-700', bg: 'bg-gray-100' },
+  reclamacoes: { label: 'Relato', color: 'text-red-700', bg: 'bg-red-100' }, // Compat
+  comercio: { label: 'Comércio', color: 'text-emerald-700', bg: 'bg-emerald-100' },
+  eventos: { label: 'Eventos', color: 'text-pink-700', bg: 'bg-pink-100' },
 };
 
 type SortOption = 'curtidos' | 'recentes' | 'perto';
@@ -51,6 +55,7 @@ export default function ForumPreview({ onNavigate }: ForumPreviewProps) {
   const { toast } = useToast();
   const [sortBy, setSortBy] = useState<SortOption>('curtidos');
   const [isAnon, setIsAnon] = useState(false);
+  const { name } = useCityName();
 
   // Use real API hooks
   const { data: topics = [], isLoading } = useOfflineTopics();
@@ -174,7 +179,7 @@ export default function ForumPreview({ onNavigate }: ForumPreviewProps) {
             </motion.div>
             <div>
               <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-                Boca no Trombone
+                Papo dos Observadores
                 <motion.div
                   animate={{ scale: [1, 1.2, 1] }}
                   transition={{ duration: 1.5, repeat: Infinity }}
@@ -182,7 +187,7 @@ export default function ForumPreview({ onNavigate }: ForumPreviewProps) {
                   <Sparkles className="w-4 h-4 text-yellow-500" />
                 </motion.div>
               </h2>
-              <p className="text-xs text-muted-foreground">A voz da comunidade</p>
+              <p className="text-xs text-muted-foreground">Comunidade de {name}</p>
             </div>
           </div>
 
@@ -206,7 +211,7 @@ export default function ForumPreview({ onNavigate }: ForumPreviewProps) {
         >
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <Users className="w-3.5 h-3.5" />
-            <span><strong className="text-foreground">{totalTopics}</strong> tópicos</span>
+            <span><strong className="text-foreground">{totalTopics}</strong> observações</span>
           </div>
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <MessageCircle className="w-3.5 h-3.5" />
@@ -265,7 +270,7 @@ export default function ForumPreview({ onNavigate }: ForumPreviewProps) {
             className="bg-primary text-primary-foreground text-xs h-9 px-4 shadow-sm"
           >
             <Megaphone className="w-3.5 h-3.5 mr-1.5" />
-            Abrir tópico
+            Nova observação
           </Button>
         </motion.div>
       </motion.div>
@@ -383,7 +388,7 @@ export default function ForumPreview({ onNavigate }: ForumPreviewProps) {
         onClick={() => onNavigate('forum')}
         className="w-full mt-4 py-3 text-sm font-medium text-primary bg-primary/5 hover:bg-primary/10 rounded-xl transition-colors flex items-center justify-center gap-2"
       >
-        Ver mais tópicos
+        Ver mais observações
         <ChevronRight className="w-4 h-4" />
       </motion.button>
     </motion.div>

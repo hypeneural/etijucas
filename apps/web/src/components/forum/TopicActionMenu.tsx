@@ -10,6 +10,7 @@ import {
     Flag,
     EyeOff,
     Ban,
+    MapPin,
     X
 } from 'lucide-react';
 import {
@@ -23,22 +24,30 @@ import { useToast } from '@/hooks/use-toast';
 
 interface TopicActionMenuProps {
     topicId: string;
+    topicTitle?: string;
+    topicText?: string;
+    bairroId?: string;
     isAnonymous?: boolean;
     children: React.ReactNode;
     onSave?: () => void;
     onHide?: () => void;
     onReport?: () => void;
     onBlock?: () => void;
+    onConvertToObservation?: () => void;
 }
 
 export function TopicActionMenu({
     topicId,
+    topicTitle,
+    topicText,
+    bairroId,
     isAnonymous,
     children,
     onSave,
     onHide,
     onReport,
     onBlock,
+    onConvertToObservation,
 }: TopicActionMenuProps) {
     const { toast } = useToast();
     const [open, setOpen] = useState(false);
@@ -56,8 +65,8 @@ export function TopicActionMenu({
     const handleSave = () => {
         onSave?.();
         toast({
-            title: 'Tópico salvo',
-            description: 'Você pode encontrá-lo nos salvos.',
+            title: 'Observação salva',
+            description: 'Você pode encontrá-la nos salvos.',
         });
         setOpen(false);
     };
@@ -65,8 +74,8 @@ export function TopicActionMenu({
     const handleHide = () => {
         onHide?.();
         toast({
-            title: 'Tópico oculto',
-            description: 'Você não verá mais este tópico.',
+            title: 'Observação oculta',
+            description: 'Você não verá mais esta observação.',
         });
         setOpen(false);
     };
@@ -86,6 +95,11 @@ export function TopicActionMenu({
             title: 'Usuário bloqueado',
             description: 'Você não verá mais publicações desta pessoa.',
         });
+        setOpen(false);
+    };
+
+    const handleConvertToObservation = () => {
+        onConvertToObservation?.();
         setOpen(false);
     };
 
@@ -109,6 +123,14 @@ export function TopicActionMenu({
                 >
                     <Link2 className="w-4 h-4" />
                     <span>Copiar link</span>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                    onClick={handleConvertToObservation}
+                    className="flex items-center gap-3 py-3 cursor-pointer text-primary"
+                >
+                    <MapPin className="w-4 h-4" />
+                    <span>Virar Observação no Mapa</span>
                 </DropdownMenuItem>
 
                 <DropdownMenuSeparator />

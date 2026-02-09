@@ -1,5 +1,5 @@
 // ======================================================
-// ForumScreen - Boca no Trombone Feed
+// ForumScreen - Papo dos Observadores Feed
 // Complete redesign with modern timeline UI
 // ======================================================
 
@@ -21,14 +21,18 @@ import {
   ForumHeader,
   ForumSortSegmented,
   ForumFiltersChips,
+  ForumCategoryTabs,
+  getCategoriesForTab,
   TopicCard,
   TopicSkeletonList,
   ForumEmptyState,
   TopicComposerSheet,
   TopicActionMenu,
+  ForumDisclaimer,
   type SortOption,
   type ForumFilters,
   type NewTopicData,
+  type CategoryTab,
 } from '@/components/forum';
 
 interface ForumScreenProps {
@@ -53,6 +57,7 @@ export default function ForumScreen({ scrollRef }: ForumScreenProps) {
   const [sortBy, setSortBy] = useState<SortOption>('curtidos');
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<ForumFilters>({});
+  const [categoryTab, setCategoryTab] = useState<CategoryTab>('todos');
   const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -71,12 +76,12 @@ export default function ForumScreen({ scrollRef }: ForumScreenProps) {
         // Show login toast
         toast({
           title: 'Login necessário',
-          description: 'Para criar um tópico, você precisa estar logado.',
+          description: 'Para criar uma observação, você precisa estar logado.',
           action: (
             <Button
               variant="outline"
               size="sm"
-              onClick={() => window.location.href = '/login'}
+              onClick={() => navigate('/login')}
             >
               Entrar
             </Button>
@@ -120,11 +125,17 @@ export default function ForumScreen({ scrollRef }: ForumScreenProps) {
   // Reset display count when filters change
   useEffect(() => {
     setDisplayCount(10);
-  }, [searchQuery, filters, sortBy]);
+  }, [searchQuery, filters, sortBy, categoryTab]);
 
   // Filter and sort topics
   const filteredTopics = useMemo(() => {
     let result = [...topics];
+
+    // Category tab filter
+    const allowedCategories = getCategoriesForTab(categoryTab);
+    if (allowedCategories) {
+      result = result.filter((t) => allowedCategories.includes(t.categoria));
+    }
 
     // Search filter
     if (searchQuery.trim()) {
@@ -204,7 +215,7 @@ export default function ForumScreen({ scrollRef }: ForumScreenProps) {
     }
 
     return result;
-  }, [topics, searchQuery, filters, sortBy, selectedBairro]);
+  }, [topics, searchQuery, filters, sortBy, selectedBairro, categoryTab]);
 
   // Helper to prompt login for auth-required actions
   const requireAuth = useCallback((action: string): boolean => {
@@ -216,7 +227,7 @@ export default function ForumScreen({ scrollRef }: ForumScreenProps) {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => window.location.href = '/login'}
+            onClick={() => navigate('/login')}
           >
             Entrar
           </Button>
@@ -282,10 +293,10 @@ export default function ForumScreen({ scrollRef }: ForumScreenProps) {
       });
 
       toast({
-        title: 'Tópico publicado! 🎉',
+        title: 'Observação publicada! 🎉',
         description: isOnline
-          ? 'Seu tópico foi publicado na comunidade.'
-          : 'Seu tópico será publicado quando voltar online.',
+          ? 'Sua observação foi publicada na comunidade.'
+          : 'Sua observação será publicada quando voltar online.',
       });
     } catch (error) {
       toast({
@@ -333,9 +344,13 @@ export default function ForumScreen({ scrollRef }: ForumScreenProps) {
         onSearch={setSearchQuery}
         onSearchFocus={() => { }}
       />
+      <ForumDisclaimer />
 
       {/* Sort control */}
       <ForumSortSegmented value={sortBy} onChange={setSortBy} />
+
+      {/* Category tabs */}
+      <ForumCategoryTabs activeTab={categoryTab} onChange={setCategoryTab} />
 
       {/* Filters */}
       <ForumFiltersChips
@@ -352,7 +367,7 @@ export default function ForumScreen({ scrollRef }: ForumScreenProps) {
           className="mx-4 mb-3 px-4 py-2 bg-orange-100 dark:bg-orange-900/30 rounded-xl flex items-center gap-2 text-sm text-orange-700 dark:text-orange-400"
         >
           <span>📡</span>
-          <span>Você está offline. Mostrando tópicos salvos.</span>
+          <span>Você está offline. Mostrando observações salvas.</span>
         </motion.div>
       )}
 
@@ -393,7 +408,7 @@ export default function ForumScreen({ scrollRef }: ForumScreenProps) {
           <ForumEmptyState
             type={getEmptyStateType()}
             onAction={hasActiveFilters ? handleClearFilters : () => {
-              if (requireAuth('criar um tópico')) {
+              if (requireAuth('criar uma observação')) {
                 setIsComposerOpen(true);
               }
             }}
@@ -412,13 +427,13 @@ export default function ForumScreen({ scrollRef }: ForumScreenProps) {
         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
           <Button
             onClick={() => {
-              if (requireAuth('criar um tópico')) {
+              if (requireAuth('criar uma observação')) {
                 setIsComposerOpen(true);
               }
             }}
             size="lg"
             className="w-14 h-14 rounded-full shadow-lg bg-primary text-primary-foreground hover:bg-primary/90"
-            aria-label="Criar novo tópico"
+            aria-label="Criar nova observação"
           >
             <Plus className="w-6 h-6" />
           </Button>

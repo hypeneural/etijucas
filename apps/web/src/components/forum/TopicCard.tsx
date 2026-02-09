@@ -4,17 +4,17 @@
 
 import { memo } from 'react';
 import { motion } from 'framer-motion';
-import { Heart, MessageCircle, Share2, MoreHorizontal, MapPin, Image as ImageIcon } from 'lucide-react';
+import { Heart, MessageCircle, Share2, MoreHorizontal, MapPin, Eye, ThumbsUp, MessageSquare } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Topic, TopicCategory } from '@/types';
 import { formatTimeAgo, formatDateAccessible } from '@/lib/formatTimeAgo';
-import { useBairroName } from '@/hooks';
+import { useBairroName, useCityName } from '@/hooks';
 
 const categoryConfig: Record<TopicCategory, { label: string; color: string }> = {
-    reclamacao: { label: 'Reclamação', color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
-    reclamacoes: { label: 'Reclamação', color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
-    sugestao: { label: 'Sugestão', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
-    duvida: { label: 'Dúvida', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' },
+    reclamacao: { label: 'Relato', color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
+    reclamacoes: { label: 'Relato', color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
+    sugestao: { label: 'Ideia', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
+    duvida: { label: 'Pergunta', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' },
     alerta: { label: 'Alerta', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' },
     elogio: { label: 'Elogio', color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
     comercio: { label: 'Comércio', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
@@ -29,6 +29,8 @@ interface TopicCardProps {
     onComment?: () => void;
     onShare?: () => void;
     onMore?: () => void;
+    onConfirm?: () => void;
+    onSupport?: () => void;
 }
 
 export const TopicCard = memo(function TopicCard({
@@ -38,9 +40,12 @@ export const TopicCard = memo(function TopicCard({
     onComment,
     onShare,
     onMore,
+    onConfirm,
+    onSupport,
 }: TopicCardProps) {
     const category = categoryConfig[topic.categoria] || categoryConfig.outros;
     const bairroName = useBairroName(topic.bairroId);
+    const { name: cityName } = useCityName();
     const timeAgo = formatTimeAgo(topic.createdAt);
     const accessibleDate = formatDateAccessible(topic.createdAt);
 
@@ -60,12 +65,37 @@ export const TopicCard = memo(function TopicCard({
 
     const handleShare = (e: React.MouseEvent) => {
         e.stopPropagation();
+        // Build WhatsApp-ready share template
+        const shareUrl = `${window.location.origin}/topico/${topic.id}`;
+        const shareText = `👀 Observadores de ${cityName}: ${topic.titulo}\n${shareUrl}\n(Comunidade independente, não oficial)`;
+
+        if (navigator.share) {
+            navigator.share({
+                title: topic.titulo,
+                text: shareText,
+                url: shareUrl,
+            }).catch(() => { });
+        } else {
+            navigator.clipboard.writeText(shareText);
+        }
         onShare?.();
     };
 
     const handleMore = (e: React.MouseEvent) => {
         e.stopPropagation();
         onMore?.();
+    };
+
+    const handleConfirm = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (navigator.vibrate) navigator.vibrate(10);
+        onConfirm?.();
+    };
+
+    const handleSupport = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (navigator.vibrate) navigator.vibrate(10);
+        onSupport?.();
     };
 
     return (
@@ -125,6 +155,37 @@ export const TopicCard = memo(function TopicCard({
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                 </div>
             )}
+
+            {/* Micro-actions Row (Confirmar / Apoiar / Tenho info) */}
+            <div className="flex items-center gap-2 mb-3 overflow-x-auto scrollbar-hide -mx-1 px-1">
+                <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleConfirm}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 hover:bg-muted text-xs font-medium text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
+                    aria-label="Confirmar que vi também"
+                >
+                    <Eye className="w-3.5 h-3.5" />
+                    Eu vi também
+                </motion.button>
+                <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleSupport}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 hover:bg-muted text-xs font-medium text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
+                    aria-label="Apoiar esta ideia"
+                >
+                    <ThumbsUp className="w-3.5 h-3.5" />
+                    Apoiar
+                </motion.button>
+                <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleComment}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 hover:bg-muted text-xs font-medium text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
+                    aria-label="Tenho informações"
+                >
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    Tenho info
+                </motion.button>
+            </div>
 
             {/* Actions Bar */}
             <div className="flex items-center justify-between pt-2 border-t border-border/50">

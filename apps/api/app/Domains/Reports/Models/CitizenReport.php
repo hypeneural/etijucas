@@ -259,7 +259,7 @@ class CitizenReport extends Model implements HasMedia
             ReportStatusHistory::create([
                 'report_id' => $report->id,
                 'status' => $report->status->value,
-                'note' => 'Denúncia recebida no sistema',
+                'note' => 'Observação recebida no sistema',
                 'created_by' => null,
             ]);
         });

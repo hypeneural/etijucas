@@ -35,6 +35,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { LocationMap } from '@/components/report/LocationMap';
 import { CategoryIcon } from '@/components/report/CategoryIcon';
+import { ReportDiscussionTab } from '@/components/report/ReportDiscussionTab';
 import { BottomTabBar, TabId } from '@/components/layout/BottomTabBar';
 import { useTenantStore } from '@/store/useTenantStore';
 
@@ -296,6 +297,7 @@ export default function ReportDetailPage() {
     const tenantCacheScope = useTenantStore((state) => state.tenantKey ?? state.city?.slug ?? 'global');
     const [galleryOpen, setGalleryOpen] = useState(false);
     const [galleryIndex, setGalleryIndex] = useState(0);
+    const [activeTab, setActiveTab] = useState<'detalhes' | 'discussao'>('detalhes');
 
     // Fetch report details
     const { data: report, isLoading, error } = useQuery({
@@ -413,145 +415,192 @@ export default function ReportDetailPage() {
                     </div>
                 </div>
 
-                {/* Body Content */}
-                <div className="p-4 space-y-4">
-                    {/* Status Badge */}
-                    <div className={cn(
-                        "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium",
-                        statusInfo.bgColor,
-                        statusInfo.color
-                    )}>
-                        <StatusIcon className="w-4 h-4" />
-                        {statusInfo.label}
-                    </div>
-
-                    {/* Image Gallery */}
-                    <ImageGallery
-                        images={report.media || []}
-                        onImageClick={handleImageClick}
-                    />
-
-                    {/* Title & Description */}
-                    <Card className="p-4">
-                        <h1 className="text-xl font-bold mb-2">{report.title}</h1>
-                        <p className="text-muted-foreground">{report.description}</p>
-                    </Card>
-
-                    {/* Category & Date */}
-                    <div className="flex flex-wrap gap-2">
-                        {report.category && (
-                            <Badge
-                                variant="secondary"
-                                className="gap-1.5 pl-1.5 pr-2.5"
-                                style={{
-                                    backgroundColor: `${report.category.color}20`,
-                                    color: report.category.color,
-                                }}
-                            >
-                                <CategoryIcon
-                                    icon={report.category.icon}
-                                    color={report.category.color}
-                                    size="sm"
-                                />
-                                {report.category.name}
-                            </Badge>
+                {/* Tab Navigation */}
+                <div className="flex border-b bg-white dark:bg-slate-900 sticky top-14 z-20">
+                    <button
+                        onClick={() => setActiveTab('detalhes')}
+                        className={cn(
+                            "flex-1 py-3 text-sm font-medium transition-colors relative",
+                            activeTab === 'detalhes' ? 'text-primary' : 'text-muted-foreground'
                         )}
-                        <Badge variant="outline" className="gap-1.5">
-                            <Calendar className="w-3 h-3" />
-                            {formatDistanceToNow(new Date(report.createdAt), {
-                                addSuffix: true,
-                                locale: ptBR
-                            })}
-                        </Badge>
-                    </div>
-
-                    {/* Location */}
-                    {report.latitude && report.longitude && (
-                        <Card className="overflow-hidden">
-                            <div className="p-4 border-b">
-                                <div className="flex items-start gap-3">
-                                    <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
-                                        <MapPin className="w-5 h-5" />
-                                    </div>
-                                    <div className="min-w-0">
-                                        <p className="font-medium">Localização</p>
-                                        <p className="text-sm text-muted-foreground">
-                                            {report.addressText || 'Endereço aproximado'}
-                                        </p>
-                                        {report.bairro?.nome && (
-                                            <p className="text-xs text-muted-foreground mt-1">
-                                                {report.bairro.nome}
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Real Leaflet Map (Read Only) */}
-                            <div className="relative z-0">
-                                <LocationMap
-                                    latitude={report.latitude}
-                                    longitude={report.longitude}
-                                    onLocationChange={() => { }} // No-op
-                                    className="h-48 w-full border-none rounded-none"
-                                    readOnly={true}
-                                />
-                            </div>
-
-                            {/* Google Maps Button */}
-                            <div className="p-3 bg-muted/30">
-                                <Button
-                                    variant="outline"
-                                    className="w-full gap-2"
-                                    asChild
-                                >
-                                    <a
-                                        href={`https://www.google.com/maps?q=${report.latitude},${report.longitude}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                    >
-                                        <MapPin className="w-4 h-4 text-red-500" />
-                                        Abrir no Google Maps
-                                        <ExternalLink className="w-3 h-3 ml-auto opacity-50" />
-                                    </a>
-                                </Button>
-                            </div>
-                        </Card>
-                    )}
-
-                    {/* Status Timeline */}
-                    {report.history && report.history.length > 0 && (
-                        <Card className="p-4">
-                            <h2 className="font-semibold mb-4 flex items-center gap-2">
-                                <Clock className="w-4 h-4 text-primary" />
-                                Histórico
-                            </h2>
-                            <StatusTimeline history={report.history} />
-                        </Card>
-                    )}
-
-                    {/* Resolved date */}
-                    {report.resolvedAt && (
-                        <Card className="p-4 bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900">
-                            <div className="flex items-center gap-3">
-                                <CheckCircle2 className="w-5 h-5 text-green-600" />
-                                <div>
-                                    <p className="font-medium text-green-700 dark:text-green-400">
-                                        Melhoria concluída
-                                    </p>
-                                    <p className="text-sm text-green-600/80 dark:text-green-400/80">
-                                        {format(new Date(report.resolvedAt), "d 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                                    </p>
-                                </div>
-                            </div>
-                        </Card>
-                    )}
-
-                    {/* Disclaimer */}
-                    <div className="text-[10px] text-center text-muted-foreground/60 px-4 leading-tight">
-                        Plataforma comunitária e independente. Não é canal oficial da prefeitura.
-                    </div>
+                    >
+                        Detalhes
+                        {activeTab === 'detalhes' && (
+                            <motion.div
+                                layoutId="reportActiveTab"
+                                className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
+                            />
+                        )}
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('discussao')}
+                        className={cn(
+                            "flex-1 py-3 text-sm font-medium transition-colors relative",
+                            activeTab === 'discussao' ? 'text-primary' : 'text-muted-foreground'
+                        )}
+                    >
+                        Discussão
+                        {activeTab === 'discussao' && (
+                            <motion.div
+                                layoutId="reportActiveTab"
+                                className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
+                            />
+                        )}
+                    </button>
                 </div>
+
+                {/* Body Content */}
+                {activeTab === 'detalhes' ? (
+                    <div className="p-4 space-y-4">
+                        {/* Status Badge */}
+                        <div className={cn(
+                            "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium",
+                            statusInfo.bgColor,
+                            statusInfo.color
+                        )}>
+                            <StatusIcon className="w-4 h-4" />
+                            {statusInfo.label}
+                        </div>
+
+                        {/* Image Gallery */}
+                        <ImageGallery
+                            images={report.media || []}
+                            onImageClick={handleImageClick}
+                        />
+
+                        {/* Title & Description */}
+                        <Card className="p-4">
+                            <h1 className="text-xl font-bold mb-2">{report.title}</h1>
+                            <p className="text-muted-foreground">{report.description}</p>
+                        </Card>
+
+                        {/* Category & Date */}
+                        <div className="flex flex-wrap gap-2">
+                            {report.category && (
+                                <Badge
+                                    variant="secondary"
+                                    className="gap-1.5 pl-1.5 pr-2.5"
+                                    style={{
+                                        backgroundColor: `${report.category.color}20`,
+                                        color: report.category.color,
+                                    }}
+                                >
+                                    <CategoryIcon
+                                        icon={report.category.icon}
+                                        color={report.category.color}
+                                        size="sm"
+                                    />
+                                    {report.category.name}
+                                </Badge>
+                            )}
+                            <Badge variant="outline" className="gap-1.5">
+                                <Calendar className="w-3 h-3" />
+                                {formatDistanceToNow(new Date(report.createdAt), {
+                                    addSuffix: true,
+                                    locale: ptBR
+                                })}
+                            </Badge>
+                        </div>
+
+                        {/* Location */}
+                        {report.latitude && report.longitude && (
+                            <Card className="overflow-hidden">
+                                <div className="p-4 border-b">
+                                    <div className="flex items-start gap-3">
+                                        <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
+                                            <MapPin className="w-5 h-5" />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="font-medium">Localização</p>
+                                            <p className="text-sm text-muted-foreground">
+                                                {report.addressText || 'Endereço aproximado'}
+                                            </p>
+                                            {report.bairro?.nome && (
+                                                <p className="text-xs text-muted-foreground mt-1">
+                                                    {report.bairro.nome}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Real Leaflet Map (Read Only) */}
+                                <div className="relative z-0">
+                                    <LocationMap
+                                        latitude={report.latitude}
+                                        longitude={report.longitude}
+                                        onLocationChange={() => { }} // No-op
+                                        className="h-48 w-full border-none rounded-none"
+                                        readOnly={true}
+                                    />
+                                </div>
+
+                                {/* Google Maps Button */}
+                                <div className="p-3 bg-muted/30">
+                                    <Button
+                                        variant="outline"
+                                        className="w-full gap-2"
+                                        asChild
+                                    >
+                                        <a
+                                            href={`https://www.google.com/maps?q=${report.latitude},${report.longitude}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            <MapPin className="w-4 h-4 text-red-500" />
+                                            Abrir no Google Maps
+                                            <ExternalLink className="w-3 h-3 ml-auto opacity-50" />
+                                        </a>
+                                    </Button>
+                                </div>
+                            </Card>
+                        )}
+
+                        {/* Status Timeline */}
+                        {report.history && report.history.length > 0 && (
+                            <Card className="p-4">
+                                <h2 className="font-semibold mb-4 flex items-center gap-2">
+                                    <Clock className="w-4 h-4 text-primary" />
+                                    Histórico
+                                </h2>
+                                <StatusTimeline history={report.history} />
+                            </Card>
+                        )}
+
+                        {/* Resolved date */}
+                        {report.resolvedAt && (
+                            <Card className="p-4 bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-900">
+                                <div className="flex items-center gap-3">
+                                    <CheckCircle2 className="w-5 h-5 text-green-600" />
+                                    <div>
+                                        <p className="font-medium text-green-700 dark:text-green-400">
+                                            Melhoria concluída
+                                        </p>
+                                        <p className="text-sm text-green-600/80 dark:text-green-400/80">
+                                            {format(new Date(report.resolvedAt), "d 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                                        </p>
+                                    </div>
+                                </div>
+                            </Card>
+                        )}
+
+                        {/* Disclaimer */}
+                        <div className="text-[10px] text-center text-muted-foreground/60 px-4 leading-tight">
+                            Plataforma comunitária e independente. Não é canal oficial da prefeitura.
+                        </div>
+                    </div>
+                ) : (
+                    <div className="p-4">
+                        <ReportDiscussionTab
+                            reportId={id || ''}
+                            comments={[]}
+                            onAddComment={async (text, type) => {
+                                // TODO: Implement API call
+                                console.log('Add comment:', { text, type });
+                            }}
+                        />
+                    </div>
+                )}
             </div>
 
             {/* Bottom Tab Bar (Fixed) */}

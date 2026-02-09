@@ -5,6 +5,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Search, X } from 'lucide-react';
+import { useCityName } from '@/hooks/useCityName';
 import { Input } from '@/components/ui/input';
 
 interface ForumHeaderProps {
@@ -15,6 +16,7 @@ interface ForumHeaderProps {
 export function ForumHeader({ onSearch, onSearchFocus }: ForumHeaderProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [isFocused, setIsFocused] = useState(false);
+    const { name } = useCityName();
 
     const handleSearch = (value: string) => {
         setSearchQuery(value);
@@ -41,10 +43,10 @@ export function ForumHeader({ onSearch, onSearchFocus }: ForumHeaderProps) {
                 transition={{ duration: 0.3 }}
             >
                 <h1 className="text-2xl font-bold text-foreground tracking-tight">
-                    Boca no Trombone
+                    Papo dos Observadores
                 </h1>
                 <p className="text-sm text-muted-foreground mt-0.5">
-                    A voz da comunidade
+                    Comunidade de {name}
                 </p>
             </motion.div>
 
@@ -68,8 +70,8 @@ export function ForumHeader({ onSearch, onSearchFocus }: ForumHeaderProps) {
                         onBlur={() => setIsFocused(false)}
                         placeholder="Buscar assunto, rua, bairro…"
                         className={`pl-11 pr-10 h-12 rounded-2xl border-2 text-base transition-all ${isFocused
-                                ? 'border-primary bg-background shadow-lg'
-                                : 'border-transparent bg-muted/50'
+                            ? 'border-primary bg-background shadow-lg'
+                            : 'border-transparent bg-muted/50'
                             }`}
                     />
                     {searchQuery && (

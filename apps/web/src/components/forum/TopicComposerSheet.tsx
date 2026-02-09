@@ -41,9 +41,9 @@ import { useUploadImage } from '@/hooks/useUploadImage';
 import { toast } from 'sonner';
 
 const categoryOptions: { value: TopicCategory; label: string; icon: React.ReactNode; color: string }[] = [
-    { value: 'reclamacao', label: 'Reclamação', icon: <AlertTriangle className="w-4 h-4" />, color: 'bg-red-100 text-red-700 border-red-200' },
-    { value: 'sugestao', label: 'Sugestão', icon: <Lightbulb className="w-4 h-4" />, color: 'bg-blue-100 text-blue-700 border-blue-200' },
-    { value: 'duvida', label: 'Dúvida', icon: <HelpCircle className="w-4 h-4" />, color: 'bg-purple-100 text-purple-700 border-purple-200' },
+    { value: 'reclamacao', label: 'Relato', icon: <AlertTriangle className="w-4 h-4" />, color: 'bg-red-100 text-red-700 border-red-200' },
+    { value: 'sugestao', label: 'Ideia', icon: <Lightbulb className="w-4 h-4" />, color: 'bg-blue-100 text-blue-700 border-blue-200' },
+    { value: 'duvida', label: 'Pergunta', icon: <HelpCircle className="w-4 h-4" />, color: 'bg-purple-100 text-purple-700 border-purple-200' },
     { value: 'alerta', label: 'Alerta', icon: <Bell className="w-4 h-4" />, color: 'bg-orange-100 text-orange-700 border-orange-200' },
     { value: 'elogio', label: 'Elogio', icon: <ThumbsUp className="w-4 h-4" />, color: 'bg-green-100 text-green-700 border-green-200' },
     { value: 'comercio', label: 'Comércio', icon: <MessageSquare className="w-4 h-4" />, color: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
@@ -96,7 +96,7 @@ export function TopicComposerSheet({
         const newErrors: Record<string, string> = {};
 
         if (!categoria) {
-            newErrors.categoria = 'Escolha um tipo: Reclamação, Sugestão…';
+            newErrors.categoria = 'Escolha um tipo: Relato, Ideia, Pergunta…';
         }
         if (!titulo.trim()) {
             newErrors.titulo = 'Dê um título curto pro pessoal entender rápido';
@@ -206,7 +206,7 @@ export function TopicComposerSheet({
                 {/* Header */}
                 <SheetHeader className="px-4 py-4 border-b flex-shrink-0">
                     <div className="flex items-center justify-between">
-                        <SheetTitle className="text-lg font-semibold">Novo tópico</SheetTitle>
+                        <SheetTitle className="text-lg font-semibold">Nova Observação</SheetTitle>
                         <button
                             onClick={() => onOpenChange(false)}
                             className="p-2 -mr-2 rounded-full hover:bg-muted transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"

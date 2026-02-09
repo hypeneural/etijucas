@@ -17,9 +17,9 @@ interface ForumEmptyStateProps {
 const stateConfig = {
     empty: {
         icon: MessageSquarePlus,
-        title: 'Nenhum tópico ainda',
+        title: 'Nenhuma observação ainda',
         description: 'Seja o primeiro a abrir um assunto na comunidade!',
-        actionLabel: 'Criar tópico',
+        actionLabel: 'Criar observação',
         iconColor: 'text-primary',
     },
     'no-results': {
@@ -32,14 +32,14 @@ const stateConfig = {
     offline: {
         icon: WifiOff,
         title: 'Você está offline',
-        description: 'Mostrando tópicos salvos. Conecte-se para ver novidades.',
+        description: 'Mostrando observações salvas. Conecte-se para ver novidades.',
         actionLabel: 'Tentar novamente',
         iconColor: 'text-orange-500',
     },
     error: {
         icon: AlertCircle,
         title: 'Algo deu errado',
-        description: 'Não foi possível carregar os tópicos. Tente novamente.',
+        description: 'Não foi possível carregar as observações. Tente novamente.',
         actionLabel: 'Tentar novamente',
         iconColor: 'text-red-500',
     },

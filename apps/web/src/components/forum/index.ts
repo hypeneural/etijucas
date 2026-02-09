@@ -13,3 +13,5 @@ export { TopicActionMenu } from './TopicActionMenu';
 export { CommentComposer } from './CommentComposer';
 export { CommentList } from './CommentList';
 export { ImageGallery } from './ImageGallery';
+export { ForumDisclaimer } from './ForumDisclaimer';
+export { ForumCategoryTabs, getCategoriesForTab, type CategoryTab } from './ForumCategoryTabs';

@@ -155,7 +155,7 @@ class ReportController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Denúncia enviada com sucesso!',
+            'message' => 'Observação enviada com sucesso!',
             'data' => new ReportResource($report),
         ], 201);
     }
@@ -230,7 +230,7 @@ class ReportController extends Controller
         if ($report->user_id !== $user->id) {
             return response()->json([
                 'success' => false,
-                'message' => 'Você não pode adicionar fotos a esta denúncia.',
+                'message' => 'Você não pode adicionar fotos a esta observação.',
             ], 403);
         }
 
@@ -239,7 +239,7 @@ class ReportController extends Controller
         if ($currentCount >= 3) {
             return response()->json([
                 'success' => false,
-                'message' => 'Esta denúncia já possui o máximo de 3 fotos.',
+                'message' => 'Esta observação já possui o máximo de 3 fotos.',
             ], 422);
         }
 
@@ -287,7 +287,7 @@ class ReportController extends Controller
         if ($report->user_id !== $user->id && !$user->hasAnyRole(['admin', 'moderator'])) {
             return response()->json([
                 'success' => false,
-                'message' => 'Você não pode remover fotos desta denúncia.',
+                'message' => 'Você não pode remover fotos desta observação.',
             ], 403);
         }
 
@@ -325,7 +325,7 @@ class ReportController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'A denuncia foi atualizada por outro moderador. Recarregue para ver as mudancas.',
+                'message' => 'A observação foi atualizada por outro moderador. Recarregue para ver as mudanças.',
                 'code' => 'REPORT_STATUS_CONFLICT',
                 'currentVersion' => $currentVersion->toIso8601String(),
                 'data' => new ReportResource($report),
