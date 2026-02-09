@@ -17,7 +17,6 @@ import { NearYouBento } from '@/components/home/NearYouBento';
 import { HojeShareCard } from '@/components/home/HojeShareCard';
 import { MetaShareCard } from '@/components/home/MetaShareCard';
 import FiscalizaCarousel from '@/components/home/FiscalizaCarousel';
-import { getFiscalizaCarousel } from '@/types/home.types';
 
 // Hooks & Store
 import { useHomeData } from '@/hooks/useHomeData';
