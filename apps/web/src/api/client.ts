@@ -100,7 +100,7 @@ function getAdaptiveTimeout(defaultTimeout: number): number {
     return defaultTimeout;
 }
 
-function getTenantHeaders(): Record<string, string> {
+export function getTenantHeaders(): Record<string, string> {
     const citySlug = resolveCitySlugForRequest();
 
     if (!citySlug) {

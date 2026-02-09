@@ -1,10 +1,7 @@
-// ======================================================
-// User Service - Profile management
-// ======================================================
-
 import { apiClient } from '@/api/client';
 import { API_CONFIG, ENDPOINTS } from '@/api/config';
 import { tokenService } from '@/services/auth.service';
+import { getTenantHeaders } from '@/api/client';
 import {
     User,
     UpdateUserDTO,
@@ -41,12 +38,14 @@ export const userService = {
 
         const token = tokenService.getToken();
         const url = `${API_CONFIG.baseURL}${ENDPOINTS.users.avatar}`;
+        const tenantHeaders = getTenantHeaders();
 
         const response = await fetch(url, {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
                 ...(token && { 'Authorization': `Bearer ${token}` }),
+                ...tenantHeaders,
             },
             body: formData,
         });

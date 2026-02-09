@@ -398,12 +398,13 @@ export default function MoreScreen({ scrollRef }: MoreScreenProps) {
                   navigate('/denuncias');
                 } else if (item.id === 'vereadores') {
                   navigate('/vereadores');
-                } else if (item.id === 'login') {
-                  navigate('/auth');
-                  // Clear city state and localStorage, then navigate to trigger CityGate
+                } else if (item.id === 'trocar-cidade') {
+                  // Clear tenant and navigate to city selection
                   useTenantStore.getState().clear();
                   localStorage.removeItem('etijucas_last_city');
                   window.location.href = '/';
+                } else if (item.id === 'login') {
+                  navigate('/auth');
                 } else {
                   setView(item.id as ScreenView);
                 }
