@@ -31,9 +31,9 @@ import type { CitizenReport } from '@/types/report';
 
 const statusConfig: Record<string, { icon: React.ComponentType<{ className?: string }>, color: string, label: string }> = {
     recebido: { icon: Clock, color: 'text-blue-600 bg-blue-100', label: 'Recebido' },
-    em_analise: { icon: AlertCircle, color: 'text-amber-600 bg-amber-100', label: 'Em Análise' },
-    resolvido: { icon: CheckCircle2, color: 'text-green-600 bg-green-100', label: 'Resolvido' },
-    rejeitado: { icon: XCircle, color: 'text-red-600 bg-red-100', label: 'Rejeitado' },
+    em_analise: { icon: AlertCircle, color: 'text-amber-600 bg-amber-100', label: 'Em verificação' },
+    resolvido: { icon: CheckCircle2, color: 'text-green-600 bg-green-100', label: 'Melhoria concluída' },
+    rejeitado: { icon: XCircle, color: 'text-red-600 bg-red-100', label: 'Arquivado' },
 };
 
 function ReportCard({ report }: { report: CitizenReport }) {
@@ -181,7 +181,7 @@ export default function MyReportsPage() {
                     >
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
-                    <h1 className="font-semibold text-lg">Minhas Denúncias</h1>
+                    <h1 className="font-semibold text-lg">Minhas observações</h1>
                     <div className="flex items-center gap-1">
                         <Button
                             variant="ghost"
@@ -260,7 +260,7 @@ export default function MyReportsPage() {
                 {isLoading && (
                     <div className="flex flex-col items-center justify-center py-20">
                         <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-                        <p className="text-muted-foreground">Carregando denúncias...</p>
+                        <p className="text-muted-foreground">Carregando observações...</p>
                     </div>
                 )}
 
@@ -270,7 +270,7 @@ export default function MyReportsPage() {
                         <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
                         <h3 className="font-semibold mb-2">Erro ao carregar</h3>
                         <p className="text-sm text-muted-foreground mb-4">
-                            Não foi possível carregar suas denúncias.
+                            Não foi possível carregar suas observações.
                         </p>
                         <Button onClick={() => refetch()}>
                             <RefreshCw className="h-4 w-4 mr-2" />
@@ -289,13 +289,13 @@ export default function MyReportsPage() {
                         <div className="p-6 rounded-full bg-muted/50 inline-block mb-6">
                             <FileText className="h-12 w-12 text-muted-foreground" />
                         </div>
-                        <h3 className="font-semibold text-lg mb-2">Nenhuma denúncia</h3>
+                        <h3 className="font-semibold text-lg mb-2">Nenhuma observação</h3>
                         <p className="text-muted-foreground mb-6">
-                            Você ainda não enviou nenhuma denúncia.
+                            Você ainda não registrou nenhuma observação.
                         </p>
                         <Button onClick={() => navigate('/report')}>
                             <Plus className="h-4 w-4 mr-2" />
-                            Fazer primeira denúncia
+                            Registrar primeira observação
                         </Button>
                     </motion.div>
                 )}
@@ -323,7 +323,7 @@ export default function MyReportsPage() {
                     <div className="text-center py-12">
                         <Filter className="h-8 w-8 text-muted-foreground mx-auto mb-4" />
                         <p className="text-muted-foreground">
-                            Nenhuma denúncia com esse status.
+                            Nenhuma observação com esse status.
                         </p>
                         <Button
                             variant="ghost"

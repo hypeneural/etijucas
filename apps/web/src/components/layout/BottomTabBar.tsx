@@ -14,7 +14,7 @@ interface Tab {
 
 const tabs: Tab[] = [
   { id: 'home', label: 'Inicio', icon: Home },
-  { id: 'reportar', label: 'Fiscaliza', icon: AlertTriangle },
+  { id: 'reportar', label: 'Observa', icon: AlertTriangle },
   { id: 'forum', label: 'Trombone', icon: Megaphone },
   { id: 'agenda', label: 'Agenda', icon: Calendar },
   { id: 'mais', label: 'Mais', icon: MoreHorizontal },
@@ -81,15 +81,13 @@ export function BottomTabBar({ activeTab, onTabChange }: BottomTabBarProps) {
                   transition={{ type: 'spring', stiffness: 400, damping: 17 }}
                 >
                   <Icon
-                    className={`w-5 h-5 transition-colors duration-200 ${
-                      isActive ? 'text-primary' : 'text-muted-foreground'
-                    }`}
+                    className={`w-5 h-5 transition-colors duration-200 ${isActive ? 'text-primary' : 'text-muted-foreground'
+                      }`}
                   />
                 </motion.div>
                 <span
-                  className={`text-[10px] font-medium mt-0.5 transition-colors duration-200 ${
-                    isActive ? 'text-primary' : 'text-muted-foreground'
-                  }`}
+                  className={`text-[10px] font-medium mt-0.5 transition-colors duration-200 ${isActive ? 'text-primary' : 'text-muted-foreground'
+                    }`}
                 >
                   {tab.label}
                 </span>

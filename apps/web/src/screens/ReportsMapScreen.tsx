@@ -113,9 +113,9 @@ interface ReportCategory {
 
 const statusConfig: Record<string, { label: string; color: string; bgClass: string }> = {
     recebido: { label: 'Recebido', color: '#3b82f6', bgClass: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' },
-    em_analise: { label: 'Em Análise', color: '#f59e0b', bgClass: 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300' },
-    resolvido: { label: 'Resolvido', color: '#10b981', bgClass: 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300' },
-    rejeitado: { label: 'Rejeitado', color: '#ef4444', bgClass: 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300' },
+    em_analise: { label: 'Em verificação', color: '#f59e0b', bgClass: 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300' },
+    resolvido: { label: 'Melhoria concluída', color: '#10b981', bgClass: 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300' },
+    rejeitado: { label: 'Arquivado', color: '#ef4444', bgClass: 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300' },
 };
 
 // ============================================
@@ -254,7 +254,7 @@ function ReportPreviewContent({
     onShare
 }: {
     report: MapReport;
-    statusConfig: typeof statusConfig;
+    statusConfig: Record<string, { label: string; color: string; bgClass: string }>;
     onViewDetails: () => void;
     onRoutes: () => void;
     onShare: () => void;
@@ -346,7 +346,7 @@ function ReportPreviewContent({
                         />
                     </div>
                     <p className="text-sm text-muted-foreground italic">
-                        Esta denúncia não possui fotos anexadas.
+                        Sem fotos anexadas.
                     </p>
                 </div>
             )}
@@ -401,18 +401,18 @@ function ReportPreviewContent({
                     size="lg"
                 >
                     <FileText className="w-5 h-5 mr-2" />
-                    Ver Detathes Completos
+                    Ver detalhes completos
                     <ChevronRight className="w-5 h-5 ml-auto opacity-50" />
                 </Button>
 
                 <div className="grid grid-cols-2 gap-3">
                     <Button variant="outline" onClick={onRoutes} className="h-11 border-muted-foreground/20 hover:bg-muted/50">
                         <Navigation className="w-4 h-4 mr-2 text-blue-500" />
-                        Rotas
+                        Como chegar
                     </Button>
                     <Button variant="outline" onClick={onShare} className="h-11 border-muted-foreground/20 hover:bg-muted/50">
                         <Share2 className="w-4 h-4 mr-2 text-green-600" />
-                        Compartilhar
+                        Compartilhar com Observadores
                     </Button>
                 </div>
             </div>
@@ -602,7 +602,7 @@ export default function ReportsMapScreen() {
                             </motion.div>
                             <div>
                                 <h1 className="font-bold text-lg leading-tight flex items-center gap-1.5">
-                                    Mapa
+                                    Mapa das observações
                                     <Sparkles className="w-4 h-4 text-amber-500" />
                                 </h1>
                                 <p className="text-xs text-muted-foreground">
@@ -613,7 +613,7 @@ export default function ReportsMapScreen() {
                                         </span>
                                     ) : (
                                         <span>
-                                            <strong>{reports.length}</strong> de <strong>{totalReports}</strong> denúncias
+                                            <strong>{reports.length}</strong> de <strong>{totalReports}</strong> observações
                                         </span>
                                     )}
                                 </p>
@@ -772,7 +772,10 @@ export default function ReportsMapScreen() {
             </div>
 
             {/* Bottom Tab Bar */}
-            <BottomTabBar />
+            <BottomTabBar
+                activeTab="reportar"
+                onTabChange={(tab) => navigate(`/?tab=${tab}`)}
+            />
 
             {/* Advanced Filter Sheet */}
             <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>

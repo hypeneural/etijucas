@@ -1,7 +1,7 @@
 /**
  * FiscalizaVivo - Live Fiscaliza Card
  * 
- * Shows dynamic KPIs and rotating phrases about citizen reports.
+ * Shows dynamic KPIs and rotating phrases about community observations.
  * Designed to make the feature feel "alive" and encourage participation.
  */
 
@@ -32,10 +32,10 @@ interface FiscalizaVivoProps {
 
 // Default phrases if API doesn't provide
 const defaultPhrases = [
-    '🔧 Sua denúncia faz a diferença!',
-    '📍 Viu algo? Registre agora.',
-    '🏆 Cidadãos resolvendo juntos.',
-    '⚡ Tempo médio de resposta: 48h',
+    '👀 Viu algo na rua? Registre uma observação.',
+    '📍 Um relato com foto ajuda MUITO os Observadores.',
+    '✅ Acompanhe e compartilhe para acelerar melhorias.',
+    '🏆 Observadores de {cidade} fazem a diferença juntos.',
 ];
 
 // Skeleton loading state
@@ -171,8 +171,8 @@ export function FiscalizaVivo({ data, isLoading, hasError, className }: Fiscaliz
                         <AlertTriangle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
                     </div>
                     <div>
-                        <h3 className="text-sm font-semibold text-foreground">Fiscaliza {cityName}</h3>
-                        <p className="text-xs text-muted-foreground">Denúncias dos cidadãos</p>
+                        <h3 className="text-sm font-semibold text-foreground">Observa {cityName}</h3>
+                        <p className="text-xs text-muted-foreground">Observações da comunidade</p>
                     </div>
                 </div>
                 <ChevronRight className="h-5 w-5 text-muted-foreground" />
@@ -183,7 +183,7 @@ export function FiscalizaVivo({ data, isLoading, hasError, className }: Fiscaliz
                 {/* Total */}
                 <div className="flex flex-col items-center p-2 rounded-xl bg-white/50 dark:bg-white/5">
                     <span className="text-lg font-bold text-foreground">{total}</span>
-                    <span className="text-[10px] text-muted-foreground">Total</span>
+                    <span className="text-[10px] text-muted-foreground">Observações</span>
                 </div>
 
                 {/* Resolvidos */}
@@ -192,7 +192,7 @@ export function FiscalizaVivo({ data, isLoading, hasError, className }: Fiscaliz
                         <CheckCircle2 className="h-3 w-3 text-emerald-600" />
                         <span className="text-lg font-bold text-emerald-700 dark:text-emerald-400">{resolvidos}</span>
                     </div>
-                    <span className="text-[10px] text-emerald-600 dark:text-emerald-500">Resolvidos</span>
+                    <span className="text-[10px] text-emerald-600 dark:text-emerald-500">Melhorias</span>
                 </div>
 
                 {/* Hoje */}
@@ -208,7 +208,7 @@ export function FiscalizaVivo({ data, isLoading, hasError, className }: Fiscaliz
             {/* Progress bar */}
             <div className="mb-3">
                 <div className="flex justify-between text-xs mb-1">
-                    <span className="text-muted-foreground">Taxa de resolução</span>
+                    <span className="text-muted-foreground">Taxa de melhorias</span>
                     <span className="font-medium text-emerald-600">{taxaResolucao}%</span>
                 </div>
                 <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
@@ -252,20 +252,26 @@ export function FiscalizaVivo({ data, isLoading, hasError, className }: Fiscaliz
                 className="mt-3 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-orange-500 text-white font-medium text-sm shadow-sm min-h-[44px]"
             >
                 <MapPin className="h-4 w-4" />
-                Fazer uma denúncia
+                Registrar observação
             </motion.button>
 
             {/* Decorative sparkle */}
-            {hoje > 5 && (
-                <motion.div
-                    className="absolute top-2 right-2"
-                    animate={{ rotate: [0, 15, -15, 0] }}
-                    transition={{ repeat: Infinity, duration: 3 }}
-                >
-                    <Sparkles className="h-4 w-4 text-amber-400" />
-                </motion.div>
-            )}
-        </motion.div>
+            {
+                hoje > 5 && (
+                    <motion.div
+                        className="absolute top-2 right-2"
+                        animate={{ rotate: [0, 15, -15, 0] }}
+                        transition={{ repeat: Infinity, duration: 3 }}
+                    >
+                        <Sparkles className="h-4 w-4 text-amber-400" />
+                    </motion.div>
+                )
+            }
+            {/* Footer Disclaimer */}
+            <div className="mt-3 text-[10px] text-center text-muted-foreground/60 px-2 leading-tight">
+                Plataforma comunitária e independente. Não é canal oficial da prefeitura.
+            </div>
+        </motion.div >
     );
 }
 

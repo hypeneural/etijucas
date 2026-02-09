@@ -1,7 +1,7 @@
 /**
  * FiscalizaMiniMap - Compact Map Preview
  * 
- * A lightweight static map preview that shows 3 recent report pins
+ * A lightweight static map preview that shows 3 recent observation pins
  * and a CTA to view the full interactive map.
  * Uses a static image approach for performance on mobile.
  */
@@ -133,13 +133,13 @@ export function FiscalizaMiniMap({ pins = [], className }: FiscalizaMiniMapProps
                     whileHover={{ scale: 1.05 }}
                 >
                     <ExternalLink className="h-3 w-3" />
-                    Ver mapa completo
+                    Ver mapa das observações
                 </motion.div>
             </div>
 
             {/* Pin count badge */}
             <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded bg-white/80 dark:bg-black/60 text-[10px] font-medium text-foreground">
-                {visiblePins.length} denúncias recentes
+                {visiblePins.length} observações recentes
             </div>
         </motion.button>
     );

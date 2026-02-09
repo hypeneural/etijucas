@@ -21,10 +21,10 @@ import { enqueueReportDraft } from '@/services/reportOutbox.service';
 import { ACTIVE_REPORT_DRAFT_STORAGE_ID } from '@/lib/idb/reportDraftDB';
 
 const STEP_LABELS = [
-    'Categoria',
-    'Localização',
+    'Tipo',
+    'Local',
     'Fotos',
-    'Revisão'
+    'Resumo'
 ];
 
 const slideVariants = {
@@ -82,11 +82,11 @@ export default function ReportWizardPage() {
     const handleSubmit = useCallback(async () => {
         // Validate required fields
         if (!draft.categoryId) {
-            toast.error('Selecione uma categoria para a denúncia');
+            toast.error('Escolha um tipo de observação');
             return;
         }
         if (!draft.title || draft.title.trim().length < 5) {
-            toast.error('O título deve ter pelo menos 5 caracteres');
+            toast.error('Dê um título curto (mín. 5 caracteres)');
             return;
         }
         // Description is optional - no validation needed
@@ -126,7 +126,7 @@ export default function ReportWizardPage() {
             // Clear draft after successful submit
             clearDraft();
 
-            toast.success('Denúncia enviada com sucesso!');
+            toast.success('Observação publicada!');
         } catch (error) {
             console.error('Error submitting report:', error);
             if (isOfflineLikeReportError(error)) {
@@ -134,14 +134,14 @@ export default function ReportWizardPage() {
                     await saveDraft();
                     await enqueueReportDraft(ACTIVE_REPORT_DRAFT_STORAGE_ID);
 
-                    toast.info('Denúncia salva offline. Vamos enviar quando a conexão voltar.');
+                    toast.info('Observação salva no rascunho. Enviamos quando a conexão voltar.');
                     navigate('/minhas-denuncias');
                     return;
                 } catch (queueError) {
                     console.error('Error queueing report draft for sync:', queueError);
                 }
             }
-            toast.error('Erro ao enviar denúncia. Tente novamente.');
+            toast.error('Não foi possível publicar agora. Tente novamente.');
         }
     }, [draft, createReport, clearDraft, saveDraft, navigate]);
 
@@ -163,8 +163,8 @@ export default function ReportWizardPage() {
     if (!isAuthenticated) {
         return (
             <LoginRequired
-                actionLabel="Entre para denunciar"
-                message="É rápido! Basta confirmar seu número de WhatsApp."
+                actionLabel="Entrar para publicar"
+                message="É rápido: confirme seu número de WhatsApp e participe como Observador."
                 returnUrl="/denuncia/nova"
             />
         );
@@ -197,7 +197,7 @@ export default function ReportWizardPage() {
                     >
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
-                    <h1 className="font-semibold text-lg">Enviar Denúncia</h1>
+                    <h1 className="font-semibold text-lg">Nova observação</h1>
                     <Button
                         variant="ghost"
                         size="icon"

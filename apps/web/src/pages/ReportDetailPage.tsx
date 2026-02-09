@@ -61,19 +61,19 @@ const statusConfig: Record<string, { label: string; color: string; bgColor: stri
         icon: FileText,
     },
     em_analise: {
-        label: 'Em Análise',
+        label: 'Em verificação',
         color: 'text-yellow-600',
         bgColor: 'bg-yellow-100 dark:bg-yellow-900/30',
         icon: Clock,
     },
     resolvido: {
-        label: 'Resolvido',
+        label: 'Melhoria concluída',
         color: 'text-green-600',
         bgColor: 'bg-green-100 dark:bg-green-900/30',
         icon: CheckCircle2,
     },
     rejeitado: {
-        label: 'Rejeitado',
+        label: 'Arquivado',
         color: 'text-red-600',
         bgColor: 'bg-red-100 dark:bg-red-900/30',
         icon: AlertTriangle,
@@ -325,8 +325,8 @@ export default function ReportDetailPage() {
         if (navigator.share) {
             try {
                 await navigator.share({
-                    title: report?.title || 'Denúncia',
-                    text: `Acompanhe esta denúncia em Tijucas: ${report?.title}`,
+                    title: report?.title || 'Observação',
+                    text: `Sou Observador em Tijucas. Olha essa observação: ${report?.title}`,
                     url,
                 });
             } catch (e) {
@@ -363,7 +363,7 @@ export default function ReportDetailPage() {
                         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
                             <ArrowLeft className="w-5 h-5" />
                         </Button>
-                        <h1 className="font-semibold">Denúncia</h1>
+                        <h1 className="font-semibold">Observação</h1>
                     </div>
                 </div>
                 <div className="flex-1 flex items-center justify-center p-8">
@@ -395,7 +395,7 @@ export default function ReportDetailPage() {
                             </Button>
                             <div className="min-w-0">
                                 <p className="text-xs text-muted-foreground truncate">
-                                    Protocolo
+                                    Código de acompanhamento
                                 </p>
                                 <p className="font-mono text-sm font-medium truncate">
                                     {report.protocol}
@@ -537,7 +537,7 @@ export default function ReportDetailPage() {
                                 <CheckCircle2 className="w-5 h-5 text-green-600" />
                                 <div>
                                     <p className="font-medium text-green-700 dark:text-green-400">
-                                        Resolvido
+                                        Melhoria concluída
                                     </p>
                                     <p className="text-sm text-green-600/80 dark:text-green-400/80">
                                         {format(new Date(report.resolvedAt), "d 'de' MMMM 'de' yyyy", { locale: ptBR })}
@@ -546,6 +546,11 @@ export default function ReportDetailPage() {
                             </div>
                         </Card>
                     )}
+
+                    {/* Disclaimer */}
+                    <div className="text-[10px] text-center text-muted-foreground/60 px-4 leading-tight">
+                        Plataforma comunitária e independente. Não é canal oficial da prefeitura.
+                    </div>
                 </div>
             </div>
 
