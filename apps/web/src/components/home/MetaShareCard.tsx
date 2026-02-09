@@ -86,10 +86,10 @@ export function MetaShareCard({
             });
 
             if (navigator.share && navigator.canShare) {
-                const file = new File([blob], 'meta-tijucanos.png', { type: 'image/png' });
+                const file = new File([blob], 'meta-cidadaos.png', { type: 'image/png' });
                 const shareData = {
-                    title: 'Meta Tijucanos',
-                    text: `🎯 Somos ${total.toLocaleString('pt-BR')} tijucanos! Faltam ${remaining} para a meta de ${goal.toLocaleString('pt-BR')}.\n\nJunte-se a nós em etijucas.com.br`,
+                    title: 'Meta Cidadãos',
+                    text: `🎯 Somos ${total.toLocaleString('pt-BR')} cidadãos! Faltam ${remaining} para a meta de ${goal.toLocaleString('pt-BR')}.\n\nJunte-se a nós em observada.com.br`,
                     files: [file],
                 };
 
@@ -104,7 +104,7 @@ export function MetaShareCard({
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'meta-tijucanos.png';
+            a.download = 'meta-cidadaos.png';
             a.click();
             URL.revokeObjectURL(url);
 
@@ -128,16 +128,16 @@ export function MetaShareCard({
     const handleInvite = useCallback(() => {
         hapticFeedback('medium');
 
-        const inviteText = `🏙️ Junte-se a ${total.toLocaleString('pt-BR')} tijucanos no eTijucas!\n\nA cidade na palma da mão: eventos, denúncias, fórum e muito mais.\n\netijucas.com.br`;
+        const inviteText = `🏙️ Junte-se a ${total.toLocaleString('pt-BR')} cidadãos no Observada!\n\nA cidade na palma da mão: eventos, denúncias, fórum e muito mais.\n\nobservada.com.br`;
 
         if (navigator.share) {
             navigator.share({
                 title: 'eTijucas - Convite',
                 text: inviteText,
-                url: 'https://etijucas.com.br',
+                url: 'https://observada.com.br',
             });
         } else {
-            navigator.clipboard.writeText(inviteText + '\nhttps://etijucas.com.br');
+            navigator.clipboard.writeText(inviteText + '\nhttps://observada.com.br');
             toast({
                 title: 'Link copiado!',
                 description: 'Cole e envie para seus amigos',
@@ -172,7 +172,7 @@ export function MetaShareCard({
                 <div className="relative flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                         <Target className="h-5 w-5" />
-                        <h3 className="text-lg font-bold">Meta Tijucanos</h3>
+                        <h3 className="text-lg font-bold">Meta Cidadãos</h3>
                     </div>
                     <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/20 text-xs font-medium">
                         <Sparkles className="h-3 w-3" />
@@ -221,7 +221,7 @@ export function MetaShareCard({
                 {/* Footer */}
                 <div className="relative flex items-center justify-center gap-1 mt-2 text-[10px] text-white/50">
                     <Users className="h-3 w-3" />
-                    etijucas.com.br
+                    observada.com.br
                 </div>
             </motion.div>
 

@@ -396,7 +396,9 @@ export default function MoreScreen({ scrollRef }: MoreScreenProps) {
                 } else if (item.id === 'vereadores') {
                   navigate('/vereadores');
                 } else if (item.id === 'trocar-cidade') {
-                  // Navigate to root to trigger CityGate
+                  // Clear city state and localStorage, then navigate to trigger CityGate
+                  useTenantStore.getState().clear();
+                  localStorage.removeItem('etijucas_last_city');
                   window.location.href = '/';
                 } else {
                   setView(item.id as ScreenView);

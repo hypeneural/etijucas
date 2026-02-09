@@ -75,7 +75,7 @@ export function getMotivationalMessage(total: number): string {
         return 'Estamos ganhando tração — convide 1 amigo!';
     }
     if (total < 100) {
-        return 'Quase 100 tijucanos — bora bater essa meta!';
+        return 'Quase 100 cidadãos — bora bater essa meta!';
     }
     if (total < 500) {
         return 'Crescendo rápido! Compartilhe com vizinhos.';
@@ -87,9 +87,9 @@ export function getMotivationalMessage(total: number): string {
         return 'A cidade está usando! Compartilhe com seu bairro.';
     }
     if (total < 10000) {
-        return 'Rumo aos 10 mil tijucanos conectados!';
+        return 'Rumo aos 10 mil cidadãos conectados!';
     }
-    return 'Tijucas conectada! Continue convidando.';
+    return 'Cidade conectada! Continue convidando.';
 }
 
 /**
