@@ -725,51 +725,60 @@ class HomeAggregatorService
 
     private function getFiscalizaCarouselBlock(int $priority, ?string $bairroId): ?array
     {
-        // 1. Fetch recent reports with photos
-        $reports = CitizenReport::publicVisible()
-            ->has('media') // Only reports with photos
-            ->when($bairroId, fn($q) => $q->where('bairro_id', $bairroId))
-            ->with(['category', 'bairro', 'media'])
-            ->latest()
-            ->take(8) // Limit to 8 for performance
-            ->get();
+        try {
+            // 1. Fetch recent reports with photos — optimized query
+            $reports = CitizenReport::publicVisible()
+                ->whereHas('media', fn($q) => $q->where('collection_name', 'report_images'))
+                ->when($bairroId, fn($q) => $q->where('bairro_id', $bairroId))
+                ->with([
+                    'category:id,name,icon,color',
+                    'bairro:id,nome',
+                    'media' => fn($q) => $q->where('collection_name', 'report_images')->limit(1),
+                ])
+                ->select(['id', 'title', 'status', 'category_id', 'bairro_id', 'created_at'])
+                ->latest()
+                ->take(8)
+                ->get();
 
-        if ($reports->isEmpty()) {
+            if ($reports->isEmpty()) {
+                return null;
+            }
+
+            // 2. Transform to lightweight payload
+            $items = $reports->map(function ($report) {
+                return [
+                    'id' => $report->id,
+                    'title' => $report->title,
+                    'bairro' => $report->bairro?->nome ?? 'Tijucas',
+                    'status' => $report->status->value,
+                    'category' => [
+                        'name' => $report->category?->name ?? 'Outros',
+                        'icon' => $report->category?->icon ?? 'alert-circle',
+                        'color' => $report->category?->color ?? 'slate',
+                    ],
+                    'image' => [
+                        'thumb' => $report->getFirstMediaUrl('report_images', 'thumb'),
+                        'full' => $report->getFirstMediaUrl('report_images'),
+                    ],
+                    'created_at_human' => $report->created_at->diffForHumans(),
+                    'created_at' => $report->created_at->toIso8601String(),
+                ];
+            });
+
+            return [
+                'type' => 'fiscaliza_carousel',
+                'priority' => $priority,
+                'visible' => true,
+                'payload' => [
+                    'title' => '📷 Olhares da Cidade',
+                    'subtitle' => 'Últimos registros da comunidade',
+                    'items' => $items,
+                ],
+            ];
+        } catch (\Exception $e) {
+            \Log::warning("FiscalizaCarousel block failed: " . $e->getMessage());
             return null;
         }
-
-        // 2. Transform to lightweight payload
-        $items = $reports->map(function ($report) {
-            $media = $report->getFirstMedia('report_images');
-            return [
-                'id' => $report->id,
-                'title' => $report->title,
-                'bairro' => $report->bairro?->nome ?? 'Tijucas',
-                'status' => $report->status->value,
-                'category' => [
-                    'name' => $report->category?->name ?? 'Outros',
-                    'icon' => $report->category?->icon ?? 'alert-circle',
-                    'color' => $report->category?->color ?? 'slate',
-                ],
-                'image' => [
-                    'thumb' => $media?->getUrl('thumb') ?? $media?->getUrl(),
-                    'full' => $media?->getUrl(),
-                ],
-                'created_at_human' => $report->created_at->diffForHumans(),
-                'created_at' => $report->created_at->toIso8601String(),
-            ];
-        });
-
-        return [
-            'type' => 'fiscaliza_carousel',
-            'priority' => $priority,
-            'visible' => true,
-            'payload' => [
-                'title' => '📷 Olhares da Cidade',
-                'subtitle' => 'Últimos registros da comunidade',
-                'items' => $items,
-            ],
-        ];
     }
 
     /**
