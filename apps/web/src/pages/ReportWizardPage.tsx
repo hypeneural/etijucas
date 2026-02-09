@@ -22,9 +22,9 @@ import { ACTIVE_REPORT_DRAFT_STORAGE_ID } from '@/lib/idb/reportDraftDB';
 
 const STEP_LABELS = [
     'Categoria',
-    'LocalizaÃ§Ã£o',
+    'Localização',
     'Fotos',
-    'RevisÃ£o'
+    'Revisão'
 ];
 
 const slideVariants = {
@@ -82,11 +82,11 @@ export default function ReportWizardPage() {
     const handleSubmit = useCallback(async () => {
         // Validate required fields
         if (!draft.categoryId) {
-            toast.error('Selecione uma categoria para a denÃºncia');
+            toast.error('Selecione uma categoria para a denúncia');
             return;
         }
         if (!draft.title || draft.title.trim().length < 5) {
-            toast.error('O tÃ­tulo deve ter pelo menos 5 caracteres');
+            toast.error('O título deve ter pelo menos 5 caracteres');
             return;
         }
         // Description is optional - no validation needed
@@ -126,7 +126,7 @@ export default function ReportWizardPage() {
             // Clear draft after successful submit
             clearDraft();
 
-            toast.success('DenÃºncia enviada com sucesso!');
+            toast.success('Denúncia enviada com sucesso!');
         } catch (error) {
             console.error('Error submitting report:', error);
             if (isOfflineLikeReportError(error)) {
@@ -141,13 +141,13 @@ export default function ReportWizardPage() {
                     console.error('Error queueing report draft for sync:', queueError);
                 }
             }
-            toast.error('Erro ao enviar denÃºncia. Tente novamente.');
+            toast.error('Erro ao enviar denúncia. Tente novamente.');
         }
     }, [draft, createReport, clearDraft, saveDraft, navigate]);
 
     const handleClose = () => {
         if (draft.categoryId || draft.location || draft.images.length > 0) {
-            if (window.confirm('Tem certeza que deseja sair? Seu rascunho serÃ¡ salvo.')) {
+            if (window.confirm('Tem certeza que deseja sair? Seu rascunho será salvo.')) {
                 navigate(-1);
             }
         } else {
@@ -164,7 +164,7 @@ export default function ReportWizardPage() {
         return (
             <LoginRequired
                 title="Cadastre-se ou entre"
-                message="Para enviar uma denÃºncia, vocÃª precisa estar cadastrado no aplicativo."
+                message="Para enviar uma denúncia, você precisa estar cadastrado no aplicativo."
                 returnUrl="/denuncia/nova"
             />
         );
@@ -197,7 +197,7 @@ export default function ReportWizardPage() {
                     >
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
-                    <h1 className="font-semibold text-lg">Enviar DenÃºncia</h1>
+                    <h1 className="font-semibold text-lg">Enviar Denúncia</h1>
                     <Button
                         variant="ghost"
                         size="icon"

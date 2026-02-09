@@ -119,7 +119,12 @@ export function CityGate({ children, onCitySelected }: CityGateProps) {
 
     const handleSelectCity = useCallback((city: City) => {
         const uf = city.uf.toLowerCase();
-        const slug = city.slug.split('-')[0]; // Remove UF suffix from slug
+        // Remove UF suffix from slug (e.g., "sao-paulo-sp" -> "sao-paulo")
+        // The UF suffix is always at the end with format "-{uf}"
+        const ufSuffix = `-${uf}`;
+        const slug = city.slug.endsWith(ufSuffix)
+            ? city.slug.slice(0, -ufSuffix.length)
+            : city.slug;
         saveLastCity(uf, slug);
         onCitySelected?.(city);
 

@@ -21,6 +21,7 @@ import { MetaShareCard } from '@/components/home/MetaShareCard';
 import { useHomeData } from '@/hooks/useHomeData';
 import { useCheckIn } from '@/hooks/useCheckIn';
 import { useAppStore } from '@/store/useAppStore';
+import { useTenantStore } from '@/store/useTenantStore';
 import { TabId } from '@/components/layout/BottomTabBar';
 import { useToast } from '@/hooks/use-toast';
 import { hapticFeedback } from '@/hooks/useHaptics';
@@ -96,6 +97,7 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
 
   console.log('[HomeScreen] DEBUG: Hook 4 - useAppStore');
   const { isRefreshing, setIsRefreshing, selectedBairro } = useAppStore();
+  const isModuleEnabled = useTenantStore((state) => state.isModuleEnabled);
 
   console.log('[HomeScreen] DEBUG: Hook 5 - useToast');
   const { toast } = useToast();
@@ -475,8 +477,11 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
         {/* ========================================
             EVENTS CAROUSEL - What's happening today
             Uses aggregator data when available
+            Only shown if events module is enabled
             ======================================== */}
-        <EventsCarousel onNavigate={handleNavigate} data={aggregatorEvents} />
+        {isModuleEnabled('events') && (
+          <EventsCarousel onNavigate={handleNavigate} data={aggregatorEvents} />
+        )}
 
         {/* ========================================
             BOCA NO TROMBONE VIVO - Live Forum Card
@@ -492,8 +497,11 @@ export default function HomeScreen({ scrollRef, onNavigate }: HomeScreenProps) {
         {/* ========================================
             TOURISM HIGHLIGHTS - Explore the city
             Uses aggregator data when available
+            Only shown if tourism module is enabled
             ======================================== */}
-        <TourismHighlights onNavigate={handleNavigate} data={aggregatorTourism} />
+        {isModuleEnabled('tourism') && (
+          <TourismHighlights onNavigate={handleNavigate} data={aggregatorTourism} />
+        )}
 
         {/* ========================================
             HOJE SHARE CARD - Shareable daily summary
