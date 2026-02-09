@@ -729,7 +729,7 @@ class HomeAggregatorService
             // 1. Fetch recent reports with photos — optimized query
             $reports = CitizenReport::publicVisible()
                 ->whereHas('media', fn($q) => $q->where('collection_name', 'report_images'))
-                ->when($bairroId, fn($q) => $q->where('bairro_id', $bairroId))
+                // ->when($bairroId, fn($q) => $q->where('bairro_id', $bairroId)) // DISABLED: Show city-wide photos always for better engagement
                 ->with([
                     'category:id,name,icon,color',
                     'bairro:id,nome',
