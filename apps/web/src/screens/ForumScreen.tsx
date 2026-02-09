@@ -390,7 +390,11 @@ export default function ForumScreen({ scrollRef }: ForumScreenProps) {
         ) : (
           <ForumEmptyState
             type={getEmptyStateType()}
-            onAction={hasActiveFilters ? handleClearFilters : () => setIsComposerOpen(true)}
+            onAction={hasActiveFilters ? handleClearFilters : () => {
+              if (requireAuth('criar um tópico')) {
+                setIsComposerOpen(true);
+              }
+            }}
             onClearFilters={handleClearFilters}
           />
         )}
