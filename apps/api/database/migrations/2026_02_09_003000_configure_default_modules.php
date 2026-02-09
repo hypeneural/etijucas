@@ -7,8 +7,10 @@ use Illuminate\Support\Str;
 /**
  * Configure default module enablement for all cities.
  * 
+ * OPTIMIZED VERSION: Uses raw SQL bulk operations
+ * 
  * Active modules: reports, forum, weather
- * Disabled modules: events, phones, tourism, masses, trash, council, voting, vehicles
+ * Disabled modules: events, phones, tourism, masses, trash, council, voting, vehicles, alerts
  */
 return new class extends Migration {
     // Modules to ENABLE for all cities
@@ -19,33 +21,79 @@ return new class extends Migration {
 
     public function up(): void
     {
-        $cities = DB::table('cities')->where('active', true)->pluck('id');
-        $modules = DB::table('modules')->get()->keyBy('module_key');
+        $modules = DB::table('modules')
+            ->whereIn('module_key', array_merge(self::ENABLE_MODULES, self::DISABLE_MODULES))
+            ->get()
+            ->keyBy('module_key');
 
-        foreach ($cities as $cityId) {
-            // Enable specified modules
+        if ($modules->isEmpty()) {
+            return;
+        }
+
+        // Get all active city IDs
+        $cityIds = DB::table('cities')
+            ->where('active', true)
+            ->pluck('id')
+            ->toArray();
+
+        if (empty($cityIds)) {
+            return;
+        }
+
+        // Build bulk insert data
+        $inserts = [];
+        $now = now();
+
+        foreach ($cityIds as $cityId) {
             foreach (self::ENABLE_MODULES as $moduleKey) {
                 $module = $modules->get($moduleKey);
                 if (!$module)
                     continue;
 
-                $this->upsertCityModule($cityId, $module->id, true);
+                $inserts[] = [
+                    'id' => Str::orderedUuid()->toString(),
+                    'city_id' => $cityId,
+                    'module_id' => $module->id,
+                    'enabled' => true,
+                    'version' => 1,
+                    'settings' => '{}',
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
             }
 
-            // Disable specified modules
             foreach (self::DISABLE_MODULES as $moduleKey) {
                 $module = $modules->get($moduleKey);
                 if (!$module)
                     continue;
 
-                $this->upsertCityModule($cityId, $module->id, false);
+                $inserts[] = [
+                    'id' => Str::orderedUuid()->toString(),
+                    'city_id' => $cityId,
+                    'module_id' => $module->id,
+                    'enabled' => false,
+                    'version' => 1,
+                    'settings' => '{}',
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
             }
+        }
+
+        // Delete existing entries first
+        $moduleIds = $modules->pluck('id')->toArray();
+        DB::table('city_modules')
+            ->whereIn('module_id', $moduleIds)
+            ->delete();
+
+        // Bulk insert in chunks of 1000
+        foreach (array_chunk($inserts, 1000) as $chunk) {
+            DB::table('city_modules')->insert($chunk);
         }
     }
 
     public function down(): void
     {
-        // Revert to is_core defaults by removing city_modules entries
         $moduleKeys = array_merge(self::ENABLE_MODULES, self::DISABLE_MODULES);
 
         $moduleIds = DB::table('modules')
@@ -55,33 +103,5 @@ return new class extends Migration {
         DB::table('city_modules')
             ->whereIn('module_id', $moduleIds)
             ->delete();
-    }
-
-    private function upsertCityModule(string $cityId, string $moduleId, bool $enabled): void
-    {
-        $existing = DB::table('city_modules')
-            ->where('city_id', $cityId)
-            ->where('module_id', $moduleId)
-            ->first();
-
-        if ($existing) {
-            DB::table('city_modules')
-                ->where('id', $existing->id)
-                ->update([
-                    'enabled' => $enabled,
-                    'updated_at' => now(),
-                ]);
-        } else {
-            DB::table('city_modules')->insert([
-                'id' => Str::orderedUuid()->toString(),
-                'city_id' => $cityId,
-                'module_id' => $moduleId,
-                'enabled' => $enabled,
-                'version' => 1,
-                'settings' => json_encode([]),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-        }
     }
 };

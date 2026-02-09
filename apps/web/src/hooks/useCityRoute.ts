@@ -6,6 +6,7 @@
  */
 
 import { useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useTenantStore } from '@/store/useTenantStore';
 
 interface UseCityRouteResult {
@@ -28,10 +29,11 @@ interface UseCityRouteResult {
 
 export function useCityRoute(): UseCityRouteResult {
     const city = useTenantStore((state) => state.city);
+    const location = useLocation();
 
     // Detect if current URL has /uf/cidade prefix
     const { prefix, isMultiCityMode } = useMemo(() => {
-        const path = window.location.pathname;
+        const path = location.pathname;
         const match = path.match(/^\/([a-z]{2})\/([a-z0-9-]+)/i);
 
         if (match) {
@@ -40,7 +42,7 @@ export function useCityRoute(): UseCityRouteResult {
         }
 
         return { prefix: '', isMultiCityMode: false };
-    }, []);
+    }, [location.pathname]);
 
     const buildRoute = (path: string): string => {
         // If not in multi-city mode, return path as-is
